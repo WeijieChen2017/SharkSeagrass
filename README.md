@@ -59,3 +59,5 @@ Clone the repository:
 ```bash
 git clone https://github.com/yourusername/DolphinCoral.git
 cd DolphinCoral
+
+For the readme, convert and modify the language for the following paragraph:"Here we will use the following GitHub repository for reference. 1, https://github.com/MishaLaskin/vqvae this is the fundamental vqvae PyTorch implementation, using for cnn-based vqvae starting point. 2, https://github.com/lucidrains/vector-quantize-pytorch this is the vq specific folder, for reference. 3, https://github.com/rese1f/Awesome-VQVAE?tab=readme-ov-file#3d this if for a variety of vqvae mutants, 4, https://github.com/CompVis/taming-transformers/tree/master this is for vqvae and vqgan and a list of following improvements, using for transformer based implementation"
