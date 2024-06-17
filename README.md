@@ -72,6 +72,10 @@ cd SharkSeagrass
    - Repository: https://github.com/rese1f/Awesome-VQVAE
    - Description: Explore this repository for different VQVAE variants and mutants.
 
-4. **VQVAE and VQGAN with Transformer-Based Improvements**:
+4. **VQVAE and VQGAN with CNN-Based Improvements**:
    - Repository: https://github.com/CompVis/taming-transformers
-   - Description: This repository includes implementations of VQVAE and VQGAN, along with a list of enhancements based on transformers.
+   - Description: This repository includes implementations of VQVAE and VQGAN, along with a list of enhancements based on convolutions.
+
+5. **Transformer-Based ViT-VQGAN Implementation**:
+   - Repository: https://github.com/thuanz123/enhancing-transformers
+   - Description: An unofficial implementation of ViT-VQGAN in PyTorch.
