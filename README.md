@@ -1,9 +1,6 @@
 # SharkSeagrass
-"DolphinCoral" is a machine learning project that synthesizes CT images from PET scans using advanced VQ encoder-decoder frameworks and innovative model architectures.
 
-# DolphinCoral
-
-DolphinCoral is a machine learning project dedicated to synthesizing CT images from PET scans using advanced Vector Quantization (VQ) encoder-decoder frameworks. This project leverages large-scale public datasets and innovative model architectures to improve synthetic CT quality, especially with limited paired PET-CT data.
+SharkSeagrass is a machine learning project dedicated to synthesizing CT images from PET scans using advanced Vector Quantization (VQ) encoder-decoder frameworks. This project leverages large-scale public datasets and innovative model architectures to improve synthetic CT quality, especially with limited paired PET-CT data.
 
 ## Table of Contents
 - [Project Overview](#project-overview)
@@ -17,7 +14,7 @@ DolphinCoral is a machine learning project dedicated to synthesizing CT images f
 - [License](#license)
 
 ## Project Overview
-The main objective of DolphinCoral is to synthesize high-quality CT images from PET images. The research explores different model architectures, including convolutional and transformer-based encoder-decoders, to achieve this goal. The project also investigates techniques like VQ-GAN and pyramid image generation to enhance image detail and quality.
+The main objective of SharkSeagrass is to synthesize high-quality CT images from PET images. The research explores different model architectures, including convolutional and transformer-based encoder-decoders, to achieve this goal. The project also investigates techniques like VQ-GAN and pyramid image generation to enhance image detail and quality.
 
 ## Datasets
 ### Public Dataset
@@ -57,8 +54,8 @@ The primary framework is a VQ encoder-decoder with the following components:
 ### Installation
 Clone the repository:
 ```bash
-git clone https://github.com/yourusername/DolphinCoral.git
-cd DolphinCoral
+git clone https://github.com/yourusername/SharkSeagrass.git
+cd SharkSeagrass
 ```
 
 ### References
