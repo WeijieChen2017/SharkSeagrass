@@ -12,6 +12,7 @@ from omegaconf import OmegaConf
 
 import PIL
 import torch
+import importlib
 import torch.nn as nn
 from torch.optim import lr_scheduler
 from torchvision import transforms as T
@@ -19,8 +20,21 @@ import pytorch_lightning as pl
 
 from .layers import ViTEncoder3D as Encoder, ViTDecoder3D as Decoder
 from .quantizers import VectorQuantizer, GumbelQuantizer
-from ..utils.general import initialize_from_config
+# from ..utils.general import initialize_from_config
+from .loss import VQVAELoss
 
+def get_obj_from_str(name: str, reload: bool = False):
+    module, cls = name.rsplit(".", 1)
+
+    if reload:
+        module_imp = importlib.import_module(module)
+        importlib.reload(module_imp)
+        
+    return getattr(importlib.import_module(module, package=None), cls)
+
+
+def initialize_from_config(config: OmegaConf) -> object:
+    return get_obj_from_str(config["target"])(**config.get("params", dict()))
 
 class ViTVQ3D(pl.LightningModule):
     def __init__(self, volume_key: str, volume_size: int, patch_size: int, encoder: OmegaConf, decoder: OmegaConf, quantizer: OmegaConf,
@@ -32,6 +46,7 @@ class ViTVQ3D(pl.LightningModule):
         self.scheduler = scheduler 
         
         self.loss = initialize_from_config(loss)
+        # self.loss = VQVAELoss()
         self.encoder = Encoder(volume_size=volume_size, patch_size=patch_size, **encoder)
         self.decoder = Decoder(volume_size=volume_size, patch_size=patch_size, **decoder)
         self.quantizer = VectorQuantizer(**quantizer)
