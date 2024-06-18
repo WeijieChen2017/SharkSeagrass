@@ -72,14 +72,14 @@ class ViTVQ3D(pl.LightningModule):
         self.load_state_dict(sd, strict=False)
         print(f"Restored from {path}")
         
-    def encode(self, x: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatFloat]:
+    def encode(self, x: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
         h = self.encoder(x)
         h = self.pre_quant(h)
         quant, emb_loss, _ = self.quantizer(h)
         
         return quant, emb_loss
 
-    def decode(self, quant: torch.FloatTensor) -> torch.FloatFloat:
+    def decode(self, quant: torch.FloatTensor) -> torch.FloatTensor:
         quant = self.post_quant(quant)
         dec = self.decoder(quant)
         
@@ -112,7 +112,7 @@ class ViTVQ3D(pl.LightningModule):
 
         return x.contiguous()
 
-    def training_step(self, batch: Tuple[Any, Any], batch_idx: int, optimizer_idx: int = 0) -> torch.FloatFloat:
+    def training_step(self, batch: Tuple[Any, Any], batch_idx: int, optimizer_idx: int = 0) -> torch.FloatTensor:
         x = self.get_input(batch, self.volume_key)
         xrec, qloss = self(x)
 
@@ -214,7 +214,7 @@ class ViTVQGumbel3D(ViTVQ3D):
         if path is not None:
             self.init_from_ckpt(path, ignore_keys)
 
-    def training_step(self, batch: Tuple[Any, Any], batch_idx: int, optimizer_idx: int = 0) -> torch.FloatFloat:
+    def training_step(self, batch: Tuple[Any, Any], batch_idx: int, optimizer_idx: int = 0) -> torch.FloatTensor:
         if self.temperature_scheduler:
             self.quantizer.temperature = self.temperature_scheduler(self.global_step)
 
