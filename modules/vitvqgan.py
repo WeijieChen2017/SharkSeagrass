@@ -21,7 +21,6 @@ import pytorch_lightning as pl
 from .layers import ViTEncoder3D as Encoder, ViTDecoder3D as Decoder
 from .quantizers import VectorQuantizer, GumbelQuantizer
 # from ..utils.general import initialize_from_config
-from .loss import VQVAELoss
 
 def get_obj_from_str(name: str, reload: bool = False):
     module, cls = name.rsplit(".", 1)
