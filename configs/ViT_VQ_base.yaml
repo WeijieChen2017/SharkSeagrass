@@ -18,7 +18,7 @@ model:
             embed_dim: 32
             n_embed: 8192
         loss:
-            target: losses.vqperceptual.VQLPIPSWithDiscriminator
+            target: losses.VQLPIPSWithDiscriminator
             params:
                 loglaplace_weight: 0.0
                 loggaussian_weight: 1.0
