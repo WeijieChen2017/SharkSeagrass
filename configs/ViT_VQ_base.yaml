@@ -1,5 +1,5 @@
 model:
-    target: modules.stage1.vitvqgan.ViTVQ
+    target: modules.vitvqgan.ViTVQ3D
     params:
         image_key: image
         image_size: 256
