@@ -20,20 +20,9 @@ import pytorch_lightning as pl
 
 from .layers import ViTEncoder3D as Encoder, ViTDecoder3D as Decoder
 from .quantizers import VectorQuantizer, GumbelQuantizer
-# from ..utils.general import initialize_from_config
-
-def get_obj_from_str(name: str, reload: bool = False):
-    module, cls = name.rsplit(".", 1)
-
-    if reload:
-        module_imp = importlib.import_module(module)
-        importlib.reload(module_imp)
-        
-    return getattr(importlib.import_module(module, package=None), cls)
+from ..utils.general import initialize_from_config
 
 
-def initialize_from_config(config: OmegaConf) -> object:
-    return get_obj_from_str(config["target"])(**config.get("params", dict()))
 
 class ViTVQ3D(pl.LightningModule):
     def __init__(self, volume_key: str, volume_size: int, patch_size: int, encoder: OmegaConf, decoder: OmegaConf, quantizer: OmegaConf,
