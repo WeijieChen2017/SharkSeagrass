@@ -1,7 +1,7 @@
 model:
     target: modules.vitvqgan.ViTVQ3D
     params:
-        image_key: image
+        volume_key: image
         image_size: 256
         patch_size: 8
         encoder:
