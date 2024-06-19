@@ -20,7 +20,7 @@ import pytorch_lightning as pl
 
 from .layers import ViTEncoder3D as Encoder, ViTDecoder3D as Decoder
 from .quantizers import VectorQuantizer, GumbelQuantizer
-from ..utils.general import initialize_from_config
+from utils import initialize_from_config
 
 
 
