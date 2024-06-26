@@ -23,13 +23,7 @@ RUN pip install --no-cache-dir \
     omegaconf\
     protobuf
 
-# Copy your code into the Docker image
-COPY . /workspace
-
-# Set the working directory
-WORKDIR /workspace
-
-# Print CUDA device info
+    # Print CUDA device info
 RUN python -c "import torch; print('The device is:', torch.device('cuda' if torch.cuda.is_available() else 'cpu'))"
 
 # Set entrypoint or CMD to run your training script or other commands
