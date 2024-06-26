@@ -13,9 +13,8 @@ https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef1344
 # ------------------------------------------------------------------------------------
 
 import os
-import wandb
 
-wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
+os.environ['WANDB_DIR'] = 'cache/wandb'
 
 # Set the local cache directory for Hugging Face Transformers within the project
 os.environ['TRANSFORMERS_CACHE'] = 'cache/transformers'
@@ -26,6 +25,7 @@ os.environ['MPLCONFIGDIR'] = 'cache/mplconfig'
 # Ensure the directories exist
 os.makedirs(os.environ['TRANSFORMERS_CACHE'], exist_ok=True)
 os.makedirs(os.environ['MPLCONFIGDIR'], exist_ok=True)
+os.makedirs(os.environ['WANDB_DIR'], exist_ok=True)
 # set the environment variable to use the GPU if available
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # os.environ["OMP_NUM_THREADS"] = "1"
@@ -34,6 +34,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # os.environ["OPENBLAS_NUM_THREADS"] = "1"
 # os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 # os.environ["OMP_THREAD_LIMIT"] = "1"
+
+import wandb
+
+wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
+
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
@@ -1084,3 +1089,5 @@ for idx_epoch in range(num_epoch):
         torch.save(model.state_dict(), f"model_{idx_epoch}_state_dict.pth")
         logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
+
+wandb.finish()
