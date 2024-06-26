@@ -15,6 +15,12 @@ https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef1344
 import os
 # set the environment variable to use the GPU if available
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["OMP_THREAD_LIMIT"] = "1"
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
@@ -771,7 +777,7 @@ train_ds = RobustCacheDataset(
     transform=train_transforms,
     cache_num=num_train_files,
     cache_rate=0.2, # 600 * 0.1 = 60
-    num_workers=4,
+    num_workers=1,
 )
 
 val_ds = RobustCacheDataset(
@@ -779,12 +785,12 @@ val_ds = RobustCacheDataset(
     transform=val_transforms, 
     cache_num=num_val_files,
     cache_rate=0.1, # 360 * 0.05 = 18
-    num_workers=2)
+    num_workers=1)
 
 
 
-train_loader = DataLoader(train_ds, batch_size=32, shuffle=True, num_workers=4, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
-val_loader = DataLoader(val_ds, batch_size=16, shuffle=False, num_workers=4, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
+train_loader = DataLoader(train_ds, batch_size=32, shuffle=True, num_workers=1, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
+val_loader = DataLoader(val_ds, batch_size=16, shuffle=False, num_workers=1, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
 
 model = ViTVQ3D(
     volume_key="volume", volume_size=volume_size, patch_size=8,
