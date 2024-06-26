@@ -54,7 +54,6 @@ from functools import partial
 from einops import rearrange
 from einops.layers.torch import Rearrange
 from typing import List, Tuple, Dict, Any, Optional, Union
-from omegaconf import OmegaConf
 from torch.optim import lr_scheduler
 
 from monai.networks.blocks.convolutions import Convolution, ResidualUnit
@@ -457,22 +456,17 @@ class VectorQuantizer(BaseQuantizer):
     
 # class ViTVQ3D(pl.LightningModule):
 class ViTVQ3D(nn.Module):
-    def __init__(self, volume_key: str, volume_size: int, patch_size: int, encoder: OmegaConf, decoder: OmegaConf, quantizer: OmegaConf,
-                 path: Optional[str] = None, ignore_keys: List[str] = list(), scheduler: Optional[OmegaConf] = None) -> None:
-        # loss: OmegaConf, 
+    def __init__(self, volume_key: str, volume_size: int, patch_size: int, encoder: dict, decoder: dict, quantizer: dict,
+                 path: Optional[str] = None, ignore_keys: List[str] = list(), scheduler: Optional[dict] = None) -> None:
         super().__init__()
         self.path = path
         self.ignore_keys = ignore_keys 
         self.volume_key = volume_key
         self.scheduler = scheduler 
         
-        # self.loss = initialize_from_config(loss)
-        # self.loss = VQVAELoss()
         self.encoder = ViTEncoder3D(volume_size=volume_size, patch_size=patch_size, **encoder)
         self.decoder = ViTDecoder3D(volume_size=volume_size, patch_size=patch_size, **decoder)
         self.quantizer = VectorQuantizer(**quantizer)
-        # self.pre_quant = nn.Linear(encoder.dim, quantizer.embed_dim)
-        # self.post_quant = nn.Linear(quantizer.embed_dim, decoder.dim)
         self.pre_quant = nn.Linear(encoder["dim"], quantizer["embed_dim"])
         self.post_quant = nn.Linear(quantizer["embed_dim"], decoder["dim"])
 

@@ -1,5 +1,5 @@
 universe = container
-container_image = docker://docker.io/convez376/vit_vqgan:v1
+container_image = docker://docker.io/convez376/monai_with_wb:v1.0.2
 
 log = job_$(Cluster)_$(Process).log
 error = job_$(Cluster)_$(Process).err
