@@ -13,14 +13,25 @@ https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef1344
 # ------------------------------------------------------------------------------------
 
 import os
+import os 
+
+# Set the local cache directory for Hugging Face Transformers within the project
+os.environ['TRANSFORMERS_CACHE'] = 'cache/transformers'
+
+# Set the local configuration directory for Matplotlib within the project
+# os.environ['MPLCONFIGDIR'] = 'cache/mplconfig'
+
+# Ensure the directories exist
+os.makedirs(os.environ['TRANSFORMERS_CACHE'], exist_ok=True)
+# os.makedirs(os.environ['MPLCONFIGDIR'], exist_ok=True)
 # set the environment variable to use the GPU if available
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["MKL_NUM_THREADS"] = "1"
-os.environ["NUMEXPR_NUM_THREADS"] = "1"
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
-os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-os.environ["OMP_THREAD_LIMIT"] = "1"
+# os.environ["OMP_NUM_THREADS"] = "1"
+# os.environ["MKL_NUM_THREADS"] = "1"
+# os.environ["NUMEXPR_NUM_THREADS"] = "1"
+# os.environ["OPENBLAS_NUM_THREADS"] = "1"
+# os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+# os.environ["OMP_THREAD_LIMIT"] = "1"
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
@@ -75,6 +86,15 @@ from monai.transforms import (
 
 volume_size = 64
 pix_dim = 1.5
+num_workers_train_dataloader = 8
+num_workers_val_dataloader = 4
+num_workers_train_cache_dataset = 8
+num_workers_val_cache_dataset = 4
+batch_size_train = 32
+batch_size_val = 16
+cache_ratio_train = 0.2
+cache_ratio_val = 0.2
+
 
 def get_1d_sincos_pos_embed_from_grid(embed_dim, pos):
     assert embed_dim % 2 == 0
@@ -776,21 +796,21 @@ train_ds = RobustCacheDataset(
     data=train_files,
     transform=train_transforms,
     cache_num=num_train_files,
-    cache_rate=0.2, # 600 * 0.1 = 60
-    num_workers=1,
+    cache_rate=cache_ratio_train, # 600 * 0.1 = 60
+    num_workers=num_workers_train_cache_dataset,
 )
 
 val_ds = RobustCacheDataset(
     data=val_files,
     transform=val_transforms, 
     cache_num=num_val_files,
-    cache_rate=0.1, # 360 * 0.05 = 18
-    num_workers=1)
+    cache_rate=cache_ratio_val, # 360 * 0.05 = 18
+    num_workers=num_workers_val_cache_dataset,)
 
 
 
-train_loader = DataLoader(train_ds, batch_size=32, shuffle=True, num_workers=1, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
-val_loader = DataLoader(val_ds, batch_size=16, shuffle=False, num_workers=1, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
+train_loader = DataLoader(train_ds, batch_size=batch_size_train, shuffle=True, num_workers=num_workers_train_dataloader, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
+val_loader = DataLoader(val_ds, batch_size=batch_size_val, shuffle=False, num_workers=num_workers_val_dataloader, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
 
 model = ViTVQ3D(
     volume_key="volume", volume_size=volume_size, patch_size=8,
@@ -949,3 +969,4 @@ for idx_epoch in range(num_epoch):
     if idx_epoch % save_per_epoch == 0:
         torch.save(model.state_dict(), f"model_{idx_epoch}_state_dict.pth")
         logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
+        
