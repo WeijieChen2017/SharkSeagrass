@@ -13,17 +13,19 @@ https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef1344
 # ------------------------------------------------------------------------------------
 
 import os
-import os 
+import wandb
+
+wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
 
 # Set the local cache directory for Hugging Face Transformers within the project
 os.environ['TRANSFORMERS_CACHE'] = 'cache/transformers'
 
 # Set the local configuration directory for Matplotlib within the project
-# os.environ['MPLCONFIGDIR'] = 'cache/mplconfig'
+os.environ['MPLCONFIGDIR'] = 'cache/mplconfig'
 
 # Ensure the directories exist
 os.makedirs(os.environ['TRANSFORMERS_CACHE'], exist_ok=True)
-# os.makedirs(os.environ['MPLCONFIGDIR'], exist_ok=True)
+os.makedirs(os.environ['MPLCONFIGDIR'], exist_ok=True)
 # set the environment variable to use the GPU if available
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # os.environ["OMP_NUM_THREADS"] = "1"
@@ -94,6 +96,110 @@ batch_size_train = 32
 batch_size_val = 16
 cache_ratio_train = 0.2
 cache_ratio_val = 0.2
+
+# model = ViTVQ3D(
+#     volume_key="volume", volume_size=volume_size, patch_size=8,
+#     encoder={
+#         "dim": 360, "depth": 6, "heads": 16, "mlp_dim": 1024, "channels": 1, "dim_head": 128
+#     },
+#     decoder={
+#         "dim": 360, "depth": 6, "heads": 16, "mlp_dim": 1024, "channels": 1, "dim_head": 128
+#     },
+#     quantizer={
+#         "embed_dim": 128, "n_embed": 1024, "beta": 0.25, "use_norm": True, "use_residual": False
+#     }
+# ).to(device)
+# learning_rate = 5e-4
+# # use AdamW optimizer
+# optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
+# num_epoch = 1000
+# loss_weights = {
+#     "reconL2": 1.0, 
+#     "reconL1": 0.1, 
+#     "perceptual": 0.05, 
+#     "codebook": 0.1}
+# val_per_epoch = 20
+# save_per_epoch = 20
+# num_train_batch = len(train_loader)
+# num_val_batch = len(val_loader)
+# best_val_loss = 1e6
+
+VQ_patch_size = 8
+
+VQ_encoder_dim = 360
+VQ_encoder_depth = 6
+VQ_encoder_heads = 16
+VQ_encoder_mlp_dim = 1024
+VQ_encoder_dim_head = 128
+
+VQ_decoder_dim = 360
+VQ_decoder_depth = 6
+VQ_decoder_heads = 16
+VQ_decoder_mlp_dim = 1024
+VQ_decoder_dim_head = 128
+
+VQ_quantizer_embed_dim = 128
+VQ_quantizer_n_embed = 1024
+VQ_quantizer_beta = 0.25
+VQ_quantizer_use_norm = True
+VQ_quantizer_use_residual = False
+
+VQ_optimizer = "AdamW"
+VQ_optimizer_lr = 5e-4
+VQ_optimizer_weight_decay = 1e-4
+
+VQ_loss_weight_recon_L2 = 1.0
+VQ_loss_weight_recon_L1 = 0.1
+VQ_loss_weight_perceptual = 0.01
+VQ_loss_weight_codebook = 0.1
+
+VQ_train_epoch = 1000
+
+
+
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="CT_ViT_VQGAN",
+
+    # track hyperparameters and run metadata
+    config={
+        "volume_size": volume_size,
+        "pix_dim": pix_dim,
+        "num_workers_train_dataloader": num_workers_train_dataloader,
+        "num_workers_val_dataloader": num_workers_val_dataloader,
+        "num_workers_train_cache_dataset": num_workers_train_cache_dataset,
+        "num_workers_val_cache_dataset": num_workers_val_cache_dataset,
+        "batch_size_train": batch_size_train,
+        "batch_size_val": batch_size_val,
+        "cache_ratio_train": cache_ratio_train,
+        "cache_ratio_val": cache_ratio_val,
+        "VQ_patch_size": VQ_patch_size,
+        "VQ_encoder_dim": VQ_encoder_dim,
+        "VQ_encoder_depth": VQ_encoder_depth,
+        "VQ_encoder_heads": VQ_encoder_heads,
+        "VQ_encoder_mlp_dim": VQ_encoder_mlp_dim,
+        "VQ_encoder_dim_head": VQ_encoder_dim_head,
+        "VQ_decoder_dim": VQ_decoder_dim,
+        "VQ_decoder_depth": VQ_decoder_depth,
+        "VQ_decoder_heads": VQ_decoder_heads,
+        "VQ_decoder_mlp_dim": VQ_decoder_mlp_dim,
+        "VQ_decoder_dim_head": VQ_decoder_dim_head,
+        "VQ_quantizer_embed_dim": VQ_quantizer_embed_dim,
+        "VQ_quantizer_n_embed": VQ_quantizer_n_embed,
+        "VQ_quantizer_beta": VQ_quantizer_beta,
+        "VQ_quantizer_use_norm": VQ_quantizer_use_norm,
+        "VQ_quantizer_use_residual": VQ_quantizer_use_residual,
+        "VQ_optimizer": VQ_optimizer,
+        "VQ_optimizer_lr": VQ_optimizer_lr,
+        "VQ_optimizer_weight_decay": VQ_optimizer_weight_decay,
+        "VQ_loss_weight_recon_L2": VQ_loss_weight_recon_L2,
+        "VQ_loss_weight_recon_L1": VQ_loss_weight_recon_L1,
+        "VQ_loss_weight_perceptual": VQ_loss_weight_perceptual,
+        "VQ_loss_weight_codebook": VQ_loss_weight_codebook,
+        "VQ_train_epoch": VQ_train_epoch
+    }
+)
+
 
 
 def get_1d_sincos_pos_embed_from_grid(embed_dim, pos):
@@ -812,23 +918,36 @@ val_ds = RobustCacheDataset(
 train_loader = DataLoader(train_ds, batch_size=batch_size_train, shuffle=True, num_workers=num_workers_train_dataloader, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
 val_loader = DataLoader(val_ds, batch_size=batch_size_val, shuffle=False, num_workers=num_workers_val_dataloader, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
 
+# model = ViTVQ3D(
+#     volume_key="volume", volume_size=volume_size, patch_size=8,
+#     encoder={
+#         "dim": 360, "depth": 6, "heads": 16, "mlp_dim": 1024, "channels": 1, "dim_head": 128
+#     },
+#     decoder={
+#         "dim": 360, "depth": 6, "heads": 16, "mlp_dim": 1024, "channels": 1, "dim_head": 128
+#     },
+#     quantizer={
+#         "embed_dim": 128, "n_embed": 1024, "beta": 0.25, "use_norm": True, "use_residual": False
+#     }
+# ).to(device)
+
 model = ViTVQ3D(
-    volume_key="volume", volume_size=volume_size, patch_size=8,
+    volume_key="volume", volume_size=volume_size, patch_size=VQ_patch_size,
     encoder={
-        "dim": 360, "depth": 6, "heads": 16, "mlp_dim": 1024, "channels": 1, "dim_head": 128
+        "dim": VQ_encoder_dim, "depth": VQ_encoder_depth, "heads": VQ_encoder_heads, "mlp_dim": VQ_encoder_mlp_dim, "channels": 1, "dim_head": VQ_encoder_dim_head
     },
     decoder={
-        "dim": 360, "depth": 6, "heads": 16, "mlp_dim": 1024, "channels": 1, "dim_head": 128
+        "dim": VQ_decoder_dim, "depth": VQ_decoder_depth, "heads": VQ_decoder_heads, "mlp_dim": VQ_decoder_mlp_dim, "channels": 1, "dim_head": VQ_decoder_dim_head
     },
     quantizer={
-        "embed_dim": 128, "n_embed": 1024, "beta": 0.25, "use_norm": True, "use_residual": False
+        "embed_dim": VQ_quantizer_embed_dim, "n_embed": VQ_quantizer_n_embed, "beta": VQ_quantizer_beta, "use_norm": VQ_quantizer_use_norm, "use_residual": VQ_quantizer_use_residual
     }
 ).to(device)
 
 
-learning_rate = 5e-4
+learning_rate = VQ_optimizer_lr
 # use AdamW optimizer
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=VQ_optimizer_weight_decay)
 
 # here we set the encoder model parameters
 
@@ -873,12 +992,13 @@ current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 log_file_path = f"train_log_{current_time}.json"
 logger = simple_logger(log_file_path)
 
-num_epoch = 1000
+num_epoch = VQ_train_epoch
 loss_weights = {
-    "reconL2": 1.0, 
-    "reconL1": 0.1, 
-    "perceptual": 0.05, 
-    "codebook": 0.1}
+    "reconL2": VQ_loss_weight_recon_L2,
+    "reconL1": VQ_loss_weight_recon_L1,
+    "perceptual": VQ_loss_weight_perceptual,
+    "codebook": VQ_loss_weight_codebook,
+}
 val_per_epoch = 20
 save_per_epoch = 20
 num_train_batch = len(train_loader)
