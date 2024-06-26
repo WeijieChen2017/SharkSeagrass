@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages using pip
-RUN pip install --no-cache-dir \
+RUN pip install --no-cache-dir --trusted-host=pypi.org --trusted-host=files.pythonhosted.org --user \
     torch \
     numpy \
     einops \
