@@ -1,4 +1,3 @@
-pip install --trusted-host=pypi.org --trusted-host=files.pythonhosted.org --user OmegaConf
 tar -xvzf tsv1_ct.tar.gz
 unzip SharkSeagrass.zip
 rm SharkSeagrass.zip
