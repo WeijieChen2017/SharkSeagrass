@@ -29,7 +29,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-import pytorch_lightning as pl
+# import pytorch_lightning as pl
 
 from functools import partial
 from einops import rearrange
@@ -323,7 +323,8 @@ class VectorQuantizer(BaseQuantizer):
 
 
     
-class ViTVQ3D(pl.LightningModule):
+# class ViTVQ3D(pl.LightningModule):
+class ViTVQ3D(nn.Module):
     def __init__(self, volume_key: str, volume_size: int, patch_size: int, encoder: OmegaConf, decoder: OmegaConf, quantizer: OmegaConf,
                  path: Optional[str] = None, ignore_keys: List[str] = list(), scheduler: Optional[OmegaConf] = None) -> None:
         # loss: OmegaConf, 
