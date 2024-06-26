@@ -11,28 +11,61 @@ https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef1344
 # Modified from Taming Transformers (https://github.com/CompVis/taming-transformers)
 # Copyright (c) 2020 Patrick Esser and Robin Rombach and Björn Ommer. All Rights Reserved.
 # ------------------------------------------------------------------------------------
+
+import os
+# set the environment variable to use the GPU if available
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import torch
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("The device is: ", device)
+
+# import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
-import PIL
-import math
+import json
+import time
 import torch
-import importlib
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
 
 from functools import partial
-from einops import rearrange, repeat
+from einops import rearrange
 from einops.layers.torch import Rearrange
 from typing import List, Tuple, Dict, Any, Optional, Union
 from omegaconf import OmegaConf
-from collections import OrderedDict
 from torch.optim import lr_scheduler
-from torchvision import transforms as T
+
+from monai.networks.blocks.convolutions import Convolution, ResidualUnit
+from typing import Optional, Sequence, Tuple, Union
+from monai.networks.layers.factories import Act, Norm
+
+from monai.data import (
+    DataLoader,
+    CacheDataset,
+)
+
+import torch
+from torch.utils.data import DataLoader, Dataset, default_collate
+import numpy as np
+import random
+
+
+from monai.transforms import (
+    EnsureChannelFirstd,
+    Compose,
+    CropForegroundd,
+    LoadImaged,
+    Orientationd,
+    ScaleIntensityRanged,
+    Spacingd,
+    RandSpatialCropd,
+    # random flip and rotate
+    RandFlipd,
+    RandRotated,
+)
 
 volume_size = 64
 pix_dim = 1.5
@@ -459,9 +492,6 @@ class ViTVQ3D(pl.LightningModule):
         
         return log
     
-from monai.networks.blocks.convolutions import Convolution, ResidualUnit
-from typing import Optional, Sequence, Tuple, Union
-from monai.networks.layers.factories import Act, Norm
 
 # apply the channel wise norm for all feature maps
 # Normalize activations
@@ -641,19 +671,6 @@ class UNet3D_encoder(nn.Module):
         return total_dist
     
 
-from monai.transforms import (
-    EnsureChannelFirstd,
-    Compose,
-    CropForegroundd,
-    LoadImaged,
-    Orientationd,
-    ScaleIntensityRanged,
-    Spacingd,
-    RandSpatialCropd,
-    # random flip and rotate
-    RandFlipd,
-    RandRotated,
-)
 
 train_transforms = Compose(
     [
@@ -702,8 +719,6 @@ val_transforms = Compose(
     ]
 )
 
-import json
-
 # load data_chunks.json and specif chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
 with open("data_chunks.json", "r") as f:
     data_chunk = json.load(f)
@@ -726,17 +741,6 @@ num_test_files = len(test_files)
 print("Train files are ", len(train_files))
 print("Val files are ", len(val_files))
 print("Test files are ", len(test_files))
-
-
-from monai.data import (
-    DataLoader,
-    CacheDataset,
-)
-
-import torch
-from torch.utils.data import DataLoader, Dataset, default_collate
-import numpy as np
-import random
 
 class RobustCacheDataset(CacheDataset):
     def __init__(self, data, transform=None, cache_num=0, cache_rate=1.0, num_workers=0):
@@ -781,10 +785,6 @@ val_ds = RobustCacheDataset(
 train_loader = DataLoader(train_ds, batch_size=32, shuffle=True, num_workers=4, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
 val_loader = DataLoader(val_ds, batch_size=16, shuffle=False, num_workers=4, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
 
-device = torch.device("cuda:0")
-print("Device is ", device)
-
-
 model = ViTVQ3D(
     volume_key="volume", volume_size=volume_size, patch_size=8,
     encoder={
@@ -821,7 +821,7 @@ preceptual_model = UNet3D_encoder(**preceptual_loss).to(device)
 
 # create a logger for the training
 # every time called logger.log(), it will save the log into the file
-import time
+
 
 class simple_logger():
     def __init__(self, log_file_path):
@@ -842,8 +842,6 @@ class simple_logger():
             f.write(log_str)
         print(log_str)
 
-
-import time
 current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 log_file_path = f"train_log_{current_time}.json"
 logger = simple_logger(log_file_path)
