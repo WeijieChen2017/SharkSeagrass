@@ -20,7 +20,6 @@ RUN update-ca-certificates --fresh
 # Install additional Python packages using pip
 RUN pip install --no-cache-dir \
     einops \
-    pytorch-lightning\
     omegaconf\
     protobuf
 
