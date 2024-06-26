@@ -1,3 +1,4 @@
+pip list
 tar -xvzf tsv1_ct.tar.gz
 unzip SharkSeagrass.zip
 rm SharkSeagrass.zip
