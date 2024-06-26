@@ -1,7 +1,7 @@
 # Use the MONAI base image
 FROM projectmonai/monai:latest
 
-# Set environment variables for Python
+# Set environment variables for Python and CUDA
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     CUDA_VISIBLE_DEVICES=0
@@ -14,12 +14,19 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages using pip
-RUN pip install --no-cache-dir --trusted-host=pypi.org --trusted-host=files.pythonhosted.org --user \
-    torch \
-    numpy \
+RUN pip install --no-cache-dir \
+    torch==1.13.0+cu113 \
+    torchvision==0.14.0 \
+    torchtext==0.11.0 \
+    torch-tensorrt==1.2.0a0 \
     einops \
-    pytorch-lightning \
-    omegaconf
+    pytorch-lightning==1.7.7 \
+    omegaconf==2.1.1 \
+    protobuf==3.20.1
+
+# Workaround for SSL certificate verification issues
+RUN apt-get install -y ca-certificates
+RUN update-ca-certificates --fresh
 
 # Copy your code into the Docker image
 COPY . /workspace
