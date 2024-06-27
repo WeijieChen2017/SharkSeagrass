@@ -14,7 +14,7 @@ https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef1344
 
 import os
 
-os.environ['WANDB_DIR'] = 'cache/wandb'
+# os.environ['WANDB_DIR'] = 'cache/wandb'
 
 # Set the local cache directory for Hugging Face Transformers within the project
 os.environ['TRANSFORMERS_CACHE'] = 'cache/transformers'
@@ -37,7 +37,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import wandb
 
-wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
+# wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
 
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -176,8 +176,8 @@ wandb.init(
     # set the wandb project where this run will be logged
     project="CT_ViT_VQGAN",
 
-    # set the cache directory to the local cache directory
-    dir="cache/wandb",
+    # # set the cache directory to the local cache directory
+    # dir="cache/wandb",
 
     # track hyperparameters and run metadata
     config={
@@ -497,7 +497,7 @@ class ViTVQ3D(nn.Module):
             decay = quantizer["decay"],
             commitment_weight = quantizer["commitment_weight"],
             kmeans_init = quantizer["kmeans_init"],
-            kmeans_iter = quantizer["kmeans_iter"],
+            kmeans_iters = quantizer["kmeans_iters"],
         )
         self.pre_quant = nn.Linear(encoder["dim"], quantizer["embed_dim"])
         self.post_quant = nn.Linear(quantizer["embed_dim"], decoder["dim"])
