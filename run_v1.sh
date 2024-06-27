@@ -6,7 +6,7 @@ rm tsv1_ct.tar.gz
 mv tsv1_ct ./SharkSeagrass/
 mv model_best_181_state_dict.pth ./SharkSeagrass/
 cd SharkSeagrass
-python train_v1.py
+python train_v2_vq.py
 rm -rf tsv1_ct
 cd ../
 tar -czvf SharkSeagrass_results.tar
