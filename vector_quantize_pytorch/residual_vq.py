@@ -13,7 +13,7 @@ from vector_quantize_pytorch.vector_quantize_pytorch import VectorQuantize
 
 from einops import rearrange, repeat, reduce, pack, unpack
 
-from einx import get_at
+# from einx import get_at
 
 # helper functions
 
@@ -104,7 +104,13 @@ class ResidualVQ(nn.Module):
         mask = indices == -1.
         indices = indices.masked_fill(mask, 0) # have it fetch a dummy code to be masked out later
 
-        all_codes = get_at('q [c] d, b n q -> q b n d', self.codebooks, indices)
+        # all_codes = get_at('q [c] d, b n q -> q b n d', self.codebooks, indices)
+        
+        q, b, n, d = self.codebooks.shape
+        # Gather elements from codebooks based on indices
+        all_codes = torch.zeros((q, b, n, d))
+        for i in range(q):
+            all_codes[i] = self.codebooks[i, indices[:, :, i], :]
 
         # mask out any codes that were dropout-ed
 
