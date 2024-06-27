@@ -100,6 +100,7 @@ batch_size_train = 32
 batch_size_val = 16
 cache_ratio_train = 0.2
 cache_ratio_val = 0.2
+IS_LOGGER_WANDB = True
 
 # model = ViTVQ3D(
 #     volume_key="volume", volume_size=volume_size, patch_size=8,
@@ -986,6 +987,8 @@ class simple_logger():
         with open(self.log_file_path, "a") as f:
             f.write(log_str)
         print(log_str)
+        if IS_LOGGER_WANDB:
+            wandb.log({key: msg})
 
 current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 log_file_path = f"train_log_{current_time}.json"
