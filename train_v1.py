@@ -159,6 +159,7 @@ VQ_loss_weight_perceptual = 0.
 VQ_loss_weight_codebook = 0.1
 
 VQ_train_epoch = 1000
+VQ_train_gradiernt_clip = 1.0
 
 
 
@@ -201,7 +202,8 @@ wandb.init(
         "VQ_loss_weight_recon_L1": VQ_loss_weight_recon_L1,
         "VQ_loss_weight_perceptual": VQ_loss_weight_perceptual,
         "VQ_loss_weight_codebook": VQ_loss_weight_codebook,
-        "VQ_train_epoch": VQ_train_epoch
+        "VQ_train_epoch": VQ_train_epoch,
+        "VQ_train_gradiernt_clip": VQ_train_gradiernt_clip
     }
 )
 
@@ -1049,7 +1051,7 @@ for idx_epoch in range(num_epoch):
         epoch_loss_train["total"].append(total_loss.item())
         print(f"<{idx_epoch}> [{idx_batch}/{num_train_batch}] Total loss: {total_loss.item()}")
         # add gradient clipping
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=VQ_train_gradiernt_clip)
         total_loss.backward()
         optimizer.step()
     
