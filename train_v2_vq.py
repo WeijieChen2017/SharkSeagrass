@@ -176,6 +176,9 @@ wandb.init(
     # set the wandb project where this run will be logged
     project="CT_ViT_VQGAN",
 
+    # set the cache directory to the local cache directory
+    dir="cache/wandb",
+
     # track hyperparameters and run metadata
     config={
         "volume_size": volume_size,
@@ -966,7 +969,7 @@ model = ViTVQ3D(
     },
     quantizer={
         "dim": VQ_lucidrains_VQ_embed_dim, "codebook_size": VQ_lucidrains_VQ_n_embed, "decay": VQ_lucidrains_VQ_decay, "commitment_weight": VQ_lucidrains_VQ_commiment_weight,
-        "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iter": VQ_lucidrains_VQ_kmeans_iters,
+        "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
     },
 ).to(device)
 
