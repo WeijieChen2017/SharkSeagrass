@@ -155,7 +155,7 @@ VQ_optimizer_weight_decay = 1e-4
 
 VQ_loss_weight_recon_L2 = 1.0
 VQ_loss_weight_recon_L1 = 0.1
-VQ_loss_weight_perceptual = 0.01
+VQ_loss_weight_perceptual = 0.
 VQ_loss_weight_codebook = 0.1
 
 VQ_train_epoch = 1000
@@ -960,7 +960,9 @@ preceptual_loss["strides"] = [2, 2, 2]
 preceptual_loss["num_res_units"] = 4
 preceptual_loss["pretrained_path"] = "model_best_181_state_dict.pth"
 
-preceptual_model = UNet3D_encoder(**preceptual_loss).to(device)
+if VQ_loss_weight_perceptual > 0:
+    preceptual_model = UNet3D_encoder(**preceptual_loss).to(device)
+    preceptual_model.eval()
 # total_dist = preceptual_model(nii_data_norm_cut_tensor, out)
 # print("total_dist is ", total_dist)
 
@@ -987,7 +989,9 @@ class simple_logger():
         with open(self.log_file_path, "a") as f:
             f.write(log_str)
         print(log_str)
-        if IS_LOGGER_WANDB:
+
+        # log to wandb if msg is number
+        if IS_LOGGER_WANDB and isinstance(msg, (int, float)):
             wandb.log({key: msg})
 
 current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
@@ -1024,7 +1028,11 @@ for idx_epoch in range(num_epoch):
         xrec, cb_loss = model(x)
         optimizer.zero_grad()
         
-        total_dist = preceptual_model(x, xrec)
+        if VQ_loss_weight_perceptual > 0:
+            total_dist = preceptual_model(x, xrec)
+        else:
+            total_dist = 0
+        # total_dist = preceptual_model(x, xrec)
         reconL2_loss = F.mse_loss(x, xrec)
         reconL1_loss = F.l1_loss(x, xrec)
         perceptual_loss = total_dist
@@ -1061,7 +1069,11 @@ for idx_epoch in range(num_epoch):
             for idx_batch, batch in enumerate(val_loader):
                 x = batch["image"].to(device)
                 xrec, cb_loss = model(x)
-                total_dist = preceptual_model(x, xrec)
+                if VQ_loss_weight_perceptual > 0:
+                    total_dist = preceptual_model(x, xrec)
+                else:
+                    total_dist = 0
+                # total_dist = preceptual_model(x, xrec)
                 reconL2_loss = F.mse_loss(x, xrec)
                 reconL1_loss = F.l1_loss(x, xrec)
                 perceptual_loss = total_dist
