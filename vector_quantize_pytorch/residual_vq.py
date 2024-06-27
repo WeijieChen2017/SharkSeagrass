@@ -42,6 +42,7 @@ class ResidualVQ(nn.Module):
         quantize_dropout_cutoff_index = 0,
         quantize_dropout_multiple_of = 1,
         accept_image_fmap = False,
+        device = None,
         **kwargs
     ):
         super().__init__()
@@ -55,6 +56,10 @@ class ResidualVQ(nn.Module):
         self.has_projections = requires_projection
 
         self.num_quantizers = num_quantizers
+
+        self.device = device
+        # make sure self.device is the instance of torch.device
+        assert isinstance(self.device, torch.device)
 
         self.accept_image_fmap = accept_image_fmap
         self.layers = nn.ModuleList([VectorQuantize(dim = codebook_dim, codebook_dim = codebook_dim, accept_image_fmap = accept_image_fmap, **kwargs) for _ in range(num_quantizers)])
@@ -103,12 +108,11 @@ class ResidualVQ(nn.Module):
 
         mask = indices == -1.
         indices = indices.masked_fill(mask, 0) # have it fetch a dummy code to be masked out later
-
-        # all_codes = get_at('q [c] d, b n q -> q b n d', self.codebooks, indices)
         
+        # all_codes = get_at('q [c] d, b n q -> q b n d', self.codebooks, indices)
         q, b, n, d = self.codebooks.shape
         # Gather elements from codebooks based on indices
-        all_codes = torch.zeros((q, b, n, d))
+        all_codes = torch.zeros((q, b, n, d)).to(self.device)
         for i in range(q):
             all_codes[i] = self.codebooks[i, indices[:, :, i], :]
 
