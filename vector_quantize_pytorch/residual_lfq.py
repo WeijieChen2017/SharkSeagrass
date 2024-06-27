@@ -12,7 +12,7 @@ from vector_quantize_pytorch.lookup_free_quantization import LFQ
 
 from einops import rearrange, repeat, reduce, pack, unpack
 
-from einx import get_at
+# from einx import get_at
 
 # helper functions
 
@@ -40,6 +40,7 @@ class ResidualLFQ(Module):
         quantize_dropout_cutoff_index = 0,
         quantize_dropout_multiple_of = 1,
         soft_clamp_input_value = None,
+        device = None,
         **kwargs
     ):
         super().__init__()
@@ -51,6 +52,9 @@ class ResidualLFQ(Module):
         self.has_projections = requires_projection
 
         self.num_quantizers = num_quantizers
+        self.device = device
+        # make sure self.device is the instance of torch.device
+        assert isinstance(self.device, torch.device)
 
         self.layers = nn.ModuleList([])
 
@@ -104,7 +108,13 @@ class ResidualLFQ(Module):
         mask = indices == -1.
         indices = indices.masked_fill(mask, 0) # have it fetch a dummy code to be masked out later
 
-        all_codes = get_at('q [c] d, b n q -> q b n d', self.codebooks, indices)
+        # all_codes = get_at('q [c] d, b n q -> q b n d', self.codebooks, indices)
+        q, b, n, d = self.codebooks.shape
+        # Gather elements from codebooks based on indices
+        all_codes = torch.zeros((q, b, n, d)).to(self.device)
+        for i in range(q):
+            all_codes[i] = self.codebooks[i, indices[:, :, i], :]
+
 
         # mask out any codes that were dropout-ed
 
