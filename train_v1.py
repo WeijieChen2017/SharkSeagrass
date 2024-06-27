@@ -151,7 +151,7 @@ VQ_quantizer_use_residual = False
 
 VQ_optimizer = "AdamW"
 VQ_optimizer_lr = 5e-4
-VQ_optimizer_weight_decay = 1e-4
+VQ_optimizer_weight_decay = 5e-5
 
 VQ_loss_weight_recon_L2 = 1.0
 VQ_loss_weight_recon_L1 = 0.1
