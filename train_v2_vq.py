@@ -14,18 +14,17 @@ https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef1344
 
 import os
 
-# os.environ['WANDB_DIR'] = 'cache/wandb'
+# Define and create necessary cache directories
+cache_dirs = {
+    'WANDB_DIR': 'cache/wandb',
+    'TRANSFORMERS_CACHE': 'cache/transformers',
+    'MPLCONFIGDIR': 'cache/mplconfig'
+}
 
-# Set the local cache directory for Hugging Face Transformers within the project
-os.environ['TRANSFORMERS_CACHE'] = 'cache/transformers'
+for key, path in cache_dirs.items():
+    os.makedirs(path, exist_ok=True)
+    os.environ[key] = path
 
-# Set the local configuration directory for Matplotlib within the project
-os.environ['MPLCONFIGDIR'] = 'cache/mplconfig'
-
-# Ensure the directories exist
-os.makedirs(os.environ['TRANSFORMERS_CACHE'], exist_ok=True)
-os.makedirs(os.environ['MPLCONFIGDIR'], exist_ok=True)
-os.makedirs(os.environ['WANDB_DIR'], exist_ok=True)
 # set the environment variable to use the GPU if available
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # os.environ["OMP_NUM_THREADS"] = "1"
@@ -37,7 +36,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import wandb
 
-# wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
+wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
 
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -177,7 +176,7 @@ wandb.init(
     project="CT_ViT_VQGAN",
 
     # # set the cache directory to the local cache directory
-    # dir="cache/wandb",
+    dir=os.getenv("WANDB_DIR", "cache/wandb"),
 
     # track hyperparameters and run metadata
     config={
@@ -215,7 +214,14 @@ wandb.init(
         "VQ_loss_weight_perceptual": VQ_loss_weight_perceptual,
         "VQ_loss_weight_codebook": VQ_loss_weight_codebook,
         "VQ_train_epoch": VQ_train_epoch,
-        "VQ_train_gradiernt_clip": VQ_train_gradiernt_clip
+        "VQ_train_gradiernt_clip": VQ_train_gradiernt_clip,
+        "VQ_lucidrains_VQ_type": VQ_lucidrains_VQ_type,
+        "VQ_lucidrains_VQ_embed_dim": VQ_lucidrains_VQ_embed_dim,
+        "VQ_lucidrains_VQ_n_embed": VQ_lucidrains_VQ_n_embed,
+        "VQ_lucidrains_VQ_decay": VQ_lucidrains_VQ_decay,
+        "VQ_lucidrains_VQ_commiment_weight": VQ_lucidrains_VQ_commiment_weight,
+        "VQ_lucidrains_VQ_kmeans_init": VQ_lucidrains_VQ_kmeans_init,
+        "VQ_lucidrains_VQ_kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
     }
 )
 
@@ -492,7 +498,7 @@ class ViTVQ3D(nn.Module):
         #     "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iter": VQ_lucidrains_VQ_kmeans_iters,
         # }
         self.quantizer = lucidrains_VQ(
-            dim = quantizer["dim"],
+            dim = quantizer["embed_dim"],
             codebook_size = quantizer["codebook_size"],
             decay = quantizer["decay"],
             commitment_weight = quantizer["commitment_weight"],
@@ -968,7 +974,7 @@ model = ViTVQ3D(
         "dim": VQ_decoder_dim, "depth": VQ_decoder_depth, "heads": VQ_decoder_heads, "mlp_dim": VQ_decoder_mlp_dim, "channels": 1, "dim_head": VQ_decoder_dim_head
     },
     quantizer={
-        "dim": VQ_lucidrains_VQ_embed_dim, "codebook_size": VQ_lucidrains_VQ_n_embed, "decay": VQ_lucidrains_VQ_decay, "commitment_weight": VQ_lucidrains_VQ_commiment_weight,
+        "embed_dim": VQ_lucidrains_VQ_embed_dim, "codebook_size": VQ_lucidrains_VQ_n_embed, "decay": VQ_lucidrains_VQ_decay, "commitment_weight": VQ_lucidrains_VQ_commiment_weight,
         "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
     },
 ).to(device)
