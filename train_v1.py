@@ -1031,7 +1031,8 @@ for idx_epoch in range(num_epoch):
         if VQ_loss_weight_perceptual > 0:
             total_dist = preceptual_model(x, xrec)
         else:
-            total_dist = 0
+            # make the total_dist.item() = 0
+            total_dist = F.mse_loss(torch.zeros(1), torch.zeros(1))
         # total_dist = preceptual_model(x, xrec)
         reconL2_loss = F.mse_loss(x, xrec)
         reconL1_loss = F.l1_loss(x, xrec)
@@ -1072,7 +1073,7 @@ for idx_epoch in range(num_epoch):
                 if VQ_loss_weight_perceptual > 0:
                     total_dist = preceptual_model(x, xrec)
                 else:
-                    total_dist = 0
+                    total_dist = total_dist = F.mse_loss(torch.zeros(1), torch.zeros(1))
                 # total_dist = preceptual_model(x, xrec)
                 reconL2_loss = F.mse_loss(x, xrec)
                 reconL1_loss = F.l1_loss(x, xrec)
