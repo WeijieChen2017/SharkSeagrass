@@ -1048,6 +1048,8 @@ for idx_epoch in range(num_epoch):
         epoch_loss_train["codebook"].append(codebook_loss.item())
         epoch_loss_train["total"].append(total_loss.item())
         print(f"<{idx_epoch}> [{idx_batch}/{num_train_batch}] Total loss: {total_loss.item()}")
+        # add gradient clipping
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         total_loss.backward()
         optimizer.step()
     
