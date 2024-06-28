@@ -158,19 +158,21 @@ VQ_lucidrains_VQ_decay = 0.8
 VQ_lucidrains_VQ_commiment_weight = 1.0
 
 # kmeans init
-# VQ_lucidrains_VQ_kmeans_init = True
-# VQ_lucidrains_VQ_kmeans_iters = 10
+VQ_lucidrains_VQ_kmeans_init = True
+VQ_lucidrains_VQ_kmeans_iters = 10
 
 # low codebook dim
 # VQ_lucidrains_VQ_codebook_dim = 16
 
 # cosine similarity for spherical embedding
 VQ_lucidrains_VQ_use_cosine_sim = True
-VQ_lucidrains_VQ_message = "cosine similarity for spherical embedding"
+# VQ_lucidrains_VQ_message = "cosine similarity for spherical embedding"
 
 # expiring stale embeddings
-# VQ_lucidrains_threshold_ema_dead_code = 2
+VQ_lucidrains_threshold_ema_dead_code = 2
 # VQ_lucidrains_VQ_message = "randomly remove embeddings that haven't been used in the last 2 epochs"
+
+VQ_lucidrains_VQ_message = "kmeans init, cosine similarity, expiring stale embeddings"
 
 VQ_optimizer = "AdamW"
 VQ_optimizer_lr = 5e-4
@@ -235,11 +237,11 @@ wandb.init(
         "VQ_lucidrains_VQ_n_embed": VQ_lucidrains_VQ_n_embed,
         "VQ_lucidrains_VQ_decay": VQ_lucidrains_VQ_decay,
         "VQ_lucidrains_VQ_commiment_weight": VQ_lucidrains_VQ_commiment_weight,
-        # "VQ_lucidrains_VQ_kmeans_init": VQ_lucidrains_VQ_kmeans_init,
-        # "VQ_lucidrains_VQ_kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
+        "VQ_lucidrains_VQ_kmeans_init": VQ_lucidrains_VQ_kmeans_init,
+        "VQ_lucidrains_VQ_kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
         # "VQ_lucidrains_VQ_codebook_dim": VQ_lucidrains_VQ_codebook_dim,
         "VQ_lucidrains_VQ_use_cosine_sim": VQ_lucidrains_VQ_use_cosine_sim,
-        # "VQ_lucidrains_threshold_ema_dead_code": VQ_lucidrains_threshold_ema_dead_code,
+        "VQ_lucidrains_threshold_ema_dead_code": VQ_lucidrains_threshold_ema_dead_code,
         "VQ_lucidrains_VQ_message": VQ_lucidrains_VQ_message,
     }
 )
@@ -522,10 +524,10 @@ class ViTVQ3D(nn.Module):
             decay = quantizer["decay"],
             commitment_weight = quantizer["commitment_weight"],
             # codebook_dim = quantizer["codebook_dim"],
-            # kmeans_init = quantizer["kmeans_init"],
-            # kmeans_iters = quantizer["kmeans_iters"],
+            kmeans_init = quantizer["kmeans_init"],
+            kmeans_iters = quantizer["kmeans_iters"],
             use_cosine_sim = quantizer["use_cosine_sim"],
-            # threshold_ema_dead_code = quantizer["threshold_ema_dead_code"],
+            threshold_ema_dead_code = quantizer["threshold_ema_dead_code"],
         )
         self.pre_quant = nn.Linear(encoder["dim"], quantizer["embed_dim"])
         self.post_quant = nn.Linear(quantizer["embed_dim"], decoder["dim"])
@@ -997,10 +999,10 @@ model = ViTVQ3D(
     },
     quantizer={
         "embed_dim": VQ_lucidrains_VQ_embed_dim, "codebook_size": VQ_lucidrains_VQ_n_embed, "decay": VQ_lucidrains_VQ_decay, "commitment_weight": VQ_lucidrains_VQ_commiment_weight,
-        # "threshold_ema_dead_code": VQ_lucidrains_threshold_ema_dead_code,
+        "threshold_ema_dead_code": VQ_lucidrains_threshold_ema_dead_code,
         "use_cosine_sim": VQ_lucidrains_VQ_use_cosine_sim,
         # "codebook_dim": VQ_lucidrains_VQ_codebook_dim,
-        # "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
+        "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
     },
 ).to(device)
 
