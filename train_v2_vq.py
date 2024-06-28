@@ -521,7 +521,7 @@ class ViTVQ3D(nn.Module):
             codebook_size = quantizer["codebook_size"],
             decay = quantizer["decay"],
             commitment_weight = quantizer["commitment_weight"],
-            codebook_dim = quantizer["codebook_dim"],
+            # codebook_dim = quantizer["codebook_dim"],
             # kmeans_init = quantizer["kmeans_init"],
             # kmeans_iters = quantizer["kmeans_iters"],
             # use_cosine_sim = quantizer["use_cosine_sim"],
