@@ -154,8 +154,10 @@ VQ_lucidrains_VQ_embed_dim = 256
 VQ_lucidrains_VQ_n_embed = 1024
 VQ_lucidrains_VQ_decay = 0.8
 VQ_lucidrains_VQ_commiment_weight = 1.0
-VQ_lucidrains_VQ_kmeans_init = True
-VQ_lucidrains_VQ_kmeans_iters = 10
+# VQ_lucidrains_VQ_kmeans_init = True
+# VQ_lucidrains_VQ_kmeans_iters = 10
+VQ_lucidrains_VQ_codebook_dim = 16
+VQ_lucidrains_VQ_message = "low codebook dim"
 
 VQ_optimizer = "AdamW"
 VQ_optimizer_lr = 5e-4
@@ -220,8 +222,10 @@ wandb.init(
         "VQ_lucidrains_VQ_n_embed": VQ_lucidrains_VQ_n_embed,
         "VQ_lucidrains_VQ_decay": VQ_lucidrains_VQ_decay,
         "VQ_lucidrains_VQ_commiment_weight": VQ_lucidrains_VQ_commiment_weight,
-        "VQ_lucidrains_VQ_kmeans_init": VQ_lucidrains_VQ_kmeans_init,
-        "VQ_lucidrains_VQ_kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
+        # "VQ_lucidrains_VQ_kmeans_init": VQ_lucidrains_VQ_kmeans_init,
+        # "VQ_lucidrains_VQ_kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
+        "VQ_lucidrains_VQ_codebook_dim": VQ_lucidrains_VQ_codebook_dim,
+        "VQ_lucidrains_VQ_message": VQ_lucidrains_VQ_message,
     }
 )
 
@@ -502,8 +506,9 @@ class ViTVQ3D(nn.Module):
             codebook_size = quantizer["codebook_size"],
             decay = quantizer["decay"],
             commitment_weight = quantizer["commitment_weight"],
-            kmeans_init = quantizer["kmeans_init"],
-            kmeans_iters = quantizer["kmeans_iters"],
+            codebook_dim = quantizer["codebook_dim"],
+            # kmeans_init = quantizer["kmeans_init"],
+            # kmeans_iters = quantizer["kmeans_iters"],
         )
         self.pre_quant = nn.Linear(encoder["dim"], quantizer["embed_dim"])
         self.post_quant = nn.Linear(quantizer["embed_dim"], decoder["dim"])
@@ -857,7 +862,7 @@ train_transforms = Compose(
             b_max=1.0,
             clip=True,
         ),
-        CropForegroundd(keys=["image"], source_key="image"),
+        # CropForegroundd(keys=["image"], source_key="image"),
         # random crop to the target size
         RandSpatialCropd(keys=["image"], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
         # add random flip and rotate
@@ -878,7 +883,7 @@ val_transforms = Compose(
             mode=("bilinear"),
         ),
         ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=2976, b_min=0.0, b_max=1.0, clip=True),
-        CropForegroundd(keys=["image"], source_key="image"),
+        # CropForegroundd(keys=["image"], source_key="image"),
         RandSpatialCropd(keys=["image"], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
         RandFlipd(keys=["image"], prob=0.5, spatial_axis=0),
         RandFlipd(keys=["image"], prob=0.5, spatial_axis=1),
@@ -975,7 +980,8 @@ model = ViTVQ3D(
     },
     quantizer={
         "embed_dim": VQ_lucidrains_VQ_embed_dim, "codebook_size": VQ_lucidrains_VQ_n_embed, "decay": VQ_lucidrains_VQ_decay, "commitment_weight": VQ_lucidrains_VQ_commiment_weight,
-        "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
+        "codebook_dim": VQ_lucidrains_VQ_codebook_dim,
+        # "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
     },
 ).to(device)
 
@@ -1091,7 +1097,7 @@ for idx_epoch in range(num_epoch):
     for key in epoch_loss_train.keys():
         epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
         logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
-        logger.log(idx_epoch, f"train_{key}_std", epoch_loss_train[key].std())
+        # logger.log(idx_epoch, f"train_{key}_std", epoch_loss_train[key].std())
 
     # validation
     if idx_epoch % val_per_epoch == 0:
@@ -1130,7 +1136,7 @@ for idx_epoch in range(num_epoch):
         for key in epoch_loss_val.keys():
             epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
             logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
-            logger.log(idx_epoch, f"val_{key}_std", epoch_loss_val[key].std())
+            # logger.log(idx_epoch, f"val_{key}_std", epoch_loss_val[key].std())
 
         if epoch_loss_val["total"].mean() < best_val_loss:
             best_val_loss = epoch_loss_val["total"].mean()
