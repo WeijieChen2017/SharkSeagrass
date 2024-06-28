@@ -149,15 +149,25 @@ VQ_decoder_dim_head = 128
 # VQ_quantizer_beta = 0.25
 # VQ_quantizer_use_norm = True
 # VQ_quantizer_use_residual = False
+
+# vanilla vq
 VQ_lucidrains_VQ_type = "VectorQuantize"
 VQ_lucidrains_VQ_embed_dim = 256
 VQ_lucidrains_VQ_n_embed = 1024
 VQ_lucidrains_VQ_decay = 0.8
 VQ_lucidrains_VQ_commiment_weight = 1.0
+
+# kmeans init
 # VQ_lucidrains_VQ_kmeans_init = True
 # VQ_lucidrains_VQ_kmeans_iters = 10
-VQ_lucidrains_VQ_codebook_dim = 16
-VQ_lucidrains_VQ_message = "low codebook dim"
+
+# low codebook dim
+# VQ_lucidrains_VQ_codebook_dim = 16
+
+# cosine similarity for spherical embedding
+VQ_lucidrains_VQ_use_cosine_sim = True
+
+VQ_lucidrains_VQ_message = "cosine similarity for spherical embedding"
 
 VQ_optimizer = "AdamW"
 VQ_optimizer_lr = 5e-4
@@ -224,7 +234,8 @@ wandb.init(
         "VQ_lucidrains_VQ_commiment_weight": VQ_lucidrains_VQ_commiment_weight,
         # "VQ_lucidrains_VQ_kmeans_init": VQ_lucidrains_VQ_kmeans_init,
         # "VQ_lucidrains_VQ_kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
-        "VQ_lucidrains_VQ_codebook_dim": VQ_lucidrains_VQ_codebook_dim,
+        # "VQ_lucidrains_VQ_codebook_dim": VQ_lucidrains_VQ_codebook_dim,
+        "VQ_lucidrains_VQ_use_cosine_sim": VQ_lucidrains_VQ_use_cosine_sim,
         "VQ_lucidrains_VQ_message": VQ_lucidrains_VQ_message,
     }
 )
@@ -509,6 +520,7 @@ class ViTVQ3D(nn.Module):
             codebook_dim = quantizer["codebook_dim"],
             # kmeans_init = quantizer["kmeans_init"],
             # kmeans_iters = quantizer["kmeans_iters"],
+            use_cosine_sim = quantizer["use_cosine_sim"],
         )
         self.pre_quant = nn.Linear(encoder["dim"], quantizer["embed_dim"])
         self.post_quant = nn.Linear(quantizer["embed_dim"], decoder["dim"])
@@ -980,7 +992,8 @@ model = ViTVQ3D(
     },
     quantizer={
         "embed_dim": VQ_lucidrains_VQ_embed_dim, "codebook_size": VQ_lucidrains_VQ_n_embed, "decay": VQ_lucidrains_VQ_decay, "commitment_weight": VQ_lucidrains_VQ_commiment_weight,
-        "codebook_dim": VQ_lucidrains_VQ_codebook_dim,
+        "use_cosine_sim": VQ_lucidrains_VQ_use_cosine_sim,
+        # "codebook_dim": VQ_lucidrains_VQ_codebook_dim,
         # "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
     },
 ).to(device)
