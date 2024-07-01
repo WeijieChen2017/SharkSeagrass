@@ -181,7 +181,7 @@ VQ_optimizer_weight_decay = 5e-5
 
 VQ_loss_weight_recon_L2 = 1.0
 VQ_loss_weight_recon_L1 = 0.1
-VQ_loss_weight_perceptual = 0.
+VQ_loss_weight_perceptual = 0.1
 VQ_loss_weight_codebook = 0.1
 
 VQ_train_epoch = 900
