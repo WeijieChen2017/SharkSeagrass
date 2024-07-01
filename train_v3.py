@@ -52,7 +52,6 @@ import torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-import matplotlib.pyplot as plt
 # import pytorch_lightning as pl
 
 from functools import partial
@@ -184,7 +183,7 @@ VQ_loss_weight_recon_L1 = 0.1
 VQ_loss_weight_perceptual = 0.
 VQ_loss_weight_codebook = 0.1
 
-VQ_train_epoch = 900
+VQ_train_epoch = 1000
 VQ_train_gradiernt_clip = 1.0
 
 
@@ -392,6 +391,87 @@ class ViTEncoder3D(nn.Module):
 
         return x
     
+class UNetEncoder3D(nn.Module):
+    def __init__(self, in_channels: int, out_channels: list, embedding_dim : int, stride: list, kernel_size: int = 3, padding: int = 1, num_res_units: int = 4) -> None:
+        super().__init__()
+        self.encoder = nn.Sequential(
+            Convolution(
+                dimensions=3,
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                act=Act.PRELU,
+                norm=Norm.INSTANCE,
+            ),
+            *[ResidualUnit(
+                dimensions=3,
+                in_channels=out_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                act=Act.PRELU,
+                norm=Norm.INSTANCE,
+            ) for _ in range(num_res_units)]
+        )
+
+        self.to_latent = nn.Sequential(
+            Rearrange('b c d h w -> b (d h w) c'),
+            nn.Linear(out_channels, embedding_dim),
+        )
+
+    def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
+        x = self.encoder(x)
+        x = self.to_latent(x)
+        # assume the input is a 3D volume (B, C, D, H, W)
+        # current shape is (B, C, D, H, W), we need to convert it to (B, D*H*W, C)
+        return x
+    
+class UNetDecoder3D(nn.Module):
+    def __init__(self, in_channels: int, out_channels: list, embedding_dim: int, stride: list, volume_size: Union[Tuple[int, int, int], int], patch_size: Union[Tuple[int, int, int], int],
+                 kernel_size: int = 3, padding: int = 1, num_res_units: int = 4) -> None:
+        super().__init__()
+        self.decoder = nn.Sequential(
+            *[ResidualUnit(
+                dimensions=3,
+                in_channels=in_channels,
+                out_channels=in_channels,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                act=Act.PRELU,
+                norm=Norm.INSTANCE,
+            ) for _ in range(num_res_units)],
+            Convolution(
+                dimensions=3,
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                act=Act.SIGMOID,
+                norm=Norm.INSTANCE,
+            )
+        )
+
+        self.volume_depth, self.volume_height, self.volume_width = volume_size if isinstance(volume_size, tuple) else (volume_size, volume_size, volume_size)
+        self.patch_depth, self.patch_height, self.patch_width = patch_size if isinstance(patch_size, tuple) else (patch_size, patch_size, patch_size)
+
+        self.latent_to_3d = nn.Sequential(
+            nn.Linear(embedding_dim, out_channels),
+            Rearrange('b (d h w) c -> b c d h w', d=self.volume_depth // self.patch_depth, h=self.volume_height // self.patch_height, w=self.volume_width // self.patch_width),
+        )
+
+
+    def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
+        x = self.latent_to_3d(x)
+        # assume the input is a 3D volume (B, D*H*W, C)
+        # current shape is (B, D*H*W, C), we need to convert it to (B, C, D, H, W)
+        x = self.decoder(x)
+        return x
+    
 class ViTDecoder3D(nn.Module):
     def __init__(self, volume_size: Union[Tuple[int, int, int], int], patch_size: Union[Tuple[int, int, int], int],
                  dim: int, depth: int, heads: int, mlp_dim: int, channels: int = 1, dim_head: int = 64) -> None:
@@ -425,83 +505,6 @@ class ViTDecoder3D(nn.Module):
         return self.to_voxel[-1].weight
 
 
-class BaseQuantizer(nn.Module):
-    def __init__(self, embed_dim: int, n_embed: int, straight_through: bool = True, use_norm: bool = True,
-                 use_residual: bool = False, num_quantizers: Optional[int] = None) -> None:
-        super().__init__()
-        self.straight_through = straight_through
-        self.norm = lambda x: F.normalize(x, dim=-1) if use_norm else x
-
-        self.use_residual = use_residual
-        self.num_quantizers = num_quantizers
-
-        self.embed_dim = embed_dim
-        self.n_embed = n_embed
-
-        self.embedding = nn.Embedding(self.n_embed, self.embed_dim)
-        self.embedding.weight.data.normal_()
-        
-    def quantize(self, z: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.LongTensor]:
-        pass
-    
-    def forward(self, z: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.LongTensor]:
-        if not self.use_residual:
-            z_q, loss, encoding_indices = self.quantize(z)
-        else:
-            z_q = torch.zeros_like(z)
-            residual = z.detach().clone()
-
-            losses = []
-            encoding_indices = []
-
-            for _ in range(self.num_quantizers):
-                z_qi, loss, indices = self.quantize(residual.clone())
-                residual.sub_(z_qi)
-                z_q.add_(z_qi)
-
-                encoding_indices.append(indices)
-                losses.append(loss)
-
-            losses, encoding_indices = map(partial(torch.stack, dim = -1), (losses, encoding_indices))
-            loss = losses.mean()
-
-        # preserve gradients with straight-through estimator
-        if self.straight_through:
-            z_q = z + (z_q - z).detach()
-
-        return z_q, loss, encoding_indices
-    
-class VectorQuantizer(BaseQuantizer):
-    def __init__(self, embed_dim: int, n_embed: int, beta: float = 0.25, use_norm: bool = True,
-                 use_residual: bool = False, num_quantizers: Optional[int] = None, **kwargs) -> None:
-        super().__init__(embed_dim, n_embed, True,
-                         use_norm, use_residual, num_quantizers)
-        
-        self.beta = beta
-
-    def quantize(self, z: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.LongTensor]:
-        z_reshaped_norm = self.norm(z.view(-1, self.embed_dim))
-        embedding_norm = self.norm(self.embedding.weight)
-        
-        d = torch.sum(z_reshaped_norm ** 2, dim=1, keepdim=True) + \
-            torch.sum(embedding_norm ** 2, dim=1) - 2 * \
-            torch.einsum('b d, n d -> b n', z_reshaped_norm, embedding_norm)
-
-        encoding_indices = torch.argmin(d, dim=1).unsqueeze(1)
-        encoding_indices = encoding_indices.view(*z.shape[:-1])
-        
-        z_q = self.embedding(encoding_indices).view(z.shape)
-        z_qnorm, z_norm = self.norm(z_q), self.norm(z)
-        
-        # compute loss for embedding
-        loss = self.beta * torch.mean((z_qnorm.detach() - z_norm)**2) +  \
-               torch.mean((z_qnorm - z_norm.detach())**2)
-
-        return z_qnorm, loss, encoding_indices
-    
-
-
-    
 # class ViTVQ3D(pl.LightningModule):
 class ViTVQ3D(nn.Module):
     def __init__(self, volume_key: str, volume_size: int, patch_size: int, encoder: dict, decoder: dict, quantizer: dict,
@@ -1057,62 +1060,6 @@ class simple_logger():
         if IS_LOGGER_WANDB and isinstance(msg, (int, float)):
             wandb.log({key: msg})
 
-def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None):
-    numpy_x = x.cpu().numpy().squeeze()
-    numpy_xrec = xrec.cpu().numpy().squeeze()
-    x_clip = np.clip(numpy_x, 0, 1)
-    rec_clip = np.clip(numpy_xrec, 0, 1)
-    fig_height = num_per_direction * 3
-    fig_width = 4
-    fig, axs = plt.subplots(fig_height, 3, figsize=(fig_width, fig_height * 2), dpi=100)
-    # for axial
-    for i in range(num_per_direction):
-        img_x = x_clip[x_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
-        img_rec = rec_clip[rec_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
-        axs[3*i, 0].imshow(img_x, cmap="gray")
-        axs[3*i, 0].set_title(f"A x {x_clip.shape[0]//(num_per_direction+1)*(i+1)}")
-        axs[3*i, 0].axis("off")
-        axs[3*i+1, 0].imshow(img_rec, cmap="gray")
-        axs[3*i+1, 0].set_title(f"A xrec {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+1, 0].axis("off")
-        axs[3*i+2, 0].imshow(img_x - img_rec, cmap="bwr")
-        axs[3*i+2, 0].set_title(f"A diff {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+2, 0].axis("off")
-    # for sagittal
-    for i in range(num_per_direction):
-        img_x = x_clip[:, :, x_clip.shape[2]//(num_per_direction+1)*(i+1)]
-        img_rec = rec_clip[:, :, rec_clip.shape[2]//(num_per_direction+1)*(i+1)]
-        axs[3*i, 1].imshow(img_x, cmap="gray")
-        axs[3*i, 1].set_title(f"S x {x_clip.shape[2]//(num_per_direction+1)*(i+1)}")
-        axs[3*i, 1].axis("off")
-        axs[3*i+1, 1].imshow(img_rec, cmap="gray")
-        axs[3*i+1, 1].set_title(f"S xrec {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+1, 1].axis("off")
-        axs[3*i+2, 1].imshow(img_x - img_rec, cmap="bwr")
-        axs[3*i+2, 1].set_title(f"S diff {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+2, 1].axis("off")
-
-    # for coronal
-    for i in range(num_per_direction):
-        img_x = x_clip[:, x_clip.shape[1]//(num_per_direction+1)*(i+1), :]
-        img_rec = rec_clip[:, rec_clip.shape[1]//(num_per_direction+1)*(i+1), :]
-        axs[3*i, 2].imshow(img_x, cmap="gray")
-        axs[3*i, 2].set_title(f"C x {x_clip.shape[1]//(num_per_direction+1)*(i+1)}")
-        axs[3*i, 2].axis("off")
-        axs[3*i+1, 2].imshow(img_rec, cmap="gray")
-        axs[3*i+1, 2].set_title(f"C xrec {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+1, 2].axis("off")
-        axs[3*i+2, 2].imshow(img_x - img_rec, cmap="bwr")
-        axs[3*i+2, 2].set_title(f"C diff {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+2, 2].axis("off")
-
-    plt.tight_layout()
-    plt.savefig(savename)
-    plt.close()
-    print(f"Save the plot to {savename}")
-
-
-
 current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 log_file_path = f"train_log_{current_time}.json"
 logger = simple_logger(log_file_path)
@@ -1125,15 +1072,10 @@ loss_weights = {
     "codebook": VQ_loss_weight_codebook,
 }
 val_per_epoch = 20
-save_per_epoch = 100
+save_per_epoch = 20
 num_train_batch = len(train_loader)
 num_val_batch = len(val_loader)
 best_val_loss = 1e6
-save_folder = "./results"
-wandb_save_folder = os.environ["WANDB_DIR"]
-
-if not os.path.exists(save_folder):
-    os.makedirs(save_folder)
 
 for idx_epoch in range(num_epoch):
     model.train()
@@ -1215,27 +1157,7 @@ for idx_epoch in range(num_epoch):
                 epoch_loss_val["codebook"].append(codebook_loss.item())
                 epoch_loss_val["total"].append(total_loss.item())
                 print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
-            
-        # save the last batch images
-        # numpy_x = x.cpu().numpy().squeeze()
-        # numpy_xrec = xrec.cpu().numpy().squeeze()
-        # save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
-        # np.save(save_folder+f"{save_name}_x.npy", numpy_x)
-        # np.save(save_folder+f"{save_name}_xrec.npy", numpy_xrec)
-        # wand_save_name = f"{wandb_save_folder}/{save_name}"
-        # np.save(wand_save_name+"_x.npy", numpy_x)
-        # np.save(wand_save_name+"_xrec.npy", numpy_xrec)
-        # print(f"Images saved as {save_name}_x.npy and {save_name}_xrec.npy")
-        # print(f"Images saved as {wand_save_name}_x.npy and {wand_save_name}_xrec.npy")
         
-        # save the last batch images
-        numpy_x = x.cpu().numpy().squeeze()
-        numpy_xrec = xrec.cpu().numpy().squeeze()
-        save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
-        plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=save_folder+f"{save_name}.png")
-        wand_save_name = f"{wandb_save_folder}/{save_name}"
-        plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=wand_save_name+".png")
-
         for key in epoch_loss_val.keys():
             epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
             logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
@@ -1243,12 +1165,12 @@ for idx_epoch in range(num_epoch):
 
         if epoch_loss_val["total"].mean() < best_val_loss:
             best_val_loss = epoch_loss_val["total"].mean()
-            torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict.pth")
+            torch.save(model.state_dict(), f"model_best_{idx_epoch}_state_dict.pth")
             logger.log(idx_epoch, "best_val_loss", best_val_loss)
     
     # save the model every save_per_epoch
     if idx_epoch % save_per_epoch == 0:
-        torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict.pth")
+        torch.save(model.state_dict(), f"model_{idx_epoch}_state_dict.pth")
         logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
 
