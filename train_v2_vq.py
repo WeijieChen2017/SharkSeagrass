@@ -1058,8 +1058,8 @@ class simple_logger():
             wandb.log({key: msg})
 
 def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None):
-    numpy_x = x.cpu().numpy().squeeze()
-    numpy_xrec = xrec.cpu().numpy().squeeze()
+    numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
+    numpy_xrec = xrec[0, :, :, :, :].cpu().numpy().squeeze()
     x_clip = np.clip(numpy_x, 0, 1)
     rec_clip = np.clip(numpy_xrec, 0, 1)
     fig_height = num_per_direction * 3
