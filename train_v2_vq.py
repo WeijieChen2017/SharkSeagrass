@@ -48,6 +48,7 @@ import torch.nn.functional as F
 
 import json
 import time
+import glob
 import torch
 import numpy as np
 import torch.nn as nn
@@ -184,7 +185,7 @@ VQ_loss_weight_recon_L1 = 0.1
 VQ_loss_weight_perceptual = 0.
 VQ_loss_weight_codebook = 0.1
 
-VQ_train_epoch = 10
+VQ_train_epoch = 2
 VQ_train_gradiernt_clip = 1.0
 
 
@@ -1032,7 +1033,18 @@ if VQ_loss_weight_perceptual > 0:
 
 # create a logger for the training
 # every time called logger.log(), it will save the log into the file
+def find_wandb_metadata_directory(base_dir):
+    # Use glob to find the path to the wandb-metadata.json file
+    search_pattern = os.path.join(base_dir, 'run-*/files/wandb-metadata.json')
+    files = glob.glob(search_pattern)
 
+    if files:
+        # Extract the directory path from the first match
+        json_file_path = files[0]
+        directory = os.path.dirname(json_file_path)
+        return directory
+    else:
+        return None
 
 class simple_logger():
     def __init__(self, log_file_path):
@@ -1130,7 +1142,13 @@ num_train_batch = len(train_loader)
 num_val_batch = len(val_loader)
 best_val_loss = 1e6
 save_folder = "./results/"
-wandb_save_folder = "cache/wandb/wandb/"
+
+
+# Define the base directory where the run folders are created
+base_dir = './cache/wandb/wandb/'
+
+# Find the directory containing 'wandb-metadata.json'
+wandb_save_folder = find_wandb_metadata_directory(base_dir)
 
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
