@@ -1130,7 +1130,7 @@ num_train_batch = len(train_loader)
 num_val_batch = len(val_loader)
 best_val_loss = 1e6
 save_folder = "./results"
-wandb_save_folder = "/.cache/wandb/"
+wandb_save_folder = "cache/wandb/wandb/"
 
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
