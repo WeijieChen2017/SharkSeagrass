@@ -124,7 +124,7 @@ plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_name)
 # wandb.log({"val_snapshots": wandb.Image(f"{save_name}")})
 
 # try histogram
-wandb_run.log({"gradients": wandb.Histogram(np.ravel(x))})
+# wandb_run.log({"gradients": wandb.Histogram(np.ravel(x))})
 
 print("Done!")
 wandb.finish()
