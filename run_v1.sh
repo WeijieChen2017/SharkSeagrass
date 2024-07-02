@@ -12,9 +12,9 @@ python train_v2_vq.py
 rm -rf tsv1_ct
 find . -name wandb-metadata.json
 mv cache ./results/
-tar -czvf SharkSeagrass_results_$(date +"%m_%d_%H_%M").tar results
+tar -czvf SharkSeagrass_results_$(date +"%m_%d_%H_%M").tar.gz results
 echo "============================================"
 ls
-cd ..
+mv SharkSeagrass_results_$(date +"%m_%d_%H_%M").tar.gz ../
 echo "============================================"
 ls
