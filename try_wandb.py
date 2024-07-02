@@ -107,17 +107,17 @@ xrec = np.random.rand(1, 1, 64, 64, 64)
 # try 1 image per direction
 save_name = "x_xrec_1.png"
 plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=save_name)
-wandb.save(f"{save_name}.png", base_path="/val_snapshots", policy="now")
+wandb.save(f"{save_name}.png", base_path="./", policy="now")
 
 # try 2 images per direction
 save_name = "x_xrec_2.png"
 plot_and_save_x_xrec(x, xrec, num_per_direction=2, savename=save_name)
-wandb.save(f"{save_name}.png", base_path="/val_snapshots", policy="now")
+wandb.save(f"{save_name}.png", base_path="./", policy="now")
 
 # try 3 images per direction
 save_name = "x_xrec_3.png"
 plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_name)
-wandb.save(f"{save_name}.png", base_path="/val_snapshots", policy="now")
+wandb.save(f"{save_name}.png", base_path="./", policy="now")
 
 print("Done!")
 
