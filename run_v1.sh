@@ -9,7 +9,6 @@ cd SharkSeagrass
 python train_v2_vq.py
 rm -rf tsv1_ct
 find . -name wandb-metadata.json
-find / -name wandb-metadata.json
 mv cache ./results/
 tar -czvf SharkSeagrass_results_$(date +"%m_%d_%H_%M").tar results
 rm -rf SharkSeagrass
