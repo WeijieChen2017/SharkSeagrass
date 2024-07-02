@@ -1148,7 +1148,7 @@ save_folder = "./results/"
 base_dir = './cache/wandb/wandb/'
 
 # Find the directory containing 'wandb-metadata.json'
-wandb_save_folder = find_wandb_metadata_directory(base_dir)
+wandb_save_folder = find_wandb_metadata_directory(base_dir) # absolute filepath, not used
 
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
@@ -1249,15 +1249,15 @@ for idx_epoch in range(num_epoch):
         # save the last batch images
         numpy_x = x.cpu().numpy().squeeze()
         numpy_xrec = xrec.cpu().numpy().squeeze()
+
         save_name = f"epoch_{idx_epoch}_batch_{idx_batch}_1"
         plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=save_folder+f"{save_name}.png")
-        wand_save_name = f"{wandb_save_folder}/{save_name}"
-        plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=wand_save_name+".png")
+        wandb.save(save_folder+f"{save_name}.png", base_path="/val_snapshots", policy="now")
+
         save_name = f"epoch_{idx_epoch}_batch_{idx_batch}_2"
         plot_and_save_x_xrec(x, xrec, num_per_direction=2, savename=save_folder+f"{save_name}.png")
-        wand_save_name = f"{wandb_save_folder}/{save_name}"
-        plot_and_save_x_xrec(x, xrec, num_per_direction=2, savename=wand_save_name+".png")
-
+        wandb.save(save_folder+f"{save_name}.png", base_path="/val_snapshots", policy="now")
+        
         for key in epoch_loss_val.keys():
             epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
             logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
