@@ -44,6 +44,8 @@ import numpy as np
 def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None):
     # numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
     # numpy_xrec = xrec[0, :, :, :, :].cpu().numpy().squeeze()
+    x = x[0, 0, :, :, :]
+    xrec = xrec[0, 0, :, :, :]
     x_clip = np.clip(x, 0, 1)
     rec_clip = np.clip(xrec, 0, 1)
     fig_height = num_per_direction * 3
