@@ -1,0 +1,21 @@
+universe = container
+container_image = docker://docker.io/convez376/monai_with_wb:v1.0.2
+
+log = job_$(Cluster)_$(Process).log
+error = job_$(Cluster)_$(Process).err
+output = job_$(Cluster)_$(Process).out
+
+executable = try_wandb.sh
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+transfer_input_files = try_wandb.sh
+
++WantGPULab = true
++GPUJobLength = "short"
+request_gpus = 1
+request_cpus = 1
+request_memory = 5GB
+request_disk = 5GB
+
+queue
