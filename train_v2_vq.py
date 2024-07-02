@@ -14,13 +14,22 @@ https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef1344
 
 import os
 
-# Define and create necessary cache directories
+# Define the base cache directory
+base_cache_dir = './cache'
+
+# Define and create necessary subdirectories within the base cache directory
 cache_dirs = {
-    'WANDB_DIR': 'cache/wandb',
-    'TRANSFORMERS_CACHE': 'cache/transformers',
-    'MPLCONFIGDIR': 'cache/mplconfig'
+    'WANDB_DIR': os.path.join(base_cache_dir, 'wandb'),
+    'WANDB_CACHE_DIR': os.path.join(base_cache_dir, 'wandb_cache'),
+    'WANDB_CONFIG_DIR': os.path.join(base_cache_dir, 'config'),
+    'TRANSFORMERS_CACHE': os.path.join(base_cache_dir, 'transformers'),
+    'MPLCONFIGDIR': os.path.join(base_cache_dir, 'mplconfig')
 }
 
+# Create the base cache directory if it doesn't exist
+os.makedirs(base_cache_dir, exist_ok=True)
+
+# Create the necessary subdirectories and set the environment variables
 for key, path in cache_dirs.items():
     os.makedirs(path, exist_ok=True)
     os.environ[key] = path
@@ -185,12 +194,12 @@ VQ_loss_weight_recon_L1 = 0.1
 VQ_loss_weight_perceptual = 0.
 VQ_loss_weight_codebook = 0.1
 
-VQ_train_epoch = 2
+VQ_train_epoch = 1000
 VQ_train_gradiernt_clip = 1.0
 
 
 
-wandb.init(
+wandb_run = wandb.init(
     # set the wandb project where this run will be logged
     project="CT_ViT_VQGAN",
 
@@ -1030,22 +1039,6 @@ if VQ_loss_weight_perceptual > 0:
 # total_dist = preceptual_model(nii_data_norm_cut_tensor, out)
 # print("total_dist is ", total_dist)
 
-
-# create a logger for the training
-# every time called logger.log(), it will save the log into the file
-def find_wandb_metadata_directory(base_dir):
-    # Use glob to find the path to the wandb-metadata.json file
-    search_pattern = os.path.join(base_dir, 'run-*/files/wandb-metadata.json')
-    files = glob.glob(search_pattern)
-
-    if files:
-        # Extract the directory path from the first match
-        json_file_path = files[0]
-        directory = os.path.dirname(json_file_path)
-        return directory
-    else:
-        return None
-
 class simple_logger():
     def __init__(self, log_file_path):
         self.log_file_path = log_file_path
@@ -1069,7 +1062,7 @@ class simple_logger():
         if IS_LOGGER_WANDB and isinstance(msg, (int, float)):
             wandb.log({key: msg})
 
-def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None):
+def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None, wandb_name="val_snapshots"):
     numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
     numpy_xrec = xrec[0, :, :, :, :].cpu().numpy().squeeze()
     x_clip = np.clip(numpy_x, 0, 1)
@@ -1120,9 +1113,19 @@ def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None):
 
     plt.tight_layout()
     plt.savefig(savename)
+    wandb_run.log({wandb_name: fig})
     plt.close()
     print(f"Save the plot to {savename}")
 
+
+def compute_average_gradient(model_part):
+    total_grad = 0.0
+    num_params = 0
+    for param in model_part.parameters():
+        if param.grad is not None:
+            total_grad += param.grad.abs().mean().item()
+            num_params += 1
+    return total_grad / num_params if num_params > 0 else 0.0
 
 
 current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
@@ -1136,20 +1139,13 @@ loss_weights = {
     "perceptual": VQ_loss_weight_perceptual,
     "codebook": VQ_loss_weight_codebook,
 }
-val_per_epoch = 1
-save_per_epoch = 1
+val_per_epoch = 25
+save_per_epoch = 50
 num_train_batch = len(train_loader)
 num_val_batch = len(val_loader)
 best_val_loss = 1e6
 save_folder = "./results/"
-
-
-# Define the base directory where the run folders are created
-base_dir = './cache/wandb/wandb/'
-
-# Find the directory containing 'wandb-metadata.json'
-wandb_save_folder = find_wandb_metadata_directory(base_dir) # absolute filepath, not used
-
+# create the folder if not exist
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
@@ -1161,6 +1157,11 @@ for idx_epoch in range(num_epoch):
         "perceptual": [],
         "codebook": [],
         "total": [],
+    }
+    epoch_grad_train = {
+        "encoder": [],
+        "decoder": [],
+        "quantizer": [],
     }
 
     for idx_batch, batch in enumerate(train_loader):
@@ -1194,11 +1195,24 @@ for idx_epoch in range(num_epoch):
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=VQ_train_gradiernt_clip)
         total_loss.backward()
         optimizer.step()
+
+        # compute the average gradient
+        encoder_grad = compute_average_gradient(model.encoder)
+        decoder_grad = compute_average_gradient(model.decoder)
+        quantizer_grad = compute_average_gradient(model.quantizer)
+        epoch_grad_train["encoder"].append(encoder_grad)
+        epoch_grad_train["decoder"].append(decoder_grad)
+        epoch_grad_train["quantizer"].append(quantizer_grad)
     
     for key in epoch_loss_train.keys():
         epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
         logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
         # logger.log(idx_epoch, f"train_{key}_std", epoch_loss_train[key].std())
+    
+    for key in epoch_grad_train.keys():
+        epoch_grad_train[key] = np.asanyarray(epoch_grad_train[key])
+        logger.log(idx_epoch, f"train_{key}_grad_mean", epoch_grad_train[key].mean())
+        # logger.log(idx_epoch, f"train_{key}_grad_std", epoch_grad_train[key].std())
 
     # validation
     if idx_epoch % val_per_epoch == 0:
@@ -1250,13 +1264,8 @@ for idx_epoch in range(num_epoch):
         numpy_x = x.cpu().numpy().squeeze()
         numpy_xrec = xrec.cpu().numpy().squeeze()
 
-        save_name = f"epoch_{idx_epoch}_batch_{idx_batch}_1"
-        plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=save_folder+f"{save_name}.png")
-        wandb.save(save_folder+f"{save_name}.png", base_path="/val_snapshots", policy="now")
-
-        save_name = f"epoch_{idx_epoch}_batch_{idx_batch}_2"
-        plot_and_save_x_xrec(x, xrec, num_per_direction=2, savename=save_folder+f"{save_name}.png")
-        wandb.save(save_folder+f"{save_name}.png", base_path="/val_snapshots", policy="now")
+        save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
+        plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}.png", wandb_name="val_snapshots")
         
         for key in epoch_loss_val.keys():
             epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
