@@ -184,7 +184,7 @@ VQ_loss_weight_recon_L1 = 0.1
 VQ_loss_weight_perceptual = 0.
 VQ_loss_weight_codebook = 0.1
 
-VQ_train_epoch = 900
+VQ_train_epoch = 10
 VQ_train_gradiernt_clip = 1.0
 
 
@@ -1124,12 +1124,12 @@ loss_weights = {
     "perceptual": VQ_loss_weight_perceptual,
     "codebook": VQ_loss_weight_codebook,
 }
-val_per_epoch = 20
-save_per_epoch = 100
+val_per_epoch = 1
+save_per_epoch = 1
 num_train_batch = len(train_loader)
 num_val_batch = len(val_loader)
 best_val_loss = 1e6
-save_folder = "./results"
+save_folder = "./results/"
 wandb_save_folder = "cache/wandb/wandb/"
 
 if not os.path.exists(save_folder):
