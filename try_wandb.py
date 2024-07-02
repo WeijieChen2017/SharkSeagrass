@@ -41,59 +41,60 @@ wandb.init(project="try_wandb",
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None):
+def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None, wandb_commitment=True):
     # numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
     # numpy_xrec = xrec[0, :, :, :, :].cpu().numpy().squeeze()
     x = x[0, 0, :, :, :]
     xrec = xrec[0, 0, :, :, :]
     x_clip = np.clip(x, 0, 1)
     rec_clip = np.clip(xrec, 0, 1)
-    fig_height = num_per_direction * 3
-    fig_width = 4
-    fig, axs = plt.subplots(fig_height, 3, figsize=(fig_width, fig_height * 2), dpi=100)
+    fig_width = num_per_direction * 3
+    fig_height = 4
+    fig, axs = plt.subplots(3, fig_width, figsize=(fig_width, fig_height), dpi=100)
     # for axial
     for i in range(num_per_direction):
         img_x = x_clip[x_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
         img_rec = rec_clip[rec_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
-        axs[3*i, 0].imshow(img_x, cmap="gray")
-        axs[3*i, 0].set_title(f"A x {x_clip.shape[0]//(num_per_direction+1)*(i+1)}")
-        axs[3*i, 0].axis("off")
-        axs[3*i+1, 0].imshow(img_rec, cmap="gray")
-        axs[3*i+1, 0].set_title(f"A xrec {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+1, 0].axis("off")
-        axs[3*i+2, 0].imshow(img_x - img_rec, cmap="bwr")
-        axs[3*i+2, 0].set_title(f"A diff {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+2, 0].axis("off")
+        axs[0, 3*i].imshow(img_x, cmap="gray")
+        axs[0, 3*i].set_title(f"A x {x_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i].axis("off")
+        axs[1, 3*i].imshow(img_rec, cmap="gray")
+        axs[1, 3*i].set_title(f"A xrec {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i].axis("off")
+        axs[2, 3*i].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i].set_title(f"A diff {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i].axis("off")
     # for sagittal
     for i in range(num_per_direction):
         img_x = x_clip[:, :, x_clip.shape[2]//(num_per_direction+1)*(i+1)]
         img_rec = rec_clip[:, :, rec_clip.shape[2]//(num_per_direction+1)*(i+1)]
-        axs[3*i, 1].imshow(img_x, cmap="gray")
-        axs[3*i, 1].set_title(f"S x {x_clip.shape[2]//(num_per_direction+1)*(i+1)}")
-        axs[3*i, 1].axis("off")
-        axs[3*i+1, 1].imshow(img_rec, cmap="gray")
-        axs[3*i+1, 1].set_title(f"S xrec {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+1, 1].axis("off")
-        axs[3*i+2, 1].imshow(img_x - img_rec, cmap="bwr")
-        axs[3*i+2, 1].set_title(f"S diff {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+2, 1].axis("off")
+        axs[0, 3*i+1].imshow(img_x, cmap="gray")
+        axs[0, 3*i+1].set_title(f"S x {x_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i+1].axis("off")
+        axs[1, 3*i+1].imshow(img_rec, cmap="gray")
+        axs[1, 3*i+1].set_title(f"S xrec {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i+1].axis("off")
+        axs[2, 3*i+2].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i+2].set_title(f"S diff {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i+2].axis("off")
 
     # for coronal
     for i in range(num_per_direction):
         img_x = x_clip[:, x_clip.shape[1]//(num_per_direction+1)*(i+1), :]
         img_rec = rec_clip[:, rec_clip.shape[1]//(num_per_direction+1)*(i+1), :]
-        axs[3*i, 2].imshow(img_x, cmap="gray")
-        axs[3*i, 2].set_title(f"C x {x_clip.shape[1]//(num_per_direction+1)*(i+1)}")
-        axs[3*i, 2].axis("off")
-        axs[3*i+1, 2].imshow(img_rec, cmap="gray")
-        axs[3*i+1, 2].set_title(f"C xrec {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+1, 2].axis("off")
-        axs[3*i+2, 2].imshow(img_x - img_rec, cmap="bwr")
-        axs[3*i+2, 2].set_title(f"C diff {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+2, 2].axis("off")
+        axs[0, 3*i+2].imshow(img_x, cmap="gray")
+        axs[0, 3*i+2].set_title(f"C x {x_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i+2].axis("off")
+        axs[1, 3*i+1].imshow(img_rec, cmap="gray")
+        axs[1, 3*i+1].set_title(f"C xrec {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i+1].axis("off")
+        axs[2, 3*i+2].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i+2].set_title(f"C diff {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i+2].axis("off")
 
     plt.tight_layout()
     plt.savefig(savename)
+    wandb.log({"val_snapshots": fig}, commit=wandb_commitment)
     plt.close()
     print(f"Save the plot to {savename}")
 
@@ -106,22 +107,22 @@ xrec = np.random.rand(1, 1, 64, 64, 64)
 
 # try 1 image per direction
 save_name = "x_xrec_1.png"
-plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=save_name)
+plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=save_name, wandb_commitment=False)
 # wandb.save(f"{save_name}.png", base_path="./", policy="now")
 # wandb.upload_file(f"{save_name}.png", root=".")
-wandb.log({"val_snapshots": wandb.Image(f"{save_name}")})
+# wandb.log({"val_snapshots": wandb.Image(f"{save_name}")})
 
 # try 2 images per direction
 save_name = "x_xrec_2.png"
-plot_and_save_x_xrec(x, xrec, num_per_direction=2, savename=save_name)
+plot_and_save_x_xrec(x, xrec, num_per_direction=2, savename=save_name, wandb_commitment=False)
 # wandb.upload_file(f"{save_name}.png", root=".")
-wandb.log({"val_snapshots": wandb.Image(f"{save_name}")})
+# wandb.log({"val_snapshots": wandb.Image(f"{save_name}")})
 
 # try 3 images per direction
 save_name = "x_xrec_3.png"
 plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_name)
 # wandb.upload_file(f"{save_name}.png", root=".")
-wandb.log({"val_snapshots": wandb.Image(f"{save_name}")})
+# wandb.log({"val_snapshots": wandb.Image(f"{save_name}")})
 
 print("Done!")
 wandb.finish()
