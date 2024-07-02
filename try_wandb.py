@@ -42,10 +42,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None):
-    numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
-    numpy_xrec = xrec[0, :, :, :, :].cpu().numpy().squeeze()
-    x_clip = np.clip(numpy_x, 0, 1)
-    rec_clip = np.clip(numpy_xrec, 0, 1)
+    # numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
+    # numpy_xrec = xrec[0, :, :, :, :].cpu().numpy().squeeze()
+    x_clip = np.clip(x, 0, 1)
+    rec_clip = np.clip(xrec, 0, 1)
     fig_height = num_per_direction * 3
     fig_width = 4
     fig, axs = plt.subplots(fig_height, 3, figsize=(fig_width, fig_height * 2), dpi=100)
