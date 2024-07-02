@@ -9,7 +9,7 @@ executable = try_wandb.sh
 
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
-transfer_input_files = try_wandb.sh
+transfer_input_files = try_wandb.py
 
 +WantGPULab = true
 +GPUJobLength = "short"
