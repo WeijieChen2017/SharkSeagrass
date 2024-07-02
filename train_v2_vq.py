@@ -1130,7 +1130,7 @@ num_train_batch = len(train_loader)
 num_val_batch = len(val_loader)
 best_val_loss = 1e6
 save_folder = "./results"
-wandb_save_folder = os.environ["WANDB_DIR"]
+wandb_save_folder = "/.cache/wandb/"
 
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
@@ -1231,10 +1231,14 @@ for idx_epoch in range(num_epoch):
         # save the last batch images
         numpy_x = x.cpu().numpy().squeeze()
         numpy_xrec = xrec.cpu().numpy().squeeze()
-        save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
+        save_name = f"epoch_{idx_epoch}_batch_{idx_batch}_1"
         plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=save_folder+f"{save_name}.png")
         wand_save_name = f"{wandb_save_folder}/{save_name}"
         plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=wand_save_name+".png")
+        save_name = f"epoch_{idx_epoch}_batch_{idx_batch}_2"
+        plot_and_save_x_xrec(x, xrec, num_per_direction=2, savename=save_folder+f"{save_name}.png")
+        wand_save_name = f"{wandb_save_folder}/{save_name}"
+        plot_and_save_x_xrec(x, xrec, num_per_direction=2, savename=wand_save_name+".png")
 
         for key in epoch_loss_val.keys():
             epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
