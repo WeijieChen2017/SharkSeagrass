@@ -199,7 +199,7 @@ VQ_train_gradiernt_clip = 1.0
 
 
 
-wandb_run = wandb.init(
+wandb.init(
     # set the wandb project where this run will be logged
     project="CT_ViT_VQGAN",
 
@@ -1067,53 +1067,53 @@ def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None, wandb_name
     numpy_xrec = xrec[0, :, :, :, :].cpu().numpy().squeeze()
     x_clip = np.clip(numpy_x, 0, 1)
     rec_clip = np.clip(numpy_xrec, 0, 1)
-    fig_height = num_per_direction * 3
-    fig_width = 4
-    fig, axs = plt.subplots(fig_height, 3, figsize=(fig_width, fig_height * 2), dpi=100)
+    fig_width = num_per_direction * 3
+    fig_height = 4
+    fig, axs = plt.subplots(3, fig_width, figsize=(fig_width, fig_height), dpi=100)
     # for axial
     for i in range(num_per_direction):
         img_x = x_clip[x_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
         img_rec = rec_clip[rec_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
-        axs[3*i, 0].imshow(img_x, cmap="gray")
-        axs[3*i, 0].set_title(f"A x {x_clip.shape[0]//(num_per_direction+1)*(i+1)}")
-        axs[3*i, 0].axis("off")
-        axs[3*i+1, 0].imshow(img_rec, cmap="gray")
-        axs[3*i+1, 0].set_title(f"A xrec {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+1, 0].axis("off")
-        axs[3*i+2, 0].imshow(img_x - img_rec, cmap="bwr")
-        axs[3*i+2, 0].set_title(f"A diff {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+2, 0].axis("off")
+        axs[0, 3*i].imshow(img_x, cmap="gray")
+        axs[0, 3*i].set_title(f"A x {x_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i].axis("off")
+        axs[1, 3*i].imshow(img_rec, cmap="gray")
+        axs[1, 3*i].set_title(f"A xrec {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i].axis("off")
+        axs[2, 3*i].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i].set_title(f"A diff {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i].axis("off")
     # for sagittal
     for i in range(num_per_direction):
         img_x = x_clip[:, :, x_clip.shape[2]//(num_per_direction+1)*(i+1)]
         img_rec = rec_clip[:, :, rec_clip.shape[2]//(num_per_direction+1)*(i+1)]
-        axs[3*i, 1].imshow(img_x, cmap="gray")
-        axs[3*i, 1].set_title(f"S x {x_clip.shape[2]//(num_per_direction+1)*(i+1)}")
-        axs[3*i, 1].axis("off")
-        axs[3*i+1, 1].imshow(img_rec, cmap="gray")
-        axs[3*i+1, 1].set_title(f"S xrec {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+1, 1].axis("off")
-        axs[3*i+2, 1].imshow(img_x - img_rec, cmap="bwr")
-        axs[3*i+2, 1].set_title(f"S diff {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+2, 1].axis("off")
+        axs[0, 3*i+1].imshow(img_x, cmap="gray")
+        axs[0, 3*i+1].set_title(f"S x {x_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i+1].axis("off")
+        axs[1, 3*i+1].imshow(img_rec, cmap="gray")
+        axs[1, 3*i+1].set_title(f"S xrec {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i+1].axis("off")
+        axs[2, 3*i+1].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i+1].set_title(f"S diff {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i+1].axis("off")
 
     # for coronal
     for i in range(num_per_direction):
         img_x = x_clip[:, x_clip.shape[1]//(num_per_direction+1)*(i+1), :]
         img_rec = rec_clip[:, rec_clip.shape[1]//(num_per_direction+1)*(i+1), :]
-        axs[3*i, 2].imshow(img_x, cmap="gray")
-        axs[3*i, 2].set_title(f"C x {x_clip.shape[1]//(num_per_direction+1)*(i+1)}")
-        axs[3*i, 2].axis("off")
-        axs[3*i+1, 2].imshow(img_rec, cmap="gray")
-        axs[3*i+1, 2].set_title(f"C xrec {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+1, 2].axis("off")
-        axs[3*i+2, 2].imshow(img_x - img_rec, cmap="bwr")
-        axs[3*i+2, 2].set_title(f"C diff {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
-        axs[3*i+2, 2].axis("off")
+        axs[0, 3*i+2].imshow(img_x, cmap="gray")
+        axs[0, 3*i+2].set_title(f"C x {x_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i+2].axis("off")
+        axs[1, 3*i+2].imshow(img_rec, cmap="gray")
+        axs[1, 3*i+2].set_title(f"C xrec {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i+2].axis("off")
+        axs[2, 3*i+2].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i+2].set_title(f"C diff {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i+2].axis("off")
 
     plt.tight_layout()
     plt.savefig(savename)
-    wandb_run.log({wandb_name: fig})
+    wandb.log({wandb_name: fig})
     plt.close()
     print(f"Save the plot to {savename}")
 
