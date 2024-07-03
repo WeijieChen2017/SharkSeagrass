@@ -1281,11 +1281,13 @@ for idx_epoch in range(num_epoch):
         if epoch_loss_val["total"].mean() < best_val_loss:
             best_val_loss = epoch_loss_val["total"].mean()
             torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict.pth")
+            torch.save(optimizer.state_dict(), save_folder+f"optimizer_best_{idx_epoch}_state_dict.pth")
             logger.log(idx_epoch, "best_val_loss", best_val_loss)
     
     # save the model every save_per_epoch
     if idx_epoch % save_per_epoch == 0:
         torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict.pth")
+        torch.save(optimizer.state_dict(), save_folder+f"optimizer_{idx_epoch}_state_dict.pth")
         logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
 

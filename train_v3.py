@@ -14,13 +14,22 @@ https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef1344
 
 import os
 
-# Define and create necessary cache directories
+# Define the base cache directory
+base_cache_dir = './cache'
+
+# Define and create necessary subdirectories within the base cache directory
 cache_dirs = {
-    'WANDB_DIR': 'cache/wandb',
-    'TRANSFORMERS_CACHE': 'cache/transformers',
-    'MPLCONFIGDIR': 'cache/mplconfig'
+    'WANDB_DIR': os.path.join(base_cache_dir, 'wandb'),
+    'WANDB_CACHE_DIR': os.path.join(base_cache_dir, 'wandb_cache'),
+    'WANDB_CONFIG_DIR': os.path.join(base_cache_dir, 'config'),
+    'TRANSFORMERS_CACHE': os.path.join(base_cache_dir, 'transformers'),
+    'MPLCONFIGDIR': os.path.join(base_cache_dir, 'mplconfig')
 }
 
+# Create the base cache directory if it doesn't exist
+os.makedirs(base_cache_dir, exist_ok=True)
+
+# Create the necessary subdirectories and set the environment variables
 for key, path in cache_dirs.items():
     os.makedirs(path, exist_ok=True)
     os.environ[key] = path
@@ -48,10 +57,12 @@ import torch.nn.functional as F
 
 import json
 import time
+import glob
 import torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
 # import pytorch_lightning as pl
 
 from functools import partial
@@ -91,6 +102,7 @@ from monai.transforms import (
 
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
+random_seed = 729
 volume_size = 64
 pix_dim = 1.5
 num_workers_train_dataloader = 8
@@ -102,6 +114,11 @@ batch_size_val = 16
 cache_ratio_train = 0.2
 cache_ratio_val = 0.2
 IS_LOGGER_WANDB = True
+
+# set random seed
+random.seed(random_seed)
+np.random.seed(random_seed)
+torch.manual_seed(random_seed)
 
 # model = ViTVQ3D(
 #     volume_key="volume", volume_size=volume_size, patch_size=8,
@@ -130,19 +147,25 @@ IS_LOGGER_WANDB = True
 # num_val_batch = len(val_loader)
 # best_val_loss = 1e6
 
-VQ_patch_size = 8
+# VQ_patch_size = 8
 
-VQ_encoder_dim = 360
-VQ_encoder_depth = 6
-VQ_encoder_heads = 16
-VQ_encoder_mlp_dim = 1024
-VQ_encoder_dim_head = 128
+# VQ_encoder_dim = 360
+# VQ_encoder_depth = 6
+# VQ_encoder_heads = 16
+# VQ_encoder_mlp_dim = 1024
+# VQ_encoder_dim_head = 128
 
-VQ_decoder_dim = 360
-VQ_decoder_depth = 6
-VQ_decoder_heads = 16
-VQ_decoder_mlp_dim = 1024
-VQ_decoder_dim_head = 128
+# VQ_decoder_dim = 360
+# VQ_decoder_depth = 6
+# VQ_decoder_heads = 16
+# VQ_decoder_mlp_dim = 1024
+# VQ_decoder_dim_head = 128
+
+VQ_encoder_channels = [128, 256, 512]
+VQ_encoder_num_res_units = 4
+
+VQ_decoder_channels = [128, 256, 512]
+VQ_decoder_num_res_units = 4
 
 # VQ_quantizer_embed_dim = 128
 # VQ_quantizer_n_embed = 1024
@@ -152,8 +175,8 @@ VQ_decoder_dim_head = 128
 
 # vanilla vq
 VQ_lucidrains_VQ_type = "VectorQuantize"
-VQ_lucidrains_VQ_embed_dim = 256
-VQ_lucidrains_VQ_n_embed = 1024
+VQ_lucidrains_VQ_embed_dim = 1024
+VQ_lucidrains_VQ_n_embed = 512
 VQ_lucidrains_VQ_decay = 0.8
 VQ_lucidrains_VQ_commiment_weight = 1.0
 
@@ -207,17 +230,21 @@ wandb.init(
         "batch_size_val": batch_size_val,
         "cache_ratio_train": cache_ratio_train,
         "cache_ratio_val": cache_ratio_val,
-        "VQ_patch_size": VQ_patch_size,
-        "VQ_encoder_dim": VQ_encoder_dim,
-        "VQ_encoder_depth": VQ_encoder_depth,
-        "VQ_encoder_heads": VQ_encoder_heads,
-        "VQ_encoder_mlp_dim": VQ_encoder_mlp_dim,
-        "VQ_encoder_dim_head": VQ_encoder_dim_head,
-        "VQ_decoder_dim": VQ_decoder_dim,
-        "VQ_decoder_depth": VQ_decoder_depth,
-        "VQ_decoder_heads": VQ_decoder_heads,
-        "VQ_decoder_mlp_dim": VQ_decoder_mlp_dim,
-        "VQ_decoder_dim_head": VQ_decoder_dim_head,
+        # "VQ_patch_size": VQ_patch_size,
+        # "VQ_encoder_dim": VQ_encoder_dim,
+        # "VQ_encoder_depth": VQ_encoder_depth,
+        # "VQ_encoder_heads": VQ_encoder_heads,
+        # "VQ_encoder_mlp_dim": VQ_encoder_mlp_dim,
+        # "VQ_encoder_dim_head": VQ_encoder_dim_head,
+        # "VQ_decoder_dim": VQ_decoder_dim,
+        # "VQ_decoder_depth": VQ_decoder_depth,
+        # "VQ_decoder_heads": VQ_decoder_heads,
+        # "VQ_decoder_mlp_dim": VQ_decoder_mlp_dim,
+        # "VQ_decoder_dim_head": VQ_decoder_dim_head,
+        "VQ_encoder_channels": VQ_encoder_channels,
+        "VQ_encoder_num_res_units": VQ_encoder_num_res_units,
+        "VQ_decoder_channels": VQ_decoder_channels,
+        "VQ_decoder_num_res_units": VQ_decoder_num_res_units,
         # "VQ_quantizer_embed_dim": VQ_quantizer_embed_dim,
         # "VQ_quantizer_n_embed": VQ_quantizer_n_embed,
         # "VQ_quantizer_beta": VQ_quantizer_beta,
@@ -361,148 +388,177 @@ class Transformer(nn.Module):
             x = ff(x) + x
 
         return self.norm(x)
-    
-class ViTEncoder3D(nn.Module):
-        # "dim": 240, "depth": 6, "heads": 8, "mlp_dim": 512, "channels": 1, "dim_head": 64
-    def __init__(self, volume_size: Union[Tuple[int, int, int], int], patch_size: Union[Tuple[int, int, int], int],
-                 dim: int, depth: int, heads: int, mlp_dim: int, channels: int = 1, dim_head: int = 64) -> None:
+
+class UNet3D_encoder(nn.Module):
+    def __init__(
+        self,
+        spatial_dims: int,
+        in_channels: int,
+        channels: Sequence[int],
+        strides: Sequence[int],
+        kernel_size: Union[Sequence[int], int] = 3,
+        up_kernel_size: Union[Sequence[int], int] = 3,
+        num_res_units: int = 0,
+        act: Union[Tuple, str] = Act.PRELU,
+        norm: Union[Tuple, str] = Norm.INSTANCE,
+        dropout: float = 0.0,
+        bias: bool = True,
+        adn_ordering: str = "NDA",
+    ) -> None:
         super().__init__()
-        volume_depth, volume_height, volume_width = volume_size if isinstance(volume_size, tuple) else (volume_size, volume_size, volume_size)
-        patch_depth, patch_height, patch_width = patch_size if isinstance(patch_size, tuple) else (patch_size, patch_size, patch_size)
+        
+        self.dimensions = spatial_dims
+        self.in_channels = in_channels
+        self.channels = channels
+        self.strides = strides
+        self.kernel_size = kernel_size
+        self.up_kernel_size = up_kernel_size
+        self.num_res_units = num_res_units
+        self.act = act
+        self.norm = norm
+        self.dropout = dropout
+        self.bias = bias
+        self.adn_ordering = adn_ordering
 
-        assert volume_depth % patch_depth == 0 and volume_height % patch_height == 0 and volume_width % patch_width == 0, 'Volume dimensions must be divisible by the patch size.'
-        en_pos_embedding = get_3d_sincos_pos_embed(dim, (volume_depth // patch_depth, volume_height // patch_height, volume_width // patch_width))
-        self.num_patches = (volume_depth // patch_depth) * (volume_height // patch_height) * (volume_width // patch_width)
-        self.patch_dim = channels * patch_depth * patch_height * patch_width
+        # input - down1 ------------- up1 -- output
+        #         |                   |
+        #         down2 ------------- up2
+        #         |                   |
+        #         down3 ------------- up3
+        # 1 -> (32, 64, 128, 256) -> 1
 
-        self.to_patch_embedding = nn.Sequential(
-            nn.Conv3d(channels, dim, kernel_size=patch_size, stride=patch_size),
-            Rearrange('b c d h w -> b (d h w) c'),
+        self.down1 = ResidualUnit(3, self.in_channels, self.channels[0], self.strides[0],
+                kernel_size=self.kernel_size, subunits=self.num_res_units,
+                act=self.act, norm=self.norm, dropout=self.dropout,
+                bias=self.bias, adn_ordering=self.adn_ordering)
+        self.down2 = ResidualUnit(3, self.channels[0], self.channels[1], self.strides[1],
+                kernel_size=self.kernel_size, subunits=self.num_res_units,
+                act=self.act, norm=self.norm, dropout=self.dropout,
+                bias=self.bias, adn_ordering=self.adn_ordering)
+        self.down3 = ResidualUnit(3, self.channels[1], self.channels[2], self.strides[2],
+                kernel_size=self.kernel_size, subunits=self.num_res_units,
+                act=self.act, norm=self.norm, dropout=self.dropout,
+                bias=self.bias, adn_ordering=self.adn_ordering)
+        # flatten from (B, C, H, W, D) to (B, C, H*W*D), C is the self.channels[2]
+        self.flatten = nn.Sequential(
+            Rearrange('b c h w d -> b (h w d) c'),
         )
-        self.en_pos_embedding = nn.Parameter(torch.from_numpy(en_pos_embedding).float().unsqueeze(0), requires_grad=False)
-        self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim)
 
-        self.apply(init_weights)
+        self.init_weights()
+    
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv3d):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm3d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
 
-    def forward(self, volume: torch.FloatTensor) -> torch.FloatTensor:
-        x = self.to_patch_embedding(volume)
-        x = x + self.en_pos_embedding
-        x = self.transformer(x)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # x is (B, C, H, W, D), where C = self.in_channels
+        x1 = self.down1(x)
+        # x1 is (B, C1, H1, W1, D1), where C1 = self.channels[0], H1 = H//2, W1 = W//2, D1 = D//2
+        x2 = self.down2(x1)
+        # x2 is (B, C2, H2, W2, D2), where C2 = self.channels[1], H2 = H//4, W2 = W//4, D2 = D//4
+        x3 = self.down3(x2)
+        # x3 is (B, C3, H3, W3, D3), where C3 = self.channels[2], H3 = H//8, W3 = W//8, D3 = D//8
+        x3_flatten = self.flatten(x3)
+        return x3_flatten
+    
+
+class UNet3D_decoder(nn.Module):
+    def __init__(
+        self,
+        spatial_dims: int,
+        out_channels: int,
+        channels: Sequence[int],
+        strides: Sequence[int],
+        kernel_size: Union[Sequence[int], int] = 3,
+        up_kernel_size: Union[Sequence[int], int] = 3,
+        num_res_units: int = 0,
+        hwd: Union[Tuple, str] = 8,
+        act: Union[Tuple, str] = Act.PRELU,
+        norm: Union[Tuple, str] = Norm.INSTANCE,
+        dropout: float = 0.0,
+        bias: bool = True,
+        adn_ordering: str = "NDA",
+    ) -> None:
+
+        super().__init__()
+
+        self.dimensions = spatial_dims
+        self.out_channels = out_channels
+        self.channels = channels
+        self.strides = strides
+        self.kernel_size = kernel_size
+        self.up_kernel_size = up_kernel_size
+        self.num_res_units = num_res_units
+        self.act = act
+        self.hwd = hwd
+        self.norm = norm
+        self.dropout = dropout
+        self.bias = bias
+        self.adn_ordering = adn_ordering
+
+        # input - down1 ------------- up1 -- output
+        #         |                   |
+        #         down2 ------------- up2
+        #         |                   |
+        #         down3 ------------- up3
+        # 1 -> (32, 64, 128, 256) -> 1
+        
+        # take the cubic root of the second element of the tuple
+        self.unflatten = nn.Sequential(
+            Rearrange('b (h w d) c -> b c h w d', h=self.hwd, w=self.hwd, d=self.hwd),
+        )
+
+        self.up3 = nn.Sequential(
+            Convolution(3, self.channels[2], self.channels[1], strides=self.strides[2], kernel_size=self.up_kernel_size, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, conv_only=False, is_transposed=True, adn_ordering=self.adn_ordering),
+            ResidualUnit(3, self.channels[1], self.channels[1], strides=1, kernel_size=self.kernel_size, subunits=1, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, last_conv_only=False, adn_ordering=self.adn_ordering,),
+        )
+        self.up2 = nn.Sequential(
+            Convolution(3, self.channels[1], self.channels[0], strides=self.strides[1], kernel_size=self.up_kernel_size, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, conv_only=False, is_transposed=True, adn_ordering=self.adn_ordering),
+            ResidualUnit(3, self.channels[0], self.channels[0], strides=1, kernel_size=self.kernel_size, subunits=1, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, last_conv_only=False, adn_ordering=self.adn_ordering,),
+        )
+        self.up1 = nn.Sequential(
+            Convolution(3, self.channels[0], self.out_channels, strides=self.strides[0], kernel_size=self.up_kernel_size, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, conv_only=False, is_transposed=True, adn_ordering=self.adn_ordering),
+            ResidualUnit(3, self.out_channels, self.out_channels, strides=1, kernel_size=self.kernel_size, subunits=1, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, last_conv_only=False, adn_ordering=self.adn_ordering,),
+        )
+
+        self.init_weights()
+    
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv3d):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm3d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x3 = self.unflatten(x)
+        # x3 is (B, C3, H3, W3, D3), where C3 = self.channels[2], H3 = H//8, W3 = W//8, D3 = D//8
+        x2 = self.up3(x3)
+        # x2 is (B, C2, H2, W2, D2), where C2 = self.channels[1], H2 = H//4, W2 = W//4, D2 = D//4
+        x1 = self.up2(x2)
+        # x1 is (B, C1, H1, W1, D1), where C1 = self.channels[0], H1 = H//2, W1 = W//2, D1 = D//2
+        x = self.up1(x1)
+        # x is (B, C, H, W, D), where C = self.out_channels, H = H, W = W, D = D
 
         return x
-    
-class UNetEncoder3D(nn.Module):
-    def __init__(self, in_channels: int, out_channels: list, embedding_dim : int, stride: list, kernel_size: int = 3, padding: int = 1, num_res_units: int = 4) -> None:
-        super().__init__()
-        self.encoder = nn.Sequential(
-            Convolution(
-                dimensions=3,
-                in_channels=in_channels,
-                out_channels=out_channels,
-                kernel_size=kernel_size,
-                stride=stride,
-                padding=padding,
-                act=Act.PRELU,
-                norm=Norm.INSTANCE,
-            ),
-            *[ResidualUnit(
-                dimensions=3,
-                in_channels=out_channels,
-                out_channels=out_channels,
-                kernel_size=kernel_size,
-                stride=stride,
-                padding=padding,
-                act=Act.PRELU,
-                norm=Norm.INSTANCE,
-            ) for _ in range(num_res_units)]
-        )
 
-        self.to_latent = nn.Sequential(
-            Rearrange('b c d h w -> b (d h w) c'),
-            nn.Linear(out_channels, embedding_dim),
-        )
-
-    def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
-        x = self.encoder(x)
-        x = self.to_latent(x)
-        # assume the input is a 3D volume (B, C, D, H, W)
-        # current shape is (B, C, D, H, W), we need to convert it to (B, D*H*W, C)
-        return x
-    
-class UNetDecoder3D(nn.Module):
-    def __init__(self, in_channels: int, out_channels: list, embedding_dim: int, stride: list, volume_size: Union[Tuple[int, int, int], int], patch_size: Union[Tuple[int, int, int], int],
-                 kernel_size: int = 3, padding: int = 1, num_res_units: int = 4) -> None:
-        super().__init__()
-        self.decoder = nn.Sequential(
-            *[ResidualUnit(
-                dimensions=3,
-                in_channels=in_channels,
-                out_channels=in_channels,
-                kernel_size=kernel_size,
-                stride=stride,
-                padding=padding,
-                act=Act.PRELU,
-                norm=Norm.INSTANCE,
-            ) for _ in range(num_res_units)],
-            Convolution(
-                dimensions=3,
-                in_channels=in_channels,
-                out_channels=out_channels,
-                kernel_size=kernel_size,
-                stride=stride,
-                padding=padding,
-                act=Act.SIGMOID,
-                norm=Norm.INSTANCE,
-            )
-        )
-
-        self.volume_depth, self.volume_height, self.volume_width = volume_size if isinstance(volume_size, tuple) else (volume_size, volume_size, volume_size)
-        self.patch_depth, self.patch_height, self.patch_width = patch_size if isinstance(patch_size, tuple) else (patch_size, patch_size, patch_size)
-
-        self.latent_to_3d = nn.Sequential(
-            nn.Linear(embedding_dim, out_channels),
-            Rearrange('b (d h w) c -> b c d h w', d=self.volume_depth // self.patch_depth, h=self.volume_height // self.patch_height, w=self.volume_width // self.patch_width),
-        )
-
-
-    def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
-        x = self.latent_to_3d(x)
-        # assume the input is a 3D volume (B, D*H*W, C)
-        # current shape is (B, D*H*W, C), we need to convert it to (B, C, D, H, W)
-        x = self.decoder(x)
-        return x
-    
-class ViTDecoder3D(nn.Module):
-    def __init__(self, volume_size: Union[Tuple[int, int, int], int], patch_size: Union[Tuple[int, int, int], int],
-                 dim: int, depth: int, heads: int, mlp_dim: int, channels: int = 1, dim_head: int = 64) -> None:
-        super().__init__()
-        volume_depth, volume_height, volume_width = volume_size if isinstance(volume_size, tuple) else (volume_size, volume_size, volume_size)
-        patch_depth, patch_height, patch_width = patch_size if isinstance(patch_size, tuple) else (patch_size, patch_size, patch_size)
-
-        assert volume_depth % patch_depth == 0 and volume_height % patch_height == 0 and volume_width % patch_width == 0, 'Volume dimensions must be divisible by the patch size.'
-        de_pos_embedding = get_3d_sincos_pos_embed(dim, (volume_depth // patch_depth, volume_height // patch_height, volume_width // patch_width))
-
-        self.num_patches = (volume_depth // patch_depth) * (volume_height // patch_height) * (volume_width // patch_width)
-        self.patch_dim = channels * patch_depth * patch_height * patch_width
-
-        self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim)
-        self.de_pos_embedding = nn.Parameter(torch.from_numpy(de_pos_embedding).float().unsqueeze(0), requires_grad=False)
-        self.to_voxel = nn.Sequential(
-            Rearrange('b (d h w) c -> b c d h w', d=volume_depth // patch_depth, h=volume_height // patch_height, w=volume_width // patch_width),
-            nn.ConvTranspose3d(dim, channels, kernel_size=patch_size, stride=patch_size)
-        )
-
-        self.apply(init_weights)
-
-    def forward(self, token: torch.FloatTensor) -> torch.FloatTensor:
-        x = token + self.de_pos_embedding
-        x = self.transformer(x)
-        x = self.to_voxel(x)
-
-        return x
-
-    def get_last_layer(self) -> nn.Parameter:
-        return self.to_voxel[-1].weight
 
 
 # class ViTVQ3D(pl.LightningModule):
@@ -515,8 +571,10 @@ class ViTVQ3D(nn.Module):
         self.volume_key = volume_key
         self.scheduler = scheduler 
         
-        self.encoder = ViTEncoder3D(volume_size=volume_size, patch_size=patch_size, **encoder)
-        self.decoder = ViTDecoder3D(volume_size=volume_size, patch_size=patch_size, **decoder)
+        # self.encoder = ViTEncoder3D(volume_size=volume_size, patch_size=patch_size, **encoder)
+        # self.decoder = ViTDecoder3D(volume_size=volume_size, patch_size=patch_size, **decoder)
+        self.encoder = UNet3D_encoder(**encoder)
+        self.decoder = UNet3D_decoder(**decoder)
         # self.quantizer = VectorQuantizer(**quantizer)
         # quantizer={
         #     "dim": VQ_lucidrains_VQ_embed_dim, "codebook_size": VQ_lucidrains_VQ_n_embed, "decay": VQ_lucidrains_VQ_decay, "commitment_weight": VQ_lucidrains_VQ_commiment_weight,
@@ -533,9 +591,8 @@ class ViTVQ3D(nn.Module):
             use_cosine_sim = quantizer["use_cosine_sim"],
             threshold_ema_dead_code = quantizer["threshold_ema_dead_code"],
         )
-        self.pre_quant = nn.Linear(encoder["dim"], quantizer["embed_dim"])
-        self.post_quant = nn.Linear(quantizer["embed_dim"], decoder["dim"])
-
+        self.pre_quant = nn.Linear(encoder["channels"][2], quantizer["embed_dim"])
+        self.post_quant = nn.Linear(quantizer["embed_dim"], decoder["channels"][2])
         if path is not None:
             self.init_from_ckpt(path, ignore_keys)
 
@@ -723,7 +780,7 @@ def average_all_layers(distances):
     total_distance = torch.stack(distances).mean()
     return total_distance
 
-class UNet3D_encoder(nn.Module):
+class UNet3D_perceptual(nn.Module):
     def __init__(
         self,
         spatial_dims: int,
@@ -994,12 +1051,23 @@ val_loader = DataLoader(val_ds, batch_size=batch_size_val, shuffle=False, num_wo
 # ).to(device)
 
 model = ViTVQ3D(
-    volume_key="volume", volume_size=volume_size, patch_size=VQ_patch_size,
+    volume_key="volume", volume_size=volume_size, 
     encoder={
-        "dim": VQ_encoder_dim, "depth": VQ_encoder_depth, "heads": VQ_encoder_heads, "mlp_dim": VQ_encoder_mlp_dim, "channels": 1, "dim_head": VQ_encoder_dim_head
+        # spatial_dims: int,
+        # in_channels: int,
+        # channels: Sequence[int],
+        # strides: Sequence[int],
+        "spatial_dims": 3, "in_channels": 1, "channels": VQ_encoder_channels, "strides": [2, 2], "num_res_units": VQ_decoder_num_res_units,
     },
     decoder={
-        "dim": VQ_decoder_dim, "depth": VQ_decoder_depth, "heads": VQ_decoder_heads, "mlp_dim": VQ_decoder_mlp_dim, "channels": 1, "dim_head": VQ_decoder_dim_head
+        # spatial_dims: int,
+        # out_channels: int,
+        # channels: Sequence[int],
+        # strides: Sequence[int],
+        # num_res_units: int = 0,
+        # hwd: Union[Tuple, str] = 8,
+        "spatial_dims": 3, "out_channels": 1, "channels": VQ_decoder_channels, "strides": [2, 2], "num_res_units": VQ_decoder_num_res_units, "hwd": volume_size // 8,
+
     },
     quantizer={
         "embed_dim": VQ_lucidrains_VQ_embed_dim, "codebook_size": VQ_lucidrains_VQ_n_embed, "decay": VQ_lucidrains_VQ_decay, "commitment_weight": VQ_lucidrains_VQ_commiment_weight,
@@ -1027,15 +1095,10 @@ preceptual_loss["num_res_units"] = 4
 preceptual_loss["pretrained_path"] = "model_best_181_state_dict.pth"
 
 if VQ_loss_weight_perceptual > 0:
-    preceptual_model = UNet3D_encoder(**preceptual_loss).to(device)
+    preceptual_model = UNet3D_perceptual(**preceptual_loss).to(device)
     preceptual_model.eval()
 # total_dist = preceptual_model(nii_data_norm_cut_tensor, out)
 # print("total_dist is ", total_dist)
-
-
-# create a logger for the training
-# every time called logger.log(), it will save the log into the file
-
 
 class simple_logger():
     def __init__(self, log_file_path):
@@ -1060,6 +1123,72 @@ class simple_logger():
         if IS_LOGGER_WANDB and isinstance(msg, (int, float)):
             wandb.log({key: msg})
 
+def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None, wandb_name="val_snapshots"):
+    numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
+    numpy_xrec = xrec[0, :, :, :, :].cpu().numpy().squeeze()
+    x_clip = np.clip(numpy_x, 0, 1)
+    rec_clip = np.clip(numpy_xrec, 0, 1)
+    fig_width = num_per_direction * 3
+    fig_height = 4
+    fig, axs = plt.subplots(3, fig_width, figsize=(fig_width, fig_height), dpi=100)
+    # for axial
+    for i in range(num_per_direction):
+        img_x = x_clip[x_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
+        img_rec = rec_clip[rec_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
+        axs[0, 3*i].imshow(img_x, cmap="gray")
+        axs[0, 3*i].set_title(f"A x {x_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i].axis("off")
+        axs[1, 3*i].imshow(img_rec, cmap="gray")
+        axs[1, 3*i].set_title(f"A xrec {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i].axis("off")
+        axs[2, 3*i].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i].set_title(f"A diff {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i].axis("off")
+    # for sagittal
+    for i in range(num_per_direction):
+        img_x = x_clip[:, :, x_clip.shape[2]//(num_per_direction+1)*(i+1)]
+        img_rec = rec_clip[:, :, rec_clip.shape[2]//(num_per_direction+1)*(i+1)]
+        axs[0, 3*i+1].imshow(img_x, cmap="gray")
+        axs[0, 3*i+1].set_title(f"S x {x_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i+1].axis("off")
+        axs[1, 3*i+1].imshow(img_rec, cmap="gray")
+        axs[1, 3*i+1].set_title(f"S xrec {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i+1].axis("off")
+        axs[2, 3*i+1].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i+1].set_title(f"S diff {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i+1].axis("off")
+
+    # for coronal
+    for i in range(num_per_direction):
+        img_x = x_clip[:, x_clip.shape[1]//(num_per_direction+1)*(i+1), :]
+        img_rec = rec_clip[:, rec_clip.shape[1]//(num_per_direction+1)*(i+1), :]
+        axs[0, 3*i+2].imshow(img_x, cmap="gray")
+        axs[0, 3*i+2].set_title(f"C x {x_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i+2].axis("off")
+        axs[1, 3*i+2].imshow(img_rec, cmap="gray")
+        axs[1, 3*i+2].set_title(f"C xrec {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i+2].axis("off")
+        axs[2, 3*i+2].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i+2].set_title(f"C diff {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i+2].axis("off")
+
+    plt.tight_layout()
+    plt.savefig(savename)
+    wandb.log({wandb_name: fig})
+    plt.close()
+    print(f"Save the plot to {savename}")
+
+
+def compute_average_gradient(model_part):
+    total_grad = 0.0
+    num_params = 0
+    for param in model_part.parameters():
+        if param.grad is not None:
+            total_grad += param.grad.abs().mean().item()
+            num_params += 1
+    return total_grad / num_params if num_params > 0 else 0.0
+
+
 current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 log_file_path = f"train_log_{current_time}.json"
 logger = simple_logger(log_file_path)
@@ -1071,11 +1200,15 @@ loss_weights = {
     "perceptual": VQ_loss_weight_perceptual,
     "codebook": VQ_loss_weight_codebook,
 }
-val_per_epoch = 20
-save_per_epoch = 20
+val_per_epoch = 25
+save_per_epoch = 50
 num_train_batch = len(train_loader)
 num_val_batch = len(val_loader)
 best_val_loss = 1e6
+save_folder = "./results/"
+# create the folder if not exist
+if not os.path.exists(save_folder):
+    os.makedirs(save_folder)
 
 for idx_epoch in range(num_epoch):
     model.train()
@@ -1085,6 +1218,11 @@ for idx_epoch in range(num_epoch):
         "perceptual": [],
         "codebook": [],
         "total": [],
+    }
+    epoch_grad_train = {
+        "encoder": [],
+        "decoder": [],
+        "quantizer": [],
     }
 
     for idx_batch, batch in enumerate(train_loader):
@@ -1118,11 +1256,24 @@ for idx_epoch in range(num_epoch):
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=VQ_train_gradiernt_clip)
         total_loss.backward()
         optimizer.step()
+
+        # compute the average gradient
+        encoder_grad = compute_average_gradient(model.encoder)
+        decoder_grad = compute_average_gradient(model.decoder)
+        quantizer_grad = compute_average_gradient(model.quantizer)
+        epoch_grad_train["encoder"].append(encoder_grad)
+        epoch_grad_train["decoder"].append(decoder_grad)
+        epoch_grad_train["quantizer"].append(quantizer_grad)
     
     for key in epoch_loss_train.keys():
         epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
         logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
         # logger.log(idx_epoch, f"train_{key}_std", epoch_loss_train[key].std())
+    
+    for key in epoch_grad_train.keys():
+        epoch_grad_train[key] = np.asanyarray(epoch_grad_train[key])
+        logger.log(idx_epoch, f"train_{key}_grad_mean", epoch_grad_train[key].mean())
+        # logger.log(idx_epoch, f"train_{key}_grad_std", epoch_grad_train[key].std())
 
     # validation
     if idx_epoch % val_per_epoch == 0:
@@ -1158,6 +1309,13 @@ for idx_epoch in range(num_epoch):
                 epoch_loss_val["total"].append(total_loss.item())
                 print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
         
+        # save the last batch images
+        numpy_x = x.cpu().numpy().squeeze()
+        numpy_xrec = xrec.cpu().numpy().squeeze()
+
+        save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
+        plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}.png", wandb_name="val_snapshots")
+        
         for key in epoch_loss_val.keys():
             epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
             logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
@@ -1165,12 +1323,14 @@ for idx_epoch in range(num_epoch):
 
         if epoch_loss_val["total"].mean() < best_val_loss:
             best_val_loss = epoch_loss_val["total"].mean()
-            torch.save(model.state_dict(), f"model_best_{idx_epoch}_state_dict.pth")
+            torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict.pth")
+            torch.save(optimizer.state_dict(), save_folder+f"optimizer_best_{idx_epoch}_state_dict.pth")
             logger.log(idx_epoch, "best_val_loss", best_val_loss)
     
     # save the model every save_per_epoch
     if idx_epoch % save_per_epoch == 0:
-        torch.save(model.state_dict(), f"model_{idx_epoch}_state_dict.pth")
+        torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict.pth")
+        torch.save(optimizer.state_dict(), save_folder+f"optimizer_{idx_epoch}_state_dict.pth")
         logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
 
