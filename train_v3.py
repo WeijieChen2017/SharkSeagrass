@@ -1306,7 +1306,7 @@ for idx_epoch in range(num_epoch):
     activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
     if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
         activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
-    effective_num = effective_number_of_classes(activated_counts / VQ_lucidrains_VQ_n_embed)
+    effective_num = effective_number_of_classes(activated_counts)
     logger.log(idx_epoch, "train_effective_num", effective_num)
     
 
@@ -1380,7 +1380,7 @@ for idx_epoch in range(num_epoch):
         activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
         if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
             activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
-        effective_num = effective_number_of_classes(activated_counts / VQ_lucidrains_VQ_n_embed)
+        effective_num = effective_number_of_classes(activated_counts)
         logger.log(idx_epoch, "val_effective_num", effective_num)
     
     # save the model every save_per_epoch
