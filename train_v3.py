@@ -563,7 +563,7 @@ class UNet3D_decoder(nn.Module):
 
 # class ViTVQ3D(pl.LightningModule):
 class ViTVQ3D(nn.Module):
-    def __init__(self, volume_key: str, volume_size: int, patch_size: int, encoder: dict, decoder: dict, quantizer: dict,
+    def __init__(self, volume_key: str, volume_size: int, encoder: dict, decoder: dict, quantizer: dict,
                  path: Optional[str] = None, ignore_keys: List[str] = list(), scheduler: Optional[dict] = None) -> None:
         super().__init__()
         self.path = path
