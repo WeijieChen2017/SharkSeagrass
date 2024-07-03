@@ -195,7 +195,7 @@ VQ_lucidrains_VQ_use_cosine_sim = True
 VQ_lucidrains_threshold_ema_dead_code = 2
 # VQ_lucidrains_VQ_message = "randomly remove embeddings that haven't been used in the last 2 epochs"
 
-VQ_lucidrains_VQ_message = "kmeans init, cosine similarity, expiring stale embeddings"
+VQ_lucidrains_VQ_message = "conv_encoder, conv_decoder, VQ -> kmeans init, cosine similarity, expiring stale embeddings"
 
 VQ_optimizer = "AdamW"
 VQ_optimizer_lr = 5e-4
