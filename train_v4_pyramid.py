@@ -3,7 +3,8 @@ This is changed from the orginal code and modified by ChatGPT from
 https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef134404f99d4d6b921cda9/enhancing/modules/stage1/layers.py
 """
 
-# This is for the simple UNet encoder decoder as the baseline
+# This is for conv layers, using the pyramidal structure
+# 
 
 
 # ------------------------------------------------------------------------------------
@@ -280,122 +281,6 @@ wandb.init(
     }
 )
 
-
-
-def get_1d_sincos_pos_embed_from_grid(embed_dim, pos):
-    assert embed_dim % 2 == 0
-    omega = np.arange(embed_dim // 2, dtype=float)
-    omega /= embed_dim / 2.
-    omega = 1. / 10000**omega  # (D/2,)
-
-    pos = pos.reshape(-1)  # (M,)
-    out = np.einsum('m,d->md', pos, omega)  # (M, D/2), outer product
-
-    emb_sin = np.sin(out) # (M, D/2)
-    emb_cos = np.cos(out) # (M, D/2)
-
-    emb = np.concatenate([emb_sin, emb_cos], axis=1)  # (M, D)
-    return emb
-
-def get_3d_sincos_pos_embed_from_grid(embed_dim, grid):
-    assert embed_dim % 3 == 0
-
-    emb_d = get_1d_sincos_pos_embed_from_grid(embed_dim // 3, grid[0])  # (D*H*W, D/3)
-    emb_h = get_1d_sincos_pos_embed_from_grid(embed_dim // 3, grid[1])  # (D*H*W, D/3)
-    emb_w = get_1d_sincos_pos_embed_from_grid(embed_dim // 3, grid[2])  # (D*H*W, D/3)
-
-    emb = np.concatenate([emb_d, emb_h, emb_w], axis=1) # (D*H*W, D)
-    return emb
-
-def get_3d_sincos_pos_embed(embed_dim, grid_size):
-    grid_size = (grid_size, grid_size, grid_size) if type(grid_size) != tuple else grid_size
-    grid_d = np.arange(grid_size[0], dtype=np.float32)
-    grid_h = np.arange(grid_size[1], dtype=np.float32)
-    grid_w = np.arange(grid_size[2], dtype=np.float32)
-    grid = np.meshgrid(grid_w, grid_h, grid_d)  # here w, h, d goes first
-    grid = np.stack(grid, axis=0)
-
-    grid = grid.reshape([3, 1, grid_size[0], grid_size[1], grid_size[2]])
-    pos_embed = get_3d_sincos_pos_embed_from_grid(embed_dim, grid)
-
-    return pos_embed
-
-def init_weights(m):
-    if isinstance(m, nn.Linear):
-        torch.nn.init.xavier_uniform_(m.weight)
-        if m.bias is not None:
-            nn.init.constant_(m.bias, 0)
-    elif isinstance(m, nn.LayerNorm):
-        nn.init.constant_(m.bias, 0)
-        nn.init.constant_(m.weight, 1.0)
-    elif isinstance(m, nn.Conv3d) or isinstance(m, nn.ConvTranspose3d):
-        w = m.weight.data
-        torch.nn.init.xavier_uniform_(w.view([w.shape[0], -1]))
-
-class PreNorm(nn.Module):
-    def __init__(self, dim: int, fn: nn.Module) -> None:
-        super().__init__()
-        self.norm = nn.LayerNorm(dim)
-        self.fn = fn
-
-    def forward(self, x: torch.FloatTensor, **kwargs) -> torch.FloatTensor:
-        return self.fn(self.norm(x), **kwargs)
-    
-class FeedForward(nn.Module):
-    def __init__(self, dim: int, hidden_dim: int) -> None:
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(dim, hidden_dim),
-            nn.Tanh(),
-            nn.Linear(hidden_dim, dim)
-        )
-
-    def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
-        return self.net(x)
-    
-class Attention(nn.Module):
-    def __init__(self, dim: int, heads: int = 8, dim_head: int = 64) -> None:
-        super().__init__()
-        inner_dim = dim_head *  heads
-        project_out = not (heads == 1 and dim_head == dim)
-
-        self.heads = heads
-        self.scale = dim_head ** -0.5
-
-        self.attend = nn.Softmax(dim = -1)
-        self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
-
-        self.to_out = nn.Linear(inner_dim, dim) if project_out else nn.Identity()
-
-    def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
-        qkv = self.to_qkv(x).chunk(3, dim = -1)
-        q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = self.heads), qkv)
-
-        attn = torch.matmul(q, k.transpose(-1, -2)) * self.scale
-        attn = self.attend(attn)
-
-        out = torch.matmul(attn, v)
-        out = rearrange(out, 'b h n d -> b n (h d)')
-
-        return self.to_out(out)
-    
-class Transformer(nn.Module):
-    def __init__(self, dim: int, depth: int, heads: int, dim_head: int, mlp_dim: int) -> None:
-        super().__init__()
-        self.layers = nn.ModuleList([])
-        for idx in range(depth):
-            layer = nn.ModuleList([PreNorm(dim, Attention(dim, heads=heads, dim_head=dim_head)),
-                                   PreNorm(dim, FeedForward(dim, mlp_dim))])
-            self.layers.append(layer)
-        self.norm = nn.LayerNorm(dim)
-
-    def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
-        for attn, ff in self.layers:
-            x = attn(x) + x
-            x = ff(x) + x
-
-        return self.norm(x)
-
 class UNet3D_encoder(nn.Module):
     def __init__(
         self,
@@ -652,104 +537,6 @@ class ViTVQ3D(nn.Module):
         dec = self.decode(quant)
         
         return dec
-
-    def get_input(self, batch: Tuple[Any, Any], key: str = 'volume') -> Any:
-        x = batch[key]
-        if len(x.shape) == 4:
-            x = x[..., None]
-        if x.dtype == torch.double:
-            x = x.float()
-
-        return x.contiguous()
-
-    def training_step(self, batch: Tuple[Any, Any], batch_idx: int, optimizer_idx: int = 0) -> torch.FloatTensor:
-        x = self.get_input(batch, self.volume_key)
-        xrec, qloss = self(x)
-
-        if optimizer_idx == 0:
-            # autoencoder
-            aeloss, log_dict_ae = self.loss(qloss, x, xrec, optimizer_idx, self.global_step, batch_idx,
-                                            last_layer=self.decoder.get_last_layer(), split="train")
-
-            self.log("train/total_loss", aeloss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-            del log_dict_ae["train/total_loss"]
-            
-            self.log_dict(log_dict_ae, prog_bar=False, logger=True, on_step=True, on_epoch=True)
-
-            return aeloss
-
-        if optimizer_idx == 1:
-            # discriminator
-            discloss, log_dict_disc = self.loss(qloss, x, xrec, optimizer_idx, self.global_step, batch_idx,
-                                                last_layer=self.decoder.get_last_layer(), split="train")
-            
-            self.log("train/disc_loss", discloss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-            del log_dict_disc["train/disc_loss"]
-            
-            self.log_dict(log_dict_disc, prog_bar=False, logger=True, on_step=True, on_epoch=True)
-            
-            return discloss
-
-    def validation_step(self, batch: Tuple[Any, Any], batch_idx: int) -> Dict:
-        x = self.get_input(batch, self.volume_key)
-        xrec, qloss = self(x)
-        aeloss, log_dict_ae = self.loss(qloss, x, xrec, 0, self.global_step, batch_idx,
-                                        last_layer=self.decoder.get_last_layer(), split="val")
-
-        rec_loss = log_dict_ae["val/rec_loss"]
-
-        self.log("val/rec_loss", rec_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True, sync_dist=True)
-        self.log("val/total_loss", aeloss, prog_bar=True, logger=True, on_step=True, on_epoch=True, sync_dist=True)
-        del log_dict_ae["val/rec_loss"]
-        del log_dict_ae["val/total_loss"]
-
-        self.log_dict(log_dict_ae, prog_bar=False, logger=True, on_step=True, on_epoch=True)
-
-        if hasattr(self.loss, 'discriminator'):
-            discloss, log_dict_disc = self.loss(qloss, x, xrec, 1, self.global_step, batch_idx,
-                                                last_layer=self.decoder.get_last_layer(), split="val")
-            
-            self.log_dict(log_dict_disc, prog_bar=False, logger=True, on_step=True, on_epoch=True)
-        
-        return self.log_dict
-
-    def configure_optimizers(self) -> Tuple[List, List]:
-        lr = self.learning_rate
-        optim_groups = list(self.encoder.parameters()) + \
-                       list(self.decoder.parameters()) + \
-                       list(self.pre_quant.parameters()) + \
-                       list(self.post_quant.parameters()) + \
-                       list(self.quantizer.parameters())
-        
-        optimizers = [torch.optim.AdamW(optim_groups, lr=lr, betas=(0.9, 0.99), weight_decay=1e-4)]
-        schedulers = []
-        
-        if hasattr(self.loss, 'discriminator'):
-            optimizers.append(torch.optim.AdamW(self.loss.discriminator.parameters(), lr=lr, betas=(0.9, 0.99), weight_decay=1e-4))
-
-        if self.scheduler is not None:
-            self.scheduler.params.start = lr
-            scheduler = initialize_from_config(self.scheduler)
-            
-            schedulers = [
-                {
-                    'scheduler': lr_scheduler.LambdaLR(optimizer, lr_lambda=scheduler.schedule),
-                    'interval': 'step',
-                    'frequency': 1
-                } for optimizer in optimizers
-            ]
-   
-        return optimizers, schedulers
-        
-    def log_images(self, batch: Tuple[Any, Any], *args, **kwargs) -> Dict:
-        log = dict()
-        x = self.get_input(batch, self.volume_key).to(self.device)
-        quant, _ = self.encode(x)
-        
-        log["originals"] = x
-        log["reconstructions"] = self.decode(quant)
-        
-        return log
     
 
 # apply the channel wise norm for all feature maps
@@ -1306,7 +1093,7 @@ for idx_epoch in range(num_epoch):
     activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
     if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
         activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
-    effective_num = effective_number_of_classes(activated_counts / VQ_lucidrains_VQ_n_embed)
+    effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
     logger.log(idx_epoch, "train_effective_num", effective_num)
     
 
@@ -1380,7 +1167,7 @@ for idx_epoch in range(num_epoch):
         activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
         if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
             activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
-        effective_num = effective_number_of_classes(activated_counts / VQ_lucidrains_VQ_n_embed)
+        effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
         logger.log(idx_epoch, "val_effective_num", effective_num)
     
     # save the model every save_per_epoch
