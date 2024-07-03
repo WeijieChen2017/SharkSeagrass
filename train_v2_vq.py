@@ -102,6 +102,7 @@ from monai.transforms import (
 
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
+random_seed = 729
 volume_size = 64
 pix_dim = 1.5
 num_workers_train_dataloader = 8
@@ -113,6 +114,11 @@ batch_size_val = 16
 cache_ratio_train = 0.2
 cache_ratio_val = 0.2
 IS_LOGGER_WANDB = True
+
+# set random seed
+random.seed(random_seed)
+np.random.seed(random_seed)
+torch.manual_seed(random_seed)
 
 # model = ViTVQ3D(
 #     volume_key="volume", volume_size=volume_size, patch_size=8,
