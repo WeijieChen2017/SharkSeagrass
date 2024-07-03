@@ -183,7 +183,7 @@ VQ_decoder_num_res_units = 6
 # vanilla vq
 VQ_lucidrains_VQ_type = "VectorQuantize"
 VQ_lucidrains_VQ_embed_dim = 1024
-VQ_lucidrains_VQ_n_embed = 512
+VQ_lucidrains_VQ_n_embed = 256
 VQ_lucidrains_VQ_decay = 0.8
 VQ_lucidrains_VQ_commiment_weight = 1.0
 
@@ -205,7 +205,7 @@ VQ_lucidrains_threshold_ema_dead_code = 2
 VQ_lucidrains_VQ_message = "conv_encoder, conv_decoder, VQ -> kmeans init, cosine similarity, expiring stale embeddings"
 
 VQ_optimizer = "AdamW"
-VQ_optimizer_lr = 5e-4
+VQ_optimizer_lr = 1e-4
 VQ_optimizer_weight_decay = 5e-5
 
 VQ_loss_weight_recon_L2 = 1.0
@@ -1185,7 +1185,6 @@ def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None, wandb_name
     plt.close()
     print(f"Save the plot to {savename}")
 
-
 def compute_average_gradient(model_part):
     total_grad = 0.0
     num_params = 0
@@ -1194,6 +1193,10 @@ def compute_average_gradient(model_part):
             total_grad += param.grad.abs().mean().item()
             num_params += 1
     return total_grad / num_params if num_params > 0 else 0.0
+
+# Effective Number of Classes
+def effective_number_of_classes(probabilities):
+    return 1 / np.sum(probabilities ** 2)
 
 
 current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
@@ -1290,16 +1293,21 @@ for idx_epoch in range(num_epoch):
     
     for key in epoch_codebook_train.keys():
         epoch_codebook_train[key] = np.asanyarray(epoch_codebook_train[key])
-    activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
+    # activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
     # a = np.array([1, 2, 6, 4, 2, 3, 2])
     # values, counts = np.unique(a, return_counts=True)
     # values = array([1, 2, 3, 4, 6])
     # counts = array([1, 3, 1, 1, 1])
-    activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed # percentage
-    activated_dispersion = np.std(activated_counts) # dispersion
-    logger.log(idx_epoch, "train_activated_percentage", activated_percentage)
-    logger.log(idx_epoch, "train_activated_dispersion", activated_dispersion)
-    
+    # activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed # percentage
+    # activated_dispersion = np.std(activated_counts) # dispersion
+    # logger.log(idx_epoch, "train_activated_percentage", activated_percentage)
+    # logger.log(idx_epoch, "train_activated_dispersion", activated_dispersion)
+    # comppute what's the frequency of each index from VQ_lucidrains_VQ_n_embed
+    activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
+    if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
+        activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
+    effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
+    logger.log(idx_epoch, "train_effective_num", effective_num)
     
 
     # validation
@@ -1364,11 +1372,16 @@ for idx_epoch in range(num_epoch):
 
         for key in epoch_codebook_val.keys():
             epoch_codebook_val[key] = np.asanyarray(epoch_codebook_val[key])
+        # activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
+        # activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed
+        # activated_dispersion = np.std(activated_counts)
+        # logger.log(idx_epoch, "val_activated_percentage", activated_percentage)
+        # logger.log(idx_epoch, "val_activated_dispersion", activated_dispersion)
         activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
-        activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed
-        activated_dispersion = np.std(activated_counts)
-        logger.log(idx_epoch, "val_activated_percentage", activated_percentage)
-        logger.log(idx_epoch, "val_activated_dispersion", activated_dispersion)
+        if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
+            activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
+        effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
+        logger.log(idx_epoch, "val_effective_num", effective_num)
     
     # save the model every save_per_epoch
     if idx_epoch % save_per_epoch == 0:
