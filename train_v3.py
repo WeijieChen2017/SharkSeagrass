@@ -161,11 +161,11 @@ torch.manual_seed(random_seed)
 # VQ_decoder_mlp_dim = 1024
 # VQ_decoder_dim_head = 128
 
-VQ_encoder_channels = [128, 256, 512]
-VQ_encoder_num_res_units = 4
+VQ_encoder_channels = [256, 512, 1024]
+VQ_encoder_num_res_units = 6
 
-VQ_decoder_channels = [128, 256, 512]
-VQ_decoder_num_res_units = 4
+VQ_decoder_channels = [256, 512, 1024]
+VQ_decoder_num_res_units = 6
 
 # VQ_quantizer_embed_dim = 128
 # VQ_quantizer_n_embed = 1024
