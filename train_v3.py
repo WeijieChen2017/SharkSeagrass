@@ -1057,7 +1057,7 @@ model = ViTVQ3D(
         # in_channels: int,
         # channels: Sequence[int],
         # strides: Sequence[int],
-        "spatial_dims": 3, "in_channels": 1, "channels": VQ_encoder_channels, "strides": [2, 2], "num_res_units": VQ_decoder_num_res_units,
+        "spatial_dims": 3, "in_channels": 1, "channels": VQ_encoder_channels, "strides": [2, 2, 2], "num_res_units": VQ_decoder_num_res_units,
     },
     decoder={
         # spatial_dims: int,
@@ -1066,7 +1066,7 @@ model = ViTVQ3D(
         # strides: Sequence[int],
         # num_res_units: int = 0,
         # hwd: Union[Tuple, str] = 8,
-        "spatial_dims": 3, "out_channels": 1, "channels": VQ_decoder_channels, "strides": [2, 2], "num_res_units": VQ_decoder_num_res_units, "hwd": volume_size // 8,
+        "spatial_dims": 3, "out_channels": 1, "channels": VQ_decoder_channels, "strides": [2, 2, 2], "num_res_units": VQ_decoder_num_res_units, "hwd": volume_size // 8,
 
     },
     quantizer={
