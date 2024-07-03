@@ -3,6 +3,9 @@ This is changed from the orginal code and modified by ChatGPT from
 https://github.com/thuanz123/enhancing-transformers/blob/1778fc497ea11ed2cef134404f99d4d6b921cda9/enhancing/modules/stage1/layers.py
 """
 
+# This is for the simple UNet encoder decoder as the baseline
+
+
 # ------------------------------------------------------------------------------------
 # Enhancing Transformers
 # Copyright (c) 2022 Thuan H. Nguyen. All Rights Reserved.
@@ -597,10 +600,10 @@ class ViTVQ3D(nn.Module):
             self.init_from_ckpt(path, ignore_keys)
 
     def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:    
-        quant, diff = self.encode(x)
+        quant, indices, diff = self.encode(x)
         dec = self.decode(quant)
         
-        return dec, diff
+        return dec, indices, diff
 
     def init_from_ckpt(self, path: str, ignore_keys: List[str] = list()):
         sd = torch.load(path, map_location="cpu")["state_dict"]
@@ -619,8 +622,8 @@ class ViTVQ3D(nn.Module):
         # x = torch.randn(1, 1024, 256)
         # quantized, indices, commit_loss = vq(x) # (1, 1024, 256), (1, 1024), (1)
         # quant, emb_loss, _ = self.quantizer(h)
-        quant, _, loss = self.quantizer(h)
-        return quant, loss
+        quant, indices, loss = self.quantizer(h)
+        return quant, indices, loss
 
     def decode(self, quant: torch.FloatTensor) -> torch.FloatTensor:
         quant = self.post_quant(quant)
@@ -1224,12 +1227,15 @@ for idx_epoch in range(num_epoch):
         "decoder": [],
         "quantizer": [],
     }
+    epoch_codebook = {
+        "indices": [],
+    }
 
     for idx_batch, batch in enumerate(train_loader):
         x = batch["image"].to(device)
         # print x size
         # print("x size is ", x.size())
-        xrec, cb_loss = model(x)
+        xrec, indices, cb_loss = model(x)
         optimizer.zero_grad()
         
         if VQ_loss_weight_perceptual > 0:
@@ -1264,6 +1270,9 @@ for idx_epoch in range(num_epoch):
         epoch_grad_train["encoder"].append(encoder_grad)
         epoch_grad_train["decoder"].append(decoder_grad)
         epoch_grad_train["quantizer"].append(quantizer_grad)
+
+        # record the codebook indices
+        epoch_codebook["indices"].append(indices.cpu().numpy())
     
     for key in epoch_loss_train.keys():
         epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
@@ -1274,6 +1283,20 @@ for idx_epoch in range(num_epoch):
         epoch_grad_train[key] = np.asanyarray(epoch_grad_train[key])
         logger.log(idx_epoch, f"train_{key}_grad_mean", epoch_grad_train[key].mean())
         # logger.log(idx_epoch, f"train_{key}_grad_std", epoch_grad_train[key].std())
+    
+    for key in epoch_codebook.keys():
+        epoch_codebook[key] = np.asanyarray(epoch_codebook[key])
+    activated_value, activated_counts = np.unique(epoch_codebook["indices"], return_counts=True)
+    # a = np.array([1, 2, 6, 4, 2, 3, 2])
+    # values, counts = np.unique(a, return_counts=True)
+    # values = array([1, 2, 3, 4, 6])
+    # counts = array([1, 3, 1, 1, 1])
+    activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed # percentage
+    activated_dispersion = np.std(activated_counts) # dispersion
+    logger.log(idx_epoch, "train_activated_percentage", activated_percentage)
+    logger.log(idx_epoch, "train_activated_dispersion", activated_dispersion)
+    
+    
 
     # validation
     if idx_epoch % val_per_epoch == 0:
@@ -1285,10 +1308,13 @@ for idx_epoch in range(num_epoch):
             "codebook": [],
             "total": [],
         }
+        epoch_codebook_val = {
+            "indices": [],
+        }
         with torch.no_grad():
             for idx_batch, batch in enumerate(val_loader):
                 x = batch["image"].to(device)
-                xrec, cb_loss = model(x)
+                xrec, indices, cb_loss = model(x)
                 if VQ_loss_weight_perceptual > 0:
                     total_dist = preceptual_model(x, xrec)
                 else:
@@ -1308,6 +1334,9 @@ for idx_epoch in range(num_epoch):
                 epoch_loss_val["codebook"].append(codebook_loss.item())
                 epoch_loss_val["total"].append(total_loss.item())
                 print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
+
+                # record the codebook indices
+                epoch_codebook_val["indices"].append(indices.cpu().numpy())
         
         # save the last batch images
         numpy_x = x.cpu().numpy().squeeze()
@@ -1326,6 +1355,14 @@ for idx_epoch in range(num_epoch):
             torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict.pth")
             torch.save(optimizer.state_dict(), save_folder+f"optimizer_best_{idx_epoch}_state_dict.pth")
             logger.log(idx_epoch, "best_val_loss", best_val_loss)
+
+        for key in epoch_codebook_val.keys():
+            epoch_codebook_val[key] = np.asanyarray(epoch_codebook_val[key])
+        activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
+        activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed
+        activated_dispersion = np.std(activated_counts)
+        logger.log(idx_epoch, "val_activated_percentage", activated_percentage)
+        logger.log(idx_epoch, "val_activated_dispersion", activated_dispersion)
     
     # save the model every save_per_epoch
     if idx_epoch % save_per_epoch == 0:
