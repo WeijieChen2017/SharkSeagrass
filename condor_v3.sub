@@ -17,6 +17,6 @@ request_gpus = 1
 require_gpus = GlobalMemoryMb >= 20000
 request_cpus = 24
 request_memory = 30GB
-request_disk = 60GB
+request_disk = 80GB
 
 queue
