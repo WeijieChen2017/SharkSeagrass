@@ -1338,11 +1338,10 @@ for idx_epoch in range(num_epoch):
                 epoch_loss_val["total"].append(total_loss.item())
                 print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
 
-                # record the codebook indices (1, n_embed)
-                current_indices = indices.cpu().numpy().squeeze()
+                # record the codebook indices (B, n_embed)
+                current_indices = indices.cpu().numpy().squeeze().flatten()
                 # append each element in current_indices to the list
-                for i in range(current_indices.shape[0]):
-                    epoch_codebook_val["indices"].append(current_indices[i])
+                epoch_codebook_val["indices"].extend(current_indices)
         
         # save the last batch images
         numpy_x = x.cpu().numpy().squeeze()
