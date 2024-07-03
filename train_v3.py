@@ -1230,7 +1230,7 @@ for idx_epoch in range(num_epoch):
         "decoder": [],
         "quantizer": [],
     }
-    epoch_codebook = {
+    epoch_codebook_train = {
         "indices": [],
     }
 
@@ -1275,7 +1275,8 @@ for idx_epoch in range(num_epoch):
         epoch_grad_train["quantizer"].append(quantizer_grad)
 
         # record the codebook indices
-        epoch_codebook["indices"].append(indices.cpu().numpy())
+        current_indices = indices.cpu().numpy().squeeze().flatten()
+        epoch_codebook_train["indices"].extend(current_indices)
     
     for key in epoch_loss_train.keys():
         epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
@@ -1287,9 +1288,9 @@ for idx_epoch in range(num_epoch):
         logger.log(idx_epoch, f"train_{key}_grad_mean", epoch_grad_train[key].mean())
         # logger.log(idx_epoch, f"train_{key}_grad_std", epoch_grad_train[key].std())
     
-    for key in epoch_codebook.keys():
-        epoch_codebook[key] = np.asanyarray(epoch_codebook[key])
-    activated_value, activated_counts = np.unique(epoch_codebook["indices"], return_counts=True)
+    for key in epoch_codebook_train.keys():
+        epoch_codebook_train[key] = np.asanyarray(epoch_codebook_train[key])
+    activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
     # a = np.array([1, 2, 6, 4, 2, 3, 2])
     # values, counts = np.unique(a, return_counts=True)
     # values = array([1, 2, 3, 4, 6])
