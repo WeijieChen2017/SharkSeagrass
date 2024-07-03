@@ -25,6 +25,7 @@ cache_dirs = {
     'WANDB_DIR': os.path.join(base_cache_dir, 'wandb'),
     'WANDB_CACHE_DIR': os.path.join(base_cache_dir, 'wandb_cache'),
     'WANDB_CONFIG_DIR': os.path.join(base_cache_dir, 'config'),
+    'WANDB_DATA_DIR': os.path.join(base_cache_dir, 'data'),
     'TRANSFORMERS_CACHE': os.path.join(base_cache_dir, 'transformers'),
     'MPLCONFIGDIR': os.path.join(base_cache_dir, 'mplconfig')
 }
@@ -117,6 +118,9 @@ batch_size_val = 16
 cache_ratio_train = 0.2
 cache_ratio_val = 0.2
 IS_LOGGER_WANDB = True
+
+val_per_epoch = 25
+save_per_epoch = 100
 
 # set random seed
 random.seed(random_seed)
@@ -1203,8 +1207,7 @@ loss_weights = {
     "perceptual": VQ_loss_weight_perceptual,
     "codebook": VQ_loss_weight_codebook,
 }
-val_per_epoch = 25
-save_per_epoch = 50
+
 num_train_batch = len(train_loader)
 num_val_batch = len(val_loader)
 best_val_loss = 1e6
@@ -1335,8 +1338,11 @@ for idx_epoch in range(num_epoch):
                 epoch_loss_val["total"].append(total_loss.item())
                 print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
 
-                # record the codebook indices
-                epoch_codebook_val["indices"].append(indices.cpu().numpy())
+                # record the codebook indices (1, n_embed)
+                current_indices = indices.cpu().numpy().squeeze()
+                # append each element in current_indices to the list
+                for i in range(current_indices.shape[0]):
+                    epoch_codebook_val["indices"].append(current_indices[i])
         
         # save the last batch images
         numpy_x = x.cpu().numpy().squeeze()
