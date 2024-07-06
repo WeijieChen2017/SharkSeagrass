@@ -498,7 +498,7 @@ val_transforms = Compose(
 )
 
 # load data_chunks.json and specif chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
-with open("data_chunks.json", "r") as f:
+with open("data_chunks_80.json", "r") as f:
     data_chunk = json.load(f)
 
 train_files = []
@@ -831,11 +831,6 @@ def train_model_at_level(num_epoch, current_level):
             "codebook": [],
             "total": [],
         }
-        epoch_grad_train = {
-            "encoder": [],
-            "decoder": [],
-            "quantizer": [],
-        }
         epoch_codebook_train = {
             "indices": [],
         }
@@ -857,59 +852,46 @@ def train_model_at_level(num_epoch, current_level):
                 codebook_loss = cb_loss_list[-1]
             else:
                 # average the codebook loss
-                codebook_loss = 
+                codebook_loss = np.asanyarray(cb_loss_list).mean()
+            # take the weighted sum of the loss
             total_loss = loss_weights["reconL2"] * reconL2_loss + \
                             loss_weights["reconL1"] * reconL1_loss + \
                             loss_weights["codebook"] * codebook_loss
+            # record the loss
             epoch_loss_train["reconL2"].append(reconL2_loss.item())
             epoch_loss_train["reconL1"].append(reconL1_loss.item())
             epoch_loss_train["codebook"].append(codebook_loss.item())
             epoch_loss_train["total"].append(total_loss.item())
+            # print the loss
             print(f"<{idx_epoch}> [{idx_batch}/{num_train_batch}] Total loss: {total_loss.item()}")
             # add gradient clipping
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=VQ_train_gradiernt_clip)
             total_loss.backward()
             optimizer.step()
 
-            # compute the average gradient
-            encoder_grad = compute_average_gradient(model.encoder)
-            decoder_grad = compute_average_gradient(model.decoder)
-            quantizer_grad = compute_average_gradient(model.quantizer)
-            epoch_grad_train["encoder"].append(encoder_grad)
-            epoch_grad_train["decoder"].append(decoder_grad)
-            epoch_grad_train["quantizer"].append(quantizer_grad)
-
             # record the codebook indices
-            for current_indices in indices_list:
-                epoch_codebook_train["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
+            if pyramid_freeze_previous_stages:
+                epoch_codebook_train["indices"].extend(indices_list[-1].cpu().numpy().squeeze().flatten())
+            else:
+                for current_indices in indices_list:
+                    epoch_codebook_train["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
         
         for key in epoch_loss_train.keys():
             epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
             logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
             # logger.log(idx_epoch, f"train_{key}_std", epoch_loss_train[key].std())
         
-        for key in epoch_grad_train.keys():
-            epoch_grad_train[key] = np.asanyarray(epoch_grad_train[key])
-            logger.log(idx_epoch, f"train_{key}_grad_mean", epoch_grad_train[key].mean())
-            # logger.log(idx_epoch, f"train_{key}_grad_std", epoch_grad_train[key].std())
         
         for key in epoch_codebook_train.keys():
             epoch_codebook_train[key] = np.asanyarray(epoch_codebook_train[key])
-        # activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
-        # a = np.array([1, 2, 6, 4, 2, 3, 2])
-        # values, counts = np.unique(a, return_counts=True)
-        # values = array([1, 2, 3, 4, 6])
-        # counts = array([1, 3, 1, 1, 1])
-        # activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed # percentage
-        # activated_dispersion = np.std(activated_counts) # dispersion
-        # logger.log(idx_epoch, "train_activated_percentage", activated_percentage)
-        # logger.log(idx_epoch, "train_activated_dispersion", activated_dispersion)
-        # comppute what's the frequency of each index from VQ_lucidrains_VQ_n_embed
+        
         activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
-        if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
-            activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
+        if len(activated_counts) < pyramid_codebook_size[current_level]:
+            activated_counts = np.append(activated_counts, np.zeros(pyramid_codebook_size[current_level] - len(activated_counts)))
         effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
+        embedding_num = len(activated_counts)
         logger.log(idx_epoch, "train_effective_num", effective_num)
+        logger.log(idx_epoch, "train_embedding_num", embedding_num)
         
 
         # validation
@@ -927,16 +909,20 @@ def train_model_at_level(num_epoch, current_level):
             with torch.no_grad():
                 for idx_batch, batch in enumerate(val_loader):
                     x = batch["image"]
-                    x_8 = F.interpolate(x, size=(8, 8, 8), mode="trilinear", align_corners=False).to(device)
-                    # x_16 = F.interpolate(x, size=(16, 16, 16), mode="trilinear", align_corners=False).to(device)
-                    # x_32 = F.interpolate(x, size=(32, 32, 32), mode="trilinear", align_corners=False).to(device)
-                    pyramid_x = [x_8]
+                    # generate the input data pyramid
+                    pyramid_x = generate_input_data_pyramid(x, current_level)
+                    # target_x is the last element of the pyramid_x, which is to be reconstructed
                     target_x = pyramid_x[-1]
                     xrec, indices_list, cb_loss_list = model(x)
-                    
+                    # compute the loss
                     reconL2_loss = F.mse_loss(target_x, xrec)
                     reconL1_loss = F.l1_loss(target_x, xrec)
-                    codebook_loss = sum([cb_loss_list[i] * mixing_weights["res_8"]["cb_loss_list"] for i in range(len(cb_loss_list))])
+                    if pyramid_freeze_previous_stages:
+                        codebook_loss = cb_loss_list[-1]
+                    else:
+                        # average the codebook loss
+                        codebook_loss = np.asanyarray(cb_loss_list).mean()
+                    # take the weighted sum of the loss
                     total_loss = loss_weights["reconL2"] * reconL2_loss + \
                                     loss_weights["reconL1"] * reconL1_loss + \
                                     loss_weights["codebook"] * codebook_loss
@@ -946,17 +932,14 @@ def train_model_at_level(num_epoch, current_level):
                     epoch_loss_val["total"].append(total_loss.item())
                     print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
 
-                    for current_indices in indices_list:
-                        # record the codebook indices (B, n_embed)
-                        # append each element in current_indices to the list
-                        epoch_codebook_val["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
-            
-            # save the last batch images
-            numpy_x = target_x.cpu().numpy().squeeze()
-            numpy_xrec = xrec.cpu().numpy().squeeze()
+                    if pyramid_freeze_previous_stages:
+                        epoch_codebook_val["indices"].extend(indices_list[-1].cpu().numpy().squeeze().flatten())
+                    else:
+                        for current_indices in indices_list:
+                            epoch_codebook_val["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
 
             save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
-            plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}.png", wandb_name="val_snapshots")
+            plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}_{current_level}.png", wandb_name="val_snapshots")
             
             for key in epoch_loss_val.keys():
                 epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
@@ -965,28 +948,28 @@ def train_model_at_level(num_epoch, current_level):
 
             if epoch_loss_val["total"].mean() < best_val_loss:
                 best_val_loss = epoch_loss_val["total"].mean()
-                torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict.pth")
-                torch.save(optimizer.state_dict(), save_folder+f"optimizer_best_{idx_epoch}_state_dict.pth")
+                torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict_{current_level}.pth")
+                torch.save(optimizer.state_dict(), save_folder+f"optimizer_best_{idx_epoch}_state_dict_{current_level}.pth")
                 logger.log(idx_epoch, "best_val_loss", best_val_loss)
 
             for key in epoch_codebook_val.keys():
                 epoch_codebook_val[key] = np.asanyarray(epoch_codebook_val[key])
-            # activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
-            # activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed
-            # activated_dispersion = np.std(activated_counts)
-            # logger.log(idx_epoch, "val_activated_percentage", activated_percentage)
-            # logger.log(idx_epoch, "val_activated_dispersion", activated_dispersion)
+            
             activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
-            if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
-                activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
+            if len(activated_counts) < pyramid_codebook_size[current_level]:
+                activated_counts = np.append(activated_counts, np.zeros(pyramid_codebook_size[current_level] - len(activated_counts)))
             effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
+            embedding_num = len(activated_counts)
             logger.log(idx_epoch, "val_effective_num", effective_num)
+            logger.log(idx_epoch, "val_embedding_num", embedding_num)
         
         # save the model every save_per_epoch
         if idx_epoch % save_per_epoch == 0:
-            torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict.pth")
-            torch.save(optimizer.state_dict(), save_folder+f"optimizer_{idx_epoch}_state_dict.pth")
+            torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict_{current_level}.pth")
+            torch.save(optimizer.state_dict(), save_folder+f"optimizer_{idx_epoch}_state_dict_{current_level}.pth")
             logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
             
+for current_level in range(4):
+    train_model_at_level(pyramid_num_epoch[current_level], current_level)
 
 wandb.finish()
