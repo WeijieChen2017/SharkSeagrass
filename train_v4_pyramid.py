@@ -830,10 +830,12 @@ def train_model_at_level(num_epoch, current_level):
             reconL2_loss = F.mse_loss(target_x, xrec)
             reconL1_loss = F.l1_loss(target_x, xrec)
             if pyramid_freeze_previous_stages:
-                codebook_loss = cb_loss_list[-1]
+                codebook_loss = cb_loss_list[-1].detach().numpy()
             else:
                 # average the codebook loss
-                codebook_loss = np.asanyarray(cb_loss_list).mean()
+                for tensor in cb_loss_list:
+                    codebook_loss += tensor.detach().numpy()
+                codebook_loss = codebook_loss / len(cb_loss_list)
             # take the weighted sum of the loss
             total_loss = loss_weights["reconL2"] * reconL2_loss + \
                             loss_weights["reconL1"] * reconL1_loss + \
@@ -852,10 +854,10 @@ def train_model_at_level(num_epoch, current_level):
 
             # record the codebook indices
             if pyramid_freeze_previous_stages:
-                epoch_codebook_train["indices"].extend(indices_list[-1].numpy().squeeze().flatten())
+                epoch_codebook_train["indices"].extend(indices_list[-1].detach().numpy().squeeze().flatten())
             else:
                 for current_indices in indices_list:
-                    epoch_codebook_train["indices"].extend(current_indices.numpy().squeeze().flatten())
+                    epoch_codebook_train["indices"].extend(current_indices.detach().numpy().squeeze().flatten())
         
         for key in epoch_loss_train.keys():
             epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
@@ -899,10 +901,12 @@ def train_model_at_level(num_epoch, current_level):
                     reconL2_loss = F.mse_loss(target_x, xrec)
                     reconL1_loss = F.l1_loss(target_x, xrec)
                     if pyramid_freeze_previous_stages:
-                        codebook_loss = cb_loss_list[-1]
+                        codebook_loss = cb_loss_list[-1].detach().numpy()
                     else:
                         # average the codebook loss
-                        codebook_loss = np.asanyarray(cb_loss_list).mean()
+                        for tensor in cb_loss_list:
+                            codebook_loss += tensor.detach().numpy()
+                        codebook_loss = codebook_loss / len(cb_loss_list)
                     # take the weighted sum of the loss
                     total_loss = loss_weights["reconL2"] * reconL2_loss + \
                                     loss_weights["reconL1"] * reconL1_loss + \
@@ -914,10 +918,10 @@ def train_model_at_level(num_epoch, current_level):
                     print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
 
                     if pyramid_freeze_previous_stages:
-                        epoch_codebook_val["indices"].extend(indices_list[-1].numpy().squeeze().flatten())
+                        epoch_codebook_val["indices"].extend(indices_list[-1].detach().numpy().squeeze().flatten())
                     else:
                         for current_indices in indices_list:
-                            epoch_codebook_val["indices"].extend(current_indices.numpy().squeeze().flatten())
+                            epoch_codebook_val["indices"].extend(current_indices.detach().numpy().squeeze().flatten())
 
             save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
             plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}_{current_level}.png", wandb_name="val_snapshots")
