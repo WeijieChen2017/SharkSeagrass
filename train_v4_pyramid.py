@@ -788,6 +788,8 @@ def generate_input_data_pyramid(x, levels):
 
 def train_model_at_level(num_epoch, current_level):
 
+    global best_val_loss # use the global variable
+
     # move the model to the device
     for i_level in range(current_level):
         model.move_to_device_at_level(i_level)
