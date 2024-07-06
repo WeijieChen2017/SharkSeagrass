@@ -773,15 +773,16 @@ if not os.path.exists(save_folder):
 
 def generate_input_data_pyramid(x, levels):
     pyramid_x = []
-    if levels == 1:
+    if levels == 0:
         x_8 = F.interpolate(x, size=(8, 8, 8), mode="trilinear", align_corners=False).to(device)
         pyramid_x.append(x_8)
-    if levels == 2:
+    if levels == 1:
         x_16 = F.interpolate(x, size=(16, 16, 16), mode="trilinear", align_corners=False).to(device)
         pyramid_x.append(x_16)
-    if levels == 3:
+    if levels == 2:
         x_32 = F.interpolate(x, size=(32, 32, 32), mode="trilinear", align_corners=False).to(device)
-    if levels == 4:
+        pyramid_x.append(x_32)
+    if levels == 3:
         pyramid_x.append(x)
     return pyramid_x
 
