@@ -126,7 +126,7 @@ pyramid_channels = [32, 64, 128, 256]
 pyramid_codebook_size = [32, 64, 128, 256]
 pyramid_strides = [2, 2, 2, 1]
 pyramid_num_res_units = [3, 4, 5, 6]
-pyramid_num_epoch = [100, 200, 400, 800]
+pyramid_num_epoch = [250, 250, 250, 250]
 pyramid_freeze_previous_stages = True
 
 VQ_optimizer = "AdamW"
@@ -416,11 +416,24 @@ class ViTVQ3D(nn.Module):
                     nn.init.constant_(m.bias, 0)
 
     def foward_at_level(self, x: torch.FloatTensor, i_level: int) -> torch.FloatTensor:
-        h = self.sub_models[i_level].encoder(x) # Access using dot notation
-        h = self.sub_models[i_level].pre_quant(h)
-        quant, indices, loss = self.sub_models[i_level].quantizer(h)
-        g = self.sub_models[i_level].post_quant(quant)
-        g = self.sub_models[i_level].decoder(g)
+        if i_level == 0:
+            h = self.sub_models[i_level].encoder(x) # Access using dot notation
+            h = self.sub_models[i_level].pre_quant(h)
+            quant, indices, loss = self.sub_models[i_level].quantizer(h)
+            g = self.sub_models[i_level].post_quant(quant)
+            g = self.sub_models[i_level].decoder(g)
+        else:
+            print("x shape is ", x.shape)
+            h = self.sub_models[i_level].encoder(x) # Access using dot notation
+            print("after encoder, h shape is ", h.shape)
+            h = self.sub_models[i_level].pre_quant(h)
+            print("after pre_quant, h shape is ", h.shape)
+            quant, indices, loss = self.sub_models[i_level].quantizer(h)
+            print("after quantizer, quant shape is ", quant.shape)
+            g = self.sub_models[i_level].post_quant(quant)
+            print("after post_quant, g shape is ", g.shape)
+            g = self.sub_models[i_level].decoder(g)
+            print("after decoder, g shape is ", g.shape)
         return g, indices, loss
 
     def forward(self, pyramid_x: list, active_level: int) -> torch.FloatTensor:
@@ -783,10 +796,12 @@ def generate_input_data_pyramid(x, levels):
         x_32 = F.interpolate(x, size=(32, 32, 32), mode="trilinear", align_corners=False).to(device)
         pyramid_x.append(x_32)
     if levels == 4:
-        pyramid_x.append(x)
+        pyramid_x.append(x.to(device))
     return pyramid_x
 
 def train_model_at_level(num_epoch, current_level):
+
+    print("Current device is ", device)
 
     global best_val_loss # use the global variable
 
@@ -797,7 +812,7 @@ def train_model_at_level(num_epoch, current_level):
     # set the gradient freeze
     if pyramid_freeze_previous_stages:
         model.freeze_gradient_all()
-        model.unfreeze_gradient_at_level(current_level)
+        model.unfreeze_gradient_at_level(current_level-1)
     else:
         model.freeze_gradient_all()
         for i_level in range(current_level):
