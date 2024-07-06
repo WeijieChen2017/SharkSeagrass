@@ -140,6 +140,7 @@ VQ_loss_weight_codebook = 0.1
 VQ_train_epoch = 1000
 VQ_train_gradiernt_clip = 1.0
 
+model_message = "this is the first try to use cascaded VQ-VAE model of image pyramid"
 
 
 wandb.init(
@@ -161,10 +162,6 @@ wandb.init(
         "batch_size_val": batch_size_val,
         "cache_ratio_train": cache_ratio_train,
         "cache_ratio_val": cache_ratio_val,
-        "VQ_encoder_channels": VQ_encoder_channels,
-        "VQ_encoder_num_res_units": VQ_encoder_num_res_units,
-        "VQ_decoder_channels": VQ_decoder_channels,
-        "VQ_decoder_num_res_units": VQ_decoder_num_res_units,
         "VQ_optimizer": VQ_optimizer,
         "VQ_optimizer_lr": VQ_optimizer_lr,
         "VQ_optimizer_weight_decay": VQ_optimizer_weight_decay,
@@ -177,6 +174,9 @@ wandb.init(
         "pyramid_codebook_size": pyramid_codebook_size,
         "pyramid_strides": pyramid_strides,
         "pyramid_num_res_units": pyramid_num_res_units,
+        "pyramid_num_epoch": pyramid_num_epoch,
+        "pyramid_freeze_previous_stages": pyramid_freeze_previous_stages,
+        "model_message": model_message,
     }
 )
 
