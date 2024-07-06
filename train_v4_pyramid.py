@@ -64,6 +64,7 @@ import json
 import time
 import glob
 import torch
+import random
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
@@ -73,23 +74,16 @@ import matplotlib.pyplot as plt
 from functools import partial
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from typing import List, Tuple, Dict, Any, Optional, Union
+from typing import List, Tuple, Dict, Any, Optional, Union, Sequence
 from torch.optim import lr_scheduler
 
 from monai.networks.blocks.convolutions import Convolution, ResidualUnit
-from typing import Optional, Sequence, Tuple, Union
 from monai.networks.layers.factories import Act, Norm
 
 from monai.data import (
     DataLoader,
     CacheDataset,
 )
-
-import torch
-from torch.utils.data import DataLoader, Dataset, default_collate
-import numpy as np
-import random
-
 
 from monai.transforms import (
     EnsureChannelFirstd,
@@ -128,82 +122,12 @@ random.seed(random_seed)
 np.random.seed(random_seed)
 torch.manual_seed(random_seed)
 
-# model = ViTVQ3D(
-#     volume_key="volume", volume_size=volume_size, patch_size=8,
-#     encoder={
-#         "dim": 360, "depth": 6, "heads": 16, "mlp_dim": 1024, "channels": 1, "dim_head": 128
-#     },
-#     decoder={
-#         "dim": 360, "depth": 6, "heads": 16, "mlp_dim": 1024, "channels": 1, "dim_head": 128
-#     },
-#     quantizer={
-#         "embed_dim": 128, "n_embed": 1024, "beta": 0.25, "use_norm": True, "use_residual": False
-#     }
-# ).to(device)
-# learning_rate = 5e-4
-# # use AdamW optimizer
-# optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
-# num_epoch = 1000
-# loss_weights = {
-#     "reconL2": 1.0, 
-#     "reconL1": 0.1, 
-#     "perceptual": 0.05, 
-#     "codebook": 0.1}
-# val_per_epoch = 20
-# save_per_epoch = 20
-# num_train_batch = len(train_loader)
-# num_val_batch = len(val_loader)
-# best_val_loss = 1e6
-
-# VQ_patch_size = 8
-
-# VQ_encoder_dim = 360
-# VQ_encoder_depth = 6
-# VQ_encoder_heads = 16
-# VQ_encoder_mlp_dim = 1024
-# VQ_encoder_dim_head = 128
-
-# VQ_decoder_dim = 360
-# VQ_decoder_depth = 6
-# VQ_decoder_heads = 16
-# VQ_decoder_mlp_dim = 1024
-# VQ_decoder_dim_head = 128
-
-VQ_encoder_channels = [256, 512, 1024]
-VQ_encoder_num_res_units = 6
-
-VQ_decoder_channels = [256, 512, 1024]
-VQ_decoder_num_res_units = 6
-
-# VQ_quantizer_embed_dim = 128
-# VQ_quantizer_n_embed = 1024
-# VQ_quantizer_beta = 0.25
-# VQ_quantizer_use_norm = True
-# VQ_quantizer_use_residual = False
-
-# vanilla vq
-VQ_lucidrains_VQ_type = "VectorQuantize"
-VQ_lucidrains_VQ_embed_dim = 1024
-VQ_lucidrains_VQ_n_embed = 256
-VQ_lucidrains_VQ_decay = 0.8
-VQ_lucidrains_VQ_commiment_weight = 1.0
-
-# kmeans init
-VQ_lucidrains_VQ_kmeans_init = True
-VQ_lucidrains_VQ_kmeans_iters = 10
-
-# low codebook dim
-# VQ_lucidrains_VQ_codebook_dim = 16
-
-# cosine similarity for spherical embedding
-VQ_lucidrains_VQ_use_cosine_sim = True
-# VQ_lucidrains_VQ_message = "cosine similarity for spherical embedding"
-
-# expiring stale embeddings
-VQ_lucidrains_threshold_ema_dead_code = 2
-# VQ_lucidrains_VQ_message = "randomly remove embeddings that haven't been used in the last 2 epochs"
-
-VQ_lucidrains_VQ_message = "conv_encoder, conv_decoder, VQ -> kmeans init, cosine similarity, expiring stale embeddings"
+pyramid_channels = [32, 64, 128, 256]
+pyramid_codebook_size = [32, 64, 128, 256]
+pyramid_strides = [2, 2, 2, 1]
+pyramid_num_res_units = [3, 4, 5, 6]
+pyramid_num_epoch = [100, 200, 400, 800]
+pyramid_freeze_previous_stages = False
 
 VQ_optimizer = "AdamW"
 VQ_optimizer_lr = 1e-4
@@ -211,7 +135,6 @@ VQ_optimizer_weight_decay = 5e-5
 
 VQ_loss_weight_recon_L2 = 1.0
 VQ_loss_weight_recon_L1 = 0.1
-VQ_loss_weight_perceptual = 0.
 VQ_loss_weight_codebook = 0.1
 
 VQ_train_epoch = 1000
@@ -238,46 +161,22 @@ wandb.init(
         "batch_size_val": batch_size_val,
         "cache_ratio_train": cache_ratio_train,
         "cache_ratio_val": cache_ratio_val,
-        # "VQ_patch_size": VQ_patch_size,
-        # "VQ_encoder_dim": VQ_encoder_dim,
-        # "VQ_encoder_depth": VQ_encoder_depth,
-        # "VQ_encoder_heads": VQ_encoder_heads,
-        # "VQ_encoder_mlp_dim": VQ_encoder_mlp_dim,
-        # "VQ_encoder_dim_head": VQ_encoder_dim_head,
-        # "VQ_decoder_dim": VQ_decoder_dim,
-        # "VQ_decoder_depth": VQ_decoder_depth,
-        # "VQ_decoder_heads": VQ_decoder_heads,
-        # "VQ_decoder_mlp_dim": VQ_decoder_mlp_dim,
-        # "VQ_decoder_dim_head": VQ_decoder_dim_head,
         "VQ_encoder_channels": VQ_encoder_channels,
         "VQ_encoder_num_res_units": VQ_encoder_num_res_units,
         "VQ_decoder_channels": VQ_decoder_channels,
         "VQ_decoder_num_res_units": VQ_decoder_num_res_units,
-        # "VQ_quantizer_embed_dim": VQ_quantizer_embed_dim,
-        # "VQ_quantizer_n_embed": VQ_quantizer_n_embed,
-        # "VQ_quantizer_beta": VQ_quantizer_beta,
-        # "VQ_quantizer_use_norm": VQ_quantizer_use_norm,
-        # "VQ_quantizer_use_residual": VQ_quantizer_use_residual,
         "VQ_optimizer": VQ_optimizer,
         "VQ_optimizer_lr": VQ_optimizer_lr,
         "VQ_optimizer_weight_decay": VQ_optimizer_weight_decay,
         "VQ_loss_weight_recon_L2": VQ_loss_weight_recon_L2,
         "VQ_loss_weight_recon_L1": VQ_loss_weight_recon_L1,
-        "VQ_loss_weight_perceptual": VQ_loss_weight_perceptual,
         "VQ_loss_weight_codebook": VQ_loss_weight_codebook,
         "VQ_train_epoch": VQ_train_epoch,
         "VQ_train_gradiernt_clip": VQ_train_gradiernt_clip,
-        "VQ_lucidrains_VQ_type": VQ_lucidrains_VQ_type,
-        "VQ_lucidrains_VQ_embed_dim": VQ_lucidrains_VQ_embed_dim,
-        "VQ_lucidrains_VQ_n_embed": VQ_lucidrains_VQ_n_embed,
-        "VQ_lucidrains_VQ_decay": VQ_lucidrains_VQ_decay,
-        "VQ_lucidrains_VQ_commiment_weight": VQ_lucidrains_VQ_commiment_weight,
-        "VQ_lucidrains_VQ_kmeans_init": VQ_lucidrains_VQ_kmeans_init,
-        "VQ_lucidrains_VQ_kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
-        # "VQ_lucidrains_VQ_codebook_dim": VQ_lucidrains_VQ_codebook_dim,
-        "VQ_lucidrains_VQ_use_cosine_sim": VQ_lucidrains_VQ_use_cosine_sim,
-        "VQ_lucidrains_threshold_ema_dead_code": VQ_lucidrains_threshold_ema_dead_code,
-        "VQ_lucidrains_VQ_message": VQ_lucidrains_VQ_message,
+        "pyramid_channels": pyramid_channels,
+        "pyramid_codebook_size": pyramid_codebook_size,
+        "pyramid_strides": pyramid_strides,
+        "pyramid_num_res_units": pyramid_num_res_units,
     }
 )
 
@@ -319,18 +218,19 @@ class UNet3D_encoder(nn.Module):
         #         down3 ------------- up3
         # 1 -> (32, 64, 128, 256) -> 1
 
-        self.down1 = ResidualUnit(3, self.in_channels, self.channels[0], self.strides[0],
-                kernel_size=self.kernel_size, subunits=self.num_res_units,
-                act=self.act, norm=self.norm, dropout=self.dropout,
-                bias=self.bias, adn_ordering=self.adn_ordering)
-        self.down2 = ResidualUnit(3, self.channels[0], self.channels[1], self.strides[1],
-                kernel_size=self.kernel_size, subunits=self.num_res_units,
-                act=self.act, norm=self.norm, dropout=self.dropout,
-                bias=self.bias, adn_ordering=self.adn_ordering)
-        self.down3 = ResidualUnit(3, self.channels[1], self.channels[2], self.strides[2],
-                kernel_size=self.kernel_size, subunits=self.num_res_units,
-                act=self.act, norm=self.norm, dropout=self.dropout,
-                bias=self.bias, adn_ordering=self.adn_ordering)
+        self.depth = len(self.channels)
+        self.down_blocks = nn.ModuleList()
+
+
+        for i in range(self.depth):
+            self.down_blocks.append(
+                ResidualUnit(3, self.in_channels, self.channels[i], self.strides[i],
+                    kernel_size=self.kernel_size, subunits=self.num_res_units,
+                    act=self.act, norm=self.norm, dropout=self.dropout,
+                    bias=self.bias, adn_ordering=self.adn_ordering)
+            )
+            self.in_channels = self.channels[i]
+
         # flatten from (B, C, H, W, D) to (B, C, H*W*D), C is the self.channels[2]
         self.flatten = nn.Sequential(
             Rearrange('b c h w d -> b (h w d) c'),
@@ -353,15 +253,12 @@ class UNet3D_encoder(nn.Module):
                     nn.init.constant_(m.bias, 0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x is (B, C, H, W, D), where C = self.in_channels
-        x1 = self.down1(x)
-        # x1 is (B, C1, H1, W1, D1), where C1 = self.channels[0], H1 = H//2, W1 = W//2, D1 = D//2
-        x2 = self.down2(x1)
-        # x2 is (B, C2, H2, W2, D2), where C2 = self.channels[1], H2 = H//4, W2 = W//4, D2 = D//4
-        x3 = self.down3(x2)
-        # x3 is (B, C3, H3, W3, D3), where C3 = self.channels[2], H3 = H//8, W3 = W//8, D3 = D//8
-        x3_flatten = self.flatten(x3)
-        return x3_flatten
+        for i in range(self.depth):
+            x = self.down_blocks[i](x)
+        
+        x = self.flatten(x)
+
+        return x
     
 
 class UNet3D_decoder(nn.Module):
@@ -410,18 +307,20 @@ class UNet3D_decoder(nn.Module):
             Rearrange('b (h w d) c -> b c h w d', h=self.hwd, w=self.hwd, d=self.hwd),
         )
 
-        self.up3 = nn.Sequential(
-            Convolution(3, self.channels[2], self.channels[1], strides=self.strides[2], kernel_size=self.up_kernel_size, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, conv_only=False, is_transposed=True, adn_ordering=self.adn_ordering),
-            ResidualUnit(3, self.channels[1], self.channels[1], strides=1, kernel_size=self.kernel_size, subunits=1, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, last_conv_only=False, adn_ordering=self.adn_ordering,),
-        )
-        self.up2 = nn.Sequential(
-            Convolution(3, self.channels[1], self.channels[0], strides=self.strides[1], kernel_size=self.up_kernel_size, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, conv_only=False, is_transposed=True, adn_ordering=self.adn_ordering),
-            ResidualUnit(3, self.channels[0], self.channels[0], strides=1, kernel_size=self.kernel_size, subunits=1, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, last_conv_only=False, adn_ordering=self.adn_ordering,),
-        )
-        self.up1 = nn.Sequential(
-            Convolution(3, self.channels[0], self.out_channels, strides=self.strides[0], kernel_size=self.up_kernel_size, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, conv_only=False, is_transposed=True, adn_ordering=self.adn_ordering),
-            ResidualUnit(3, self.out_channels, self.out_channels, strides=1, kernel_size=self.kernel_size, subunits=1, act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, last_conv_only=False, adn_ordering=self.adn_ordering,),
-        )
+        self.depth = len(self.channels)
+        self.up = nn.ModuleList()
+        for i in range(self.depth - 1):
+            self.up.append(
+                nn.Sequential(
+                    Convolution(3, self.channels[i], self.channels[i+1], self.strides[i], self.up_kernel_size,
+                        act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, conv_only=False,
+                        is_transposed=True, adn_ordering=self.adn_ordering),
+                    ResidualUnit(3, self.channels[i+1], self.channels[i+1], 1, self.kernel_size, self.num_res_units,
+                        act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, last_conv_only=False,
+                        adn_ordering=self.adn_ordering)
+                )
+            )
+        self.out = nn.Conv3d(self.channels[-1], self.out_channels, kernel_size=1, stride=1, padding=0)
 
         self.init_weights()
     
@@ -440,282 +339,115 @@ class UNet3D_decoder(nn.Module):
                     nn.init.constant_(m.bias, 0)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x3 = self.unflatten(x)
-        # x3 is (B, C3, H3, W3, D3), where C3 = self.channels[2], H3 = H//8, W3 = W//8, D3 = D//8
-        x2 = self.up3(x3)
-        # x2 is (B, C2, H2, W2, D2), where C2 = self.channels[1], H2 = H//4, W2 = W//4, D2 = D//4
-        x1 = self.up2(x2)
-        # x1 is (B, C1, H1, W1, D1), where C1 = self.channels[0], H1 = H//2, W1 = W//2, D1 = D//2
-        x = self.up1(x1)
-        # x is (B, C, H, W, D), where C = self.out_channels, H = H, W = W, D = D
-
+        x = self.unflatten(x)
+        for i in range(self.depth - 1):
+            x = self.up[i](x)
+        x = self.out(x)
         return x
 
 
 
 # class ViTVQ3D(pl.LightningModule):
+# here we will receive a list, which contains several set of encoder/pre_quant/quantizer/post_quant/decoder
+# we will read the list and create the model
+
 class ViTVQ3D(nn.Module):
-    def __init__(self, volume_key: str, volume_size: int, encoder: dict, decoder: dict, quantizer: dict,
-                 path: Optional[str] = None, ignore_keys: List[str] = list(), scheduler: Optional[dict] = None) -> None:
+    def __init__(self, model_level: list, device: torch.device) -> None:
         super().__init__()
-        self.path = path
-        self.ignore_keys = ignore_keys 
-        self.volume_key = volume_key
-        self.scheduler = scheduler 
-        
-        # self.encoder = ViTEncoder3D(volume_size=volume_size, patch_size=patch_size, **encoder)
-        # self.decoder = ViTDecoder3D(volume_size=volume_size, patch_size=patch_size, **decoder)
-        self.encoder = UNet3D_encoder(**encoder)
-        self.decoder = UNet3D_decoder(**decoder)
-        # self.quantizer = VectorQuantizer(**quantizer)
-        # quantizer={
-        #     "dim": VQ_lucidrains_VQ_embed_dim, "codebook_size": VQ_lucidrains_VQ_n_embed, "decay": VQ_lucidrains_VQ_decay, "commitment_weight": VQ_lucidrains_VQ_commiment_weight,
-        #     "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iter": VQ_lucidrains_VQ_kmeans_iters,
-        # }
-        self.quantizer = lucidrains_VQ(
-            dim = quantizer["embed_dim"],
-            codebook_size = quantizer["codebook_size"],
-            decay = quantizer["decay"],
-            commitment_weight = quantizer["commitment_weight"],
-            # codebook_dim = quantizer["codebook_dim"],
-            kmeans_init = quantizer["kmeans_init"],
-            kmeans_iters = quantizer["kmeans_iters"],
-            use_cosine_sim = quantizer["use_cosine_sim"],
-            threshold_ema_dead_code = quantizer["threshold_ema_dead_code"],
-        )
-        self.pre_quant = nn.Linear(encoder["channels"][2], quantizer["embed_dim"])
-        self.post_quant = nn.Linear(quantizer["embed_dim"], decoder["channels"][2])
-        if path is not None:
-            self.init_from_ckpt(path, ignore_keys)
-
-    def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:    
-        quant, indices, diff = self.encode(x)
-        dec = self.decode(quant)
-        
-        return dec, indices, diff
-
-    def init_from_ckpt(self, path: str, ignore_keys: List[str] = list()):
-        sd = torch.load(path, map_location="cpu")["state_dict"]
-        keys = list(sd.keys())
-        for k in keys:
-            for ik in ignore_keys:
-                if k.startswith(ik):
-                    print("Deleting key {} from state_dict.".format(k))
-                    del sd[k]
-        self.load_state_dict(sd, strict=False)
-        print(f"Restored from {path}")
-        
-    def encode(self, x: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
-        h = self.encoder(x)
-        h = self.pre_quant(h)
-        # x = torch.randn(1, 1024, 256)
-        # quantized, indices, commit_loss = vq(x) # (1, 1024, 256), (1, 1024), (1)
-        # quant, emb_loss, _ = self.quantizer(h)
-        quant, indices, loss = self.quantizer(h)
-        return quant, indices, loss
-
-    def decode(self, quant: torch.FloatTensor) -> torch.FloatTensor:
-        quant = self.post_quant(quant)
-        dec = self.decoder(quant)
-        
-        return dec
-
-    def encode_codes(self, x: torch.FloatTensor) -> torch.LongTensor:
-        h = self.encoder(x)
-        h = self.pre_quant(h)
-        _, _, codes = self.quantizer(h)
-        
-        return codes
-
-    def decode_codes(self, code: torch.LongTensor) -> torch.FloatTensor:
-        quant = self.quantizer.embedding(code)
-        quant = self.quantizer.norm(quant)
-        
-        if self.quantizer.use_residual:
-            quant = quant.sum(-2)  
+        self.num_level = len(model_level)
+        self.sub_models = nn.ModuleList()
+        self.device = device
+        for level_setting in model_level:
+            # Create a submodule to hold the encoder, decoder, quantizer, etc.
+            sub_model = nn.Module() 
+            sub_model.encoder = UNet3D_encoder(**level_setting["encoder"])
+            sub_model.decoder = UNet3D_decoder(**level_setting["decoder"])
+            sub_model.quantizer = lucidrains_VQ(**level_setting["quantizer"])
+            sub_model.pre_quant = nn.Linear(level_setting["encoder"]["channels"][-1], level_setting["quantizer"]["dim"])
+            sub_model.post_quant = nn.Linear(level_setting["quantizer"]["dim"], level_setting["decoder"]["channels"][0])
             
-        dec = self.decode(quant)
+            # Append the submodule to the ModuleList
+            self.sub_models.append(sub_model) 
         
-        return dec
-    
+        self.init_weights()
+        self.freeze_gradient_all()
 
-# apply the channel wise norm for all feature maps
-# Normalize activations
-def normalize_activations(features):
-    normalized_features = []
-    for feature in features:
-        # Compute the norm along the channel dimension
-        norm = torch.norm(feature, p=2, dim=1, keepdim=True)
-        # Normalize the feature map
-        normalized_feature = feature / (norm + 1e-8)  # Add a small value to avoid division by zero
-        normalized_features.append(normalized_feature)
-    return normalized_features
+    def move_to_device_at_level(self, i_level: int) -> None:
+        self.sub_models[i_level].encoder.to(self.device)
+        self.sub_models[i_level].decoder.to(self.device)
+        self.sub_models[i_level].quantizer.to(self.device)
+        self.sub_models[i_level].pre_quant.to(self.device)
+        self.sub_models[i_level].post_quant.to(self.device)
+        print(f"Move to device at level {i_level}")
 
-# Compute l2 distance for each pair of feature maps
-def l2_distance(features1, features2):
-    l2_distances = []
-    for f1, f2 in zip(features1, features2):
-        # Compute the l2 distance
-        l2_dist = torch.norm(f1 - f2, p=2, dim=1)  # Sum across channel dimension
-        l2_distances.append(l2_dist)
-    return l2_distances
+    def freeze_gradient_all(self) -> None:
+        for level in range(self.num_level):
+            self.freeze_gradient_at_level(level)
+        print("Freeze all gradients")
 
-# Average the l2 distances across spatial dimensions
-def average_spatial(distances):
-    averaged_distances = []
-    for dist in distances:
-        # Average across spatial dimensions (dimensions 1, 2, 3)
-        avg_dist = torch.mean(dist, dim=[1, 2, 3])
-        averaged_distances.append(avg_dist)
-    return averaged_distances
+    def freeze_gradient_at_level(self, i_level: int) -> None:
+        self.sub_models[i_level].encoder.requires_grad_(False)
+        self.sub_models[i_level].decoder.requires_grad_(False)
+        self.sub_models[i_level].quantizer.requires_grad_(False)
+        self.sub_models[i_level].pre_quant.requires_grad_(False)
+        self.sub_models[i_level].post_quant.requires_grad_(False)
+        print(f"Freeze gradient at level {i_level}")
 
-# Overall average across all layers
-def average_all_layers(distances):
-    total_distance = torch.stack(distances).mean()
-    return total_distance
+    def unfreeze_gradient_at_level(self, i_level: int) -> None:
+        self.sub_models[i_level].encoder.requires_grad_(True)
+        self.sub_models[i_level].decoder.requires_grad_(True)
+        self.sub_models[i_level].quantizer.requires_grad_(True)
+        self.sub_models[i_level].pre_quant.requires_grad_(True)
+        self.sub_models[i_level].post_quant.requires_grad_(True)
+        print(f"Unfreeze gradient at level {i_level}")
 
-class UNet3D_perceptual(nn.Module):
-    def __init__(
-        self,
-        spatial_dims: int,
-        in_channels: int,
-        out_channels: int,
-        channels: Sequence[int],
-        strides: Sequence[int],
-        kernel_size: Union[Sequence[int], int] = 3,
-        up_kernel_size: Union[Sequence[int], int] = 3,
-        num_res_units: int = 0,
-        act: Union[Tuple, str] = Act.PRELU,
-        norm: Union[Tuple, str] = Norm.INSTANCE,
-        dropout: float = 0.0,
-        bias: bool = True,
-        adn_ordering: str = "NDA",
-        dimensions: Optional[int] = None,
-        pretrained_path = None,
-    ) -> None:
-        super().__init__()
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv3d):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm3d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
 
-        if len(channels) < 2:
-            raise ValueError("the length of `channels` should be no less than 2.")
-        delta = len(strides) - (len(channels) - 1)
-        if delta < 0:
-            raise ValueError("the length of `strides` should equal to `len(channels) - 1`.")
-        if delta > 0:
-            warnings.warn(f"`len(strides) > len(channels) - 1`, the last {delta} values of strides will not be used.")
-        if dimensions is not None:
-            spatial_dims = dimensions
-        if isinstance(kernel_size, Sequence):
-            if len(kernel_size) != spatial_dims:
-                raise ValueError("the length of `kernel_size` should equal to `dimensions`.")
-        if isinstance(up_kernel_size, Sequence):
-            if len(up_kernel_size) != spatial_dims:
-                raise ValueError("the length of `up_kernel_size` should equal to `dimensions`.")
+    def foward_at_level(self, x: torch.FloatTensor, i_level: int) -> torch.FloatTensor:
+        h = self.sub_models[i_level].encoder(x) # Access using dot notation
+        h = self.sub_models[i_level].pre_quant(h)
+        quant, indices, loss = self.sub_models[i_level].quantizer(h)
+        g = self.sub_models[i_level].post_quant(quant)
+        g = self.sub_models[i_level].decoder(g)
+        return g, indices, loss
 
-        self.dimensions = spatial_dims
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.channels = channels
-        self.strides = strides
-        self.kernel_size = kernel_size
-        self.up_kernel_size = up_kernel_size
-        self.num_res_units = num_res_units
-        self.act = act
-        self.norm = norm
-        self.dropout = dropout
-        self.bias = bias
-        self.adn_ordering = adn_ordering
-        self.pretrained_path = pretrained_path
+    def forward(self, pyramid_x: list, active_level: int) -> torch.FloatTensor:
+        # pyramid_x is a list of tensorFloat, like [8*8*8, 16*16*16, 32*32*32, 64*64*64]
+        # active_level is the level of the pyramid, like 0, 1, 2, 3
+        
+        assert active_level <= self.num_level
+        x_hat = None
+        indices_list = []
+        loss_list = []
 
+        for i_level in range(active_level):
+            if i_level == 0:
+                x_hat, indices, loss = self.foward_at_level(pyramid_x[i_level], i_level)
+                indices_list.append(indices)
+                loss_list.append(loss)
+            else:
+                resample_x = F.interpolate(pyramid_x[i_level - 1], scale_factor=2, mode='trilinear', align_corners=False)
+                input_x = pyramid_x[i_level] - resample_x
+                output_x, indices, loss = self.foward_at_level(input_x, i_level)
+                indices_list.append(indices)
+                loss_list.append(loss)
+                # upsample the x_hat to double the size in three dimensions
+                x_hat = F.interpolate(x_hat, scale_factor=2, mode='trilinear', align_corners=False)
+                x_hat = x_hat + output_x
 
-        # UNet( 
-        # spatial_dims=unet_dict["spatial_dims"],
-        # in_channels=unet_dict["in_channels"],
-        # out_channels=unet_dict["out_channels"],
-        # channels=unet_dict["channels"],
-        # strides=unet_dict["strides"],
-        # num_res_units=unet_dict["num_res_units"],
-        # act=unet_dict["act"],
-        # norm=unet_dict["normunet"],
-        # dropout=unet_dict["dropout"],
-        # bias=unet_dict["bias"],
-        # )
-
-        # input - down1 ------------- up1 -- output
-        #         |                   |
-        #         down2 ------------- up2
-        #         |                   |
-        #         down3 ------------- up3
-        #         |                   |
-        #         down4 -- bottom --  up4
-        # 1 -> (32, 64, 128, 256) -> 1
-
-        self.down1 = ResidualUnit(3, self.in_channels, self.channels[0], self.strides[0],
-                kernel_size=self.kernel_size, subunits=self.num_res_units,
-                act=self.act, norm=self.norm, dropout=self.dropout,
-                bias=self.bias, adn_ordering=self.adn_ordering)
-        self.down2 = ResidualUnit(3, self.channels[0], self.channels[1], self.strides[1],
-                kernel_size=self.kernel_size, subunits=self.num_res_units,
-                act=self.act, norm=self.norm, dropout=self.dropout,
-                bias=self.bias, adn_ordering=self.adn_ordering)
-        self.down3 = ResidualUnit(3, self.channels[1], self.channels[2], self.strides[2],
-                kernel_size=self.kernel_size, subunits=self.num_res_units,
-                act=self.act, norm=self.norm, dropout=self.dropout,
-                bias=self.bias, adn_ordering=self.adn_ordering)
-        self.bottom = ResidualUnit(3, self.channels[2], self.channels[3], 1,
-                kernel_size=self.kernel_size, subunits=self.num_res_units,
-                act=self.act, norm=self.norm, dropout=self.dropout,
-                bias=self.bias, adn_ordering=self.adn_ordering)
-
-        self.load_weights(self.pretrained_path)
-        self.set_all_parameters_ignore_grad()
-    
-    def load_weights(self, path: str):
-        # the path is to the whole model, where we only need the encoder part
-        # iterate the current model weight names and load the weights from the pre-trained model
-        pretrain_dict = torch.load(path)
-        current_dict = self.state_dict()
-        # 1. filter out unnecessary keys
-        pretrain_dict = {k: v for k, v in pretrain_dict.items() if k in current_dict}
-        # 2. overwrite entries in the existing state dict
-        current_dict.update(pretrain_dict)
-        # 3. load the new state dict
-        self.load_state_dict(current_dict)
-
-    def set_all_parameters_ignore_grad(self):
-        for param in self.parameters():
-            param.requires_grad = False
-
-
-    # def forward(self, x: torch.Tensor) -> torch.Tensor:
-    #     x1 = self.down1(x)
-    #     x2 = self.down2(x1)
-    #     x3 = self.down3(x2)
-    #     x4 = self.bottom(x3)
-    #     return x1, x2, x3, x4
-
-    def forward(self, y: torch.Tensor, z: torch.Tensor) -> torch.Tensor:
-        y1 = self.down1(y)
-        y2 = self.down2(y1)
-        y3 = self.down3(y2)
-        y4 = self.bottom(y3)
-
-        z1 = self.down1(z)
-        z2 = self.down2(z1)
-        z3 = self.down3(z2)
-        z4 = self.bottom(z3)
-
-        y_features = [y1, y2, y3, y4]
-        z_features = [z1, z2, z3, z4]
-
-        y_fea_norm = normalize_activations(y_features)
-        z_fea_norm = normalize_activations(z_features)
-
-        l2_dist = l2_distance(y_fea_norm, z_fea_norm)
-        avg_dist = average_spatial(l2_dist)
-        total_dist = average_all_layers(avg_dist)
-
-        return total_dist
-    
+        return x_hat, indices_list, loss_list
 
 
 train_transforms = Compose(
@@ -831,46 +563,114 @@ val_ds = RobustCacheDataset(
 train_loader = DataLoader(train_ds, batch_size=batch_size_train, shuffle=True, num_workers=num_workers_train_dataloader, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
 val_loader = DataLoader(val_ds, batch_size=batch_size_val, shuffle=False, num_workers=num_workers_val_dataloader, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
 
-# model = ViTVQ3D(
-#     volume_key="volume", volume_size=volume_size, patch_size=8,
-#     encoder={
-#         "dim": 360, "depth": 6, "heads": 16, "mlp_dim": 1024, "channels": 1, "dim_head": 128
-#     },
-#     decoder={
-#         "dim": 360, "depth": 6, "heads": 16, "mlp_dim": 1024, "channels": 1, "dim_head": 128
-#     },
-#     quantizer={
-#         "embed_dim": 128, "n_embed": 1024, "beta": 0.25, "use_norm": True, "use_residual": False
-#     }
-# ).to(device)
+
+
+
+encoder_8 = {
+    "spatial_dims": 3, "in_channels": 1,
+    "channels": [pyramid_channels[0]],
+    "strides": pyramid_strides[-1:],
+    "num_res_units": pyramid_num_res_units[0],
+}
+quantizer_8 = {
+    "dim": pyramid_channels[0], 
+    "codebook_size": pyramid_codebook_size[0],
+    "decay": 0.8, "commitment_weight": 1.0,
+    "use_cosine_sim": True, "threshold_ema_dead_code": 2,
+    "kmeans_init": True, "kmeans_iters": 10
+}
+decoder_8 = {
+    "spatial_dims": 3, "out_channels": 1,
+    "channels": [pyramid_channels[0]],
+    "strides": pyramid_strides[-1:],
+    "num_res_units": pyramid_num_res_units[0],
+}
+
+encoder_16 = {
+    "spatial_dims": 3, "in_channels": 1,
+    "channels": pyramid_channels[0:2],
+    "strides": pyramid_strides[-2:],
+    "num_res_units": pyramid_num_res_units[1],
+}
+quantizer_16 = {
+    "dim": pyramid_channels[1], 
+    "codebook_size": pyramid_codebook_size[1],
+    "decay": 0.8, "commitment_weight": 1.0,
+    "use_cosine_sim": True, "threshold_ema_dead_code": 2,
+    "kmeans_init": True, "kmeans_iters": 10
+}
+decoder_16 = {
+    "spatial_dims": 3, "out_channels": 1,
+    "channels": pyramid_channels[0:2],
+    "strides": pyramid_strides[-2:],
+    "num_res_units": pyramid_num_res_units[1],
+}
+
+encoder_32 = {
+    "spatial_dims": 3, "in_channels": 1,
+    "channels": pyramid_channels[0:3],
+    "strides": pyramid_strides[-3:],
+    "num_res_units": pyramid_num_res_units[2],
+}
+quantizer_32 = {
+    "dim": pyramid_channels[2], 
+    "codebook_size": pyramid_codebook_size[2],
+    "decay": 0.8, "commitment_weight": 1.0,
+    "use_cosine_sim": True, "threshold_ema_dead_code": 2,
+    "kmeans_init": True, "kmeans_iters": 10
+}
+decoder_32 = {
+    "spatial_dims": 3, "out_channels": 1,
+    "channels": pyramid_channels[0:3],
+    "strides": pyramid_strides[-3:],
+    "num_res_units": pyramid_num_res_units[2],
+}
+
+encoder_64 = {
+    "spatial_dims": 3, "in_channels": 1,
+    "channels": pyramid_channels[0:4],
+    "strides": pyramid_strides[-4:],
+    "num_res_units": pyramid_num_res_units[3],
+}
+quantizer_64 = {
+    "dim": pyramid_channels[3],
+    "codebook_size": pyramid_codebook_size[3],
+    "decay": 0.8, "commitment_weight": 1.0,
+    "use_cosine_sim": True, "threshold_ema_dead_code": 2,
+    "kmeans_init": True, "kmeans_iters": 10
+}
+decoder_64 = {
+    "spatial_dims": 3, "out_channels": 1,
+    "channels": pyramid_channels[0:4],
+    "strides": pyramid_strides[-4:],
+    "num_res_units": pyramid_num_res_units[3],
+}
 
 model = ViTVQ3D(
-    volume_key="volume", volume_size=volume_size, 
-    encoder={
-        # spatial_dims: int,
-        # in_channels: int,
-        # channels: Sequence[int],
-        # strides: Sequence[int],
-        "spatial_dims": 3, "in_channels": 1, "channels": VQ_encoder_channels, "strides": [2, 2, 2], "num_res_units": VQ_decoder_num_res_units,
-    },
-    decoder={
-        # spatial_dims: int,
-        # out_channels: int,
-        # channels: Sequence[int],
-        # strides: Sequence[int],
-        # num_res_units: int = 0,
-        # hwd: Union[Tuple, str] = 8,
-        "spatial_dims": 3, "out_channels": 1, "channels": VQ_decoder_channels, "strides": [2, 2, 2], "num_res_units": VQ_decoder_num_res_units, "hwd": volume_size // 8,
-
-    },
-    quantizer={
-        "embed_dim": VQ_lucidrains_VQ_embed_dim, "codebook_size": VQ_lucidrains_VQ_n_embed, "decay": VQ_lucidrains_VQ_decay, "commitment_weight": VQ_lucidrains_VQ_commiment_weight,
-        "threshold_ema_dead_code": VQ_lucidrains_threshold_ema_dead_code,
-        "use_cosine_sim": VQ_lucidrains_VQ_use_cosine_sim,
-        # "codebook_dim": VQ_lucidrains_VQ_codebook_dim,
-        "kmeans_init": VQ_lucidrains_VQ_kmeans_init, "kmeans_iters": VQ_lucidrains_VQ_kmeans_iters,
-    },
-).to(device)
+    model_level=[
+        {
+            "encoder": encoder_8,
+            "decoder": decoder_8,
+            "quantizer": quantizer_8
+        },
+        {
+            "encoder": encoder_16,
+            "decoder": decoder_16,
+            "quantizer": quantizer_16
+        },
+        {
+            "encoder": encoder_32,
+            "decoder": decoder_32,
+            "quantizer": quantizer_32
+        },
+        {
+            "encoder": encoder_64,
+            "decoder": decoder_64,
+            "quantizer": quantizer_64
+        },
+    ],
+    device=device,
+)
 
 
 learning_rate = VQ_optimizer_lr
@@ -879,18 +679,6 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay
 
 # here we set the encoder model parameters
 
-preceptual_loss = dict()
-preceptual_loss["spatial_dims"] = 3
-preceptual_loss["in_channels"] = 1
-preceptual_loss["out_channels"] = 1
-preceptual_loss["channels"] = [32, 64, 128, 256]
-preceptual_loss["strides"] = [2, 2, 2]
-preceptual_loss["num_res_units"] = 4
-preceptual_loss["pretrained_path"] = "model_best_181_state_dict.pth"
-
-if VQ_loss_weight_perceptual > 0:
-    preceptual_model = UNet3D_perceptual(**preceptual_loss).to(device)
-    preceptual_model.eval()
 # total_dist = preceptual_model(nii_data_norm_cut_tensor, out)
 # print("total_dist is ", total_dist)
 
@@ -994,7 +782,6 @@ num_epoch = VQ_train_epoch
 loss_weights = {
     "reconL2": VQ_loss_weight_recon_L2,
     "reconL1": VQ_loss_weight_recon_L1,
-    "perceptual": VQ_loss_weight_perceptual,
     "codebook": VQ_loss_weight_codebook,
 }
 
@@ -1006,175 +793,200 @@ save_folder = "./results/"
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
-for idx_epoch in range(num_epoch):
-    model.train()
-    epoch_loss_train = {
-        "reconL2": [],
-        "reconL1": [],
-        "perceptual": [],
-        "codebook": [],
-        "total": [],
-    }
-    epoch_grad_train = {
-        "encoder": [],
-        "decoder": [],
-        "quantizer": [],
-    }
-    epoch_codebook_train = {
-        "indices": [],
-    }
+def generate_input_data_pyramid(x, levels):
+    pyramid_x = []
+    if levels == 1:
+        x_8 = F.interpolate(x, size=(8, 8, 8), mode="trilinear", align_corners=False).to(device)
+        pyramid_x.append(x_8)
+    if levels == 2:
+        x_16 = F.interpolate(x, size=(16, 16, 16), mode="trilinear", align_corners=False).to(device)
+        pyramid_x.append(x_16)
+    if levels == 3:
+        x_32 = F.interpolate(x, size=(32, 32, 32), mode="trilinear", align_corners=False).to(device)
+    if levels == 4:
+        pyramid_x.append(x)
+    return pyramid_x
 
-    for idx_batch, batch in enumerate(train_loader):
-        x = batch["image"].to(device)
-        # print x size
-        # print("x size is ", x.size())
-        xrec, indices, cb_loss = model(x)
-        optimizer.zero_grad()
-        
-        if VQ_loss_weight_perceptual > 0:
-            total_dist = preceptual_model(x, xrec)
-        else:
-            # make the total_dist.item() = 0
-            total_dist = F.mse_loss(torch.zeros(1), torch.zeros(1))
-        # total_dist = preceptual_model(x, xrec)
-        reconL2_loss = F.mse_loss(x, xrec)
-        reconL1_loss = F.l1_loss(x, xrec)
-        perceptual_loss = total_dist
-        codebook_loss = cb_loss
-        total_loss = loss_weights["reconL2"] * reconL2_loss + \
-                        loss_weights["reconL1"] * reconL1_loss + \
-                        loss_weights["perceptual"] * perceptual_loss + \
-                        loss_weights["codebook"] * codebook_loss
-        epoch_loss_train["reconL2"].append(reconL2_loss.item())
-        epoch_loss_train["reconL1"].append(reconL1_loss.item())
-        epoch_loss_train["perceptual"].append(perceptual_loss.item())
-        epoch_loss_train["codebook"].append(codebook_loss.item())
-        epoch_loss_train["total"].append(total_loss.item())
-        print(f"<{idx_epoch}> [{idx_batch}/{num_train_batch}] Total loss: {total_loss.item()}")
-        # add gradient clipping
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=VQ_train_gradiernt_clip)
-        total_loss.backward()
-        optimizer.step()
+def train_model_at_level(num_epoch, current_level):
 
-        # compute the average gradient
-        encoder_grad = compute_average_gradient(model.encoder)
-        decoder_grad = compute_average_gradient(model.decoder)
-        quantizer_grad = compute_average_gradient(model.quantizer)
-        epoch_grad_train["encoder"].append(encoder_grad)
-        epoch_grad_train["decoder"].append(decoder_grad)
-        epoch_grad_train["quantizer"].append(quantizer_grad)
+    # move the model to the device
+    for i_level in range(current_level):
+        model.move_to_device_at_level(i_level)
 
-        # record the codebook indices
-        current_indices = indices.cpu().numpy().squeeze().flatten()
-        epoch_codebook_train["indices"].extend(current_indices)
-    
-    for key in epoch_loss_train.keys():
-        epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
-        logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
-        # logger.log(idx_epoch, f"train_{key}_std", epoch_loss_train[key].std())
-    
-    for key in epoch_grad_train.keys():
-        epoch_grad_train[key] = np.asanyarray(epoch_grad_train[key])
-        logger.log(idx_epoch, f"train_{key}_grad_mean", epoch_grad_train[key].mean())
-        # logger.log(idx_epoch, f"train_{key}_grad_std", epoch_grad_train[key].std())
-    
-    for key in epoch_codebook_train.keys():
-        epoch_codebook_train[key] = np.asanyarray(epoch_codebook_train[key])
-    # activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
-    # a = np.array([1, 2, 6, 4, 2, 3, 2])
-    # values, counts = np.unique(a, return_counts=True)
-    # values = array([1, 2, 3, 4, 6])
-    # counts = array([1, 3, 1, 1, 1])
-    # activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed # percentage
-    # activated_dispersion = np.std(activated_counts) # dispersion
-    # logger.log(idx_epoch, "train_activated_percentage", activated_percentage)
-    # logger.log(idx_epoch, "train_activated_dispersion", activated_dispersion)
-    # comppute what's the frequency of each index from VQ_lucidrains_VQ_n_embed
-    activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
-    if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
-        activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
-    effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
-    logger.log(idx_epoch, "train_effective_num", effective_num)
-    
+    # set the gradient freeze
+    if pyramid_freeze_previous_stages:
+        model.freeze_gradient_all()
+        model.unfreeze_gradient_at_level(current_level)
+    else:
+        model.freeze_gradient_all()
+        for i_level in range(current_level):
+            model.unfreeze_gradient_at_level(i_level)
 
-    # validation
-    if idx_epoch % val_per_epoch == 0:
-        model.eval()
-        epoch_loss_val = {
+    # start the training
+    for idx_epoch in range(num_epoch):
+        model.train()
+        epoch_loss_train = {
             "reconL2": [],
             "reconL1": [],
-            "perceptual": [],
             "codebook": [],
             "total": [],
         }
-        epoch_codebook_val = {
+        epoch_grad_train = {
+            "encoder": [],
+            "decoder": [],
+            "quantizer": [],
+        }
+        epoch_codebook_train = {
             "indices": [],
         }
-        with torch.no_grad():
-            for idx_batch, batch in enumerate(val_loader):
-                x = batch["image"].to(device)
-                xrec, indices, cb_loss = model(x)
-                if VQ_loss_weight_perceptual > 0:
-                    total_dist = preceptual_model(x, xrec)
-                else:
-                    total_dist = total_dist = F.mse_loss(torch.zeros(1), torch.zeros(1))
-                # total_dist = preceptual_model(x, xrec)
-                reconL2_loss = F.mse_loss(x, xrec)
-                reconL1_loss = F.l1_loss(x, xrec)
-                perceptual_loss = total_dist
-                codebook_loss = cb_loss
-                total_loss = loss_weights["reconL2"] * reconL2_loss + \
-                                loss_weights["reconL1"] * reconL1_loss + \
-                                loss_weights["perceptual"] * perceptual_loss + \
-                                loss_weights["codebook"] * codebook_loss
-                epoch_loss_val["reconL2"].append(reconL2_loss.item())
-                epoch_loss_val["reconL1"].append(reconL1_loss.item())
-                epoch_loss_val["perceptual"].append(perceptual_loss.item())
-                epoch_loss_val["codebook"].append(codebook_loss.item())
-                epoch_loss_val["total"].append(total_loss.item())
-                print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
 
-                # record the codebook indices (B, n_embed)
-                current_indices = indices.cpu().numpy().squeeze().flatten()
-                # append each element in current_indices to the list
-                epoch_codebook_val["indices"].extend(current_indices)
+        for idx_batch, batch in enumerate(train_loader):
+            x = batch["image"]
+            # generate the input data pyramid
+            pyramid_x = generate_input_data_pyramid(x, current_level)
+            # target_x is the last element of the pyramid_x, which is to be reconstructed
+            target_x = pyramid_x[-1]
+            # input the pyramid_x to the model
+            xrec, indices_list, cb_loss_list = model(pyramid_x)
+            # initialize the optimizer
+            optimizer.zero_grad()
+            # compute the loss
+            reconL2_loss = F.mse_loss(target_x, xrec)
+            reconL1_loss = F.l1_loss(target_x, xrec)
+            if pyramid_freeze_previous_stages:
+                codebook_loss = cb_loss_list[-1]
+            else:
+                # average the codebook loss
+                codebook_loss = 
+            total_loss = loss_weights["reconL2"] * reconL2_loss + \
+                            loss_weights["reconL1"] * reconL1_loss + \
+                            loss_weights["codebook"] * codebook_loss
+            epoch_loss_train["reconL2"].append(reconL2_loss.item())
+            epoch_loss_train["reconL1"].append(reconL1_loss.item())
+            epoch_loss_train["codebook"].append(codebook_loss.item())
+            epoch_loss_train["total"].append(total_loss.item())
+            print(f"<{idx_epoch}> [{idx_batch}/{num_train_batch}] Total loss: {total_loss.item()}")
+            # add gradient clipping
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=VQ_train_gradiernt_clip)
+            total_loss.backward()
+            optimizer.step()
+
+            # compute the average gradient
+            encoder_grad = compute_average_gradient(model.encoder)
+            decoder_grad = compute_average_gradient(model.decoder)
+            quantizer_grad = compute_average_gradient(model.quantizer)
+            epoch_grad_train["encoder"].append(encoder_grad)
+            epoch_grad_train["decoder"].append(decoder_grad)
+            epoch_grad_train["quantizer"].append(quantizer_grad)
+
+            # record the codebook indices
+            for current_indices in indices_list:
+                epoch_codebook_train["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
         
-        # save the last batch images
-        numpy_x = x.cpu().numpy().squeeze()
-        numpy_xrec = xrec.cpu().numpy().squeeze()
-
-        save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
-        plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}.png", wandb_name="val_snapshots")
+        for key in epoch_loss_train.keys():
+            epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
+            logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
+            # logger.log(idx_epoch, f"train_{key}_std", epoch_loss_train[key].std())
         
-        for key in epoch_loss_val.keys():
-            epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
-            logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
-            # logger.log(idx_epoch, f"val_{key}_std", epoch_loss_val[key].std())
-
-        if epoch_loss_val["total"].mean() < best_val_loss:
-            best_val_loss = epoch_loss_val["total"].mean()
-            torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict.pth")
-            torch.save(optimizer.state_dict(), save_folder+f"optimizer_best_{idx_epoch}_state_dict.pth")
-            logger.log(idx_epoch, "best_val_loss", best_val_loss)
-
-        for key in epoch_codebook_val.keys():
-            epoch_codebook_val[key] = np.asanyarray(epoch_codebook_val[key])
-        # activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
-        # activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed
-        # activated_dispersion = np.std(activated_counts)
-        # logger.log(idx_epoch, "val_activated_percentage", activated_percentage)
-        # logger.log(idx_epoch, "val_activated_dispersion", activated_dispersion)
-        activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
+        for key in epoch_grad_train.keys():
+            epoch_grad_train[key] = np.asanyarray(epoch_grad_train[key])
+            logger.log(idx_epoch, f"train_{key}_grad_mean", epoch_grad_train[key].mean())
+            # logger.log(idx_epoch, f"train_{key}_grad_std", epoch_grad_train[key].std())
+        
+        for key in epoch_codebook_train.keys():
+            epoch_codebook_train[key] = np.asanyarray(epoch_codebook_train[key])
+        # activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
+        # a = np.array([1, 2, 6, 4, 2, 3, 2])
+        # values, counts = np.unique(a, return_counts=True)
+        # values = array([1, 2, 3, 4, 6])
+        # counts = array([1, 3, 1, 1, 1])
+        # activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed # percentage
+        # activated_dispersion = np.std(activated_counts) # dispersion
+        # logger.log(idx_epoch, "train_activated_percentage", activated_percentage)
+        # logger.log(idx_epoch, "train_activated_dispersion", activated_dispersion)
+        # comppute what's the frequency of each index from VQ_lucidrains_VQ_n_embed
+        activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
         if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
             activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
         effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
-        logger.log(idx_epoch, "val_effective_num", effective_num)
-    
-    # save the model every save_per_epoch
-    if idx_epoch % save_per_epoch == 0:
-        torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict.pth")
-        torch.save(optimizer.state_dict(), save_folder+f"optimizer_{idx_epoch}_state_dict.pth")
-        logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
+        logger.log(idx_epoch, "train_effective_num", effective_num)
         
+
+        # validation
+        if idx_epoch % val_per_epoch == 0:
+            model.eval()
+            epoch_loss_val = {
+                "reconL2": [],
+                "reconL1": [],
+                "codebook": [],
+                "total": [],
+            }
+            epoch_codebook_val = {
+                "indices": [],
+            }
+            with torch.no_grad():
+                for idx_batch, batch in enumerate(val_loader):
+                    x = batch["image"]
+                    x_8 = F.interpolate(x, size=(8, 8, 8), mode="trilinear", align_corners=False).to(device)
+                    # x_16 = F.interpolate(x, size=(16, 16, 16), mode="trilinear", align_corners=False).to(device)
+                    # x_32 = F.interpolate(x, size=(32, 32, 32), mode="trilinear", align_corners=False).to(device)
+                    pyramid_x = [x_8]
+                    target_x = pyramid_x[-1]
+                    xrec, indices_list, cb_loss_list = model(x)
+                    
+                    reconL2_loss = F.mse_loss(target_x, xrec)
+                    reconL1_loss = F.l1_loss(target_x, xrec)
+                    codebook_loss = sum([cb_loss_list[i] * mixing_weights["res_8"]["cb_loss_list"] for i in range(len(cb_loss_list))])
+                    total_loss = loss_weights["reconL2"] * reconL2_loss + \
+                                    loss_weights["reconL1"] * reconL1_loss + \
+                                    loss_weights["codebook"] * codebook_loss
+                    epoch_loss_val["reconL2"].append(reconL2_loss.item())
+                    epoch_loss_val["reconL1"].append(reconL1_loss.item())
+                    epoch_loss_val["codebook"].append(codebook_loss.item())
+                    epoch_loss_val["total"].append(total_loss.item())
+                    print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
+
+                    for current_indices in indices_list:
+                        # record the codebook indices (B, n_embed)
+                        # append each element in current_indices to the list
+                        epoch_codebook_val["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
+            
+            # save the last batch images
+            numpy_x = target_x.cpu().numpy().squeeze()
+            numpy_xrec = xrec.cpu().numpy().squeeze()
+
+            save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
+            plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}.png", wandb_name="val_snapshots")
+            
+            for key in epoch_loss_val.keys():
+                epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
+                logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
+                # logger.log(idx_epoch, f"val_{key}_std", epoch_loss_val[key].std())
+
+            if epoch_loss_val["total"].mean() < best_val_loss:
+                best_val_loss = epoch_loss_val["total"].mean()
+                torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict.pth")
+                torch.save(optimizer.state_dict(), save_folder+f"optimizer_best_{idx_epoch}_state_dict.pth")
+                logger.log(idx_epoch, "best_val_loss", best_val_loss)
+
+            for key in epoch_codebook_val.keys():
+                epoch_codebook_val[key] = np.asanyarray(epoch_codebook_val[key])
+            # activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
+            # activated_percentage = len(activated_counts) / VQ_lucidrains_VQ_n_embed
+            # activated_dispersion = np.std(activated_counts)
+            # logger.log(idx_epoch, "val_activated_percentage", activated_percentage)
+            # logger.log(idx_epoch, "val_activated_dispersion", activated_dispersion)
+            activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
+            if len(activated_counts) < VQ_lucidrains_VQ_n_embed:
+                activated_counts = np.append(activated_counts, np.zeros(VQ_lucidrains_VQ_n_embed - len(activated_counts)))
+            effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
+            logger.log(idx_epoch, "val_effective_num", effective_num)
+        
+        # save the model every save_per_epoch
+        if idx_epoch % save_per_epoch == 0:
+            torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict.pth")
+            torch.save(optimizer.state_dict(), save_folder+f"optimizer_{idx_epoch}_state_dict.pth")
+            logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
+            
 
 wandb.finish()
