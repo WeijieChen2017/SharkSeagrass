@@ -833,6 +833,7 @@ def train_model_at_level(num_epoch, current_level):
                 codebook_loss = cb_loss_list[-1].detach().numpy()
             else:
                 # average the codebook loss
+                codebook_loss = 0.0
                 for tensor in cb_loss_list:
                     codebook_loss += tensor.detach().numpy()
                 codebook_loss = codebook_loss / len(cb_loss_list)
@@ -903,6 +904,7 @@ def train_model_at_level(num_epoch, current_level):
                     if pyramid_freeze_previous_stages:
                         codebook_loss = cb_loss_list[-1].detach().numpy()
                     else:
+                        codebook_loss = 0.0
                         # average the codebook loss
                         for tensor in cb_loss_list:
                             codebook_loss += tensor.detach().numpy()
