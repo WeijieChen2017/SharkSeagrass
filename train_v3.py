@@ -118,6 +118,7 @@ batch_size_val = 16
 cache_ratio_train = 0.2
 cache_ratio_val = 0.2
 IS_LOGGER_WANDB = True
+IS_SAVE_MODEL = False
 
 val_per_epoch = 25
 save_per_epoch = 100
@@ -183,7 +184,7 @@ VQ_decoder_num_res_units = 6
 # vanilla vq
 VQ_lucidrains_VQ_type = "VectorQuantize"
 VQ_lucidrains_VQ_embed_dim = 1024
-VQ_lucidrains_VQ_n_embed = 256
+VQ_lucidrains_VQ_n_embed = 1024
 VQ_lucidrains_VQ_decay = 0.8
 VQ_lucidrains_VQ_commiment_weight = 1.0
 
@@ -1364,7 +1365,7 @@ for idx_epoch in range(num_epoch):
             logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
             # logger.log(idx_epoch, f"val_{key}_std", epoch_loss_val[key].std())
 
-        if epoch_loss_val["total"].mean() < best_val_loss:
+        if epoch_loss_val["total"].mean() < best_val_loss and IS_SAVE_MODEL:
             best_val_loss = epoch_loss_val["total"].mean()
             torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict.pth")
             torch.save(optimizer.state_dict(), save_folder+f"optimizer_best_{idx_epoch}_state_dict.pth")
@@ -1384,10 +1385,9 @@ for idx_epoch in range(num_epoch):
         logger.log(idx_epoch, "val_effective_num", effective_num)
     
     # save the model every save_per_epoch
-    if idx_epoch % save_per_epoch == 0:
+    if idx_epoch % save_per_epoch == 0 and IS_SAVE_MODEL:
         torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict.pth")
         torch.save(optimizer.state_dict(), save_folder+f"optimizer_{idx_epoch}_state_dict.pth")
         logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
-
 wandb.finish()
