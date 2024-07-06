@@ -821,7 +821,7 @@ def train_model_at_level(num_epoch, current_level):
             # target_x is the last element of the pyramid_x, which is to be reconstructed
             target_x = pyramid_x[-1]
             # input the pyramid_x to the model
-            xrec, indices_list, cb_loss_list = model(pyramid_x)
+            xrec, indices_list, cb_loss_list = model(pyramid_x, current_level)
             # initialize the optimizer
             optimizer.zero_grad()
             # compute the loss
