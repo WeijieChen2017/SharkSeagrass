@@ -520,30 +520,8 @@ print("Train files are ", len(train_files))
 print("Val files are ", len(val_files))
 print("Test files are ", len(test_files))
 
-class RobustCacheDataset(CacheDataset):
-    def __init__(self, data, transform=None, cache_num=0, cache_rate=1.0, num_workers=0):
-        super().__init__(data, transform=transform, cache_num=cache_num, cache_rate=cache_rate, num_workers=num_workers)
 
-    def __getitem__(self, idx):
-        try:
-            # Fetch the cached data
-            data = super().__getitem__(idx)
-            return data
-        except Exception as e:
-            print(f"Error loading data at index {idx}: {e}")
-            # Handle the error appropriately, for example, return None or a default value
-            return None
-
-def worker_init_fn(worker_id):
-    np.random.seed(worker_id)
-    random.seed(worker_id)
-
-def collate_fn(batch):
-    batch = [b for b in batch if b is not None]
-    return default_collate(batch)
-
-
-train_ds = RobustCacheDataset(
+train_ds = CacheDataset(
     data=train_files,
     transform=train_transforms,
     cache_num=num_train_files,
@@ -551,7 +529,7 @@ train_ds = RobustCacheDataset(
     num_workers=num_workers_train_cache_dataset,
 )
 
-val_ds = RobustCacheDataset(
+val_ds = CacheDataset(
     data=val_files,
     transform=val_transforms, 
     cache_num=num_val_files,
@@ -560,8 +538,8 @@ val_ds = RobustCacheDataset(
 
 
 
-train_loader = DataLoader(train_ds, batch_size=batch_size_train, shuffle=True, num_workers=num_workers_train_dataloader, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
-val_loader = DataLoader(val_ds, batch_size=batch_size_val, shuffle=False, num_workers=num_workers_val_dataloader, worker_init_fn=worker_init_fn, collate_fn=collate_fn, timeout=60)
+train_loader = DataLoader(train_ds, batch_size=batch_size_train, shuffle=True, num_workers=num_workers_train_dataloader)
+val_loader = DataLoader(val_ds, batch_size=batch_size_val, shuffle=False, num_workers=num_workers_val_dataloader)
 
 
 
