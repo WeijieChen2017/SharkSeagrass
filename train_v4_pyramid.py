@@ -924,7 +924,7 @@ def train_model_at_level(num_epoch, current_level):
                             epoch_codebook_val["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
 
             save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
-            plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}_{current_level}.png", wandb_name="val_snapshots")
+            plot_and_save_x_xrec(target_x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}_{current_level}.png", wandb_name="val_snapshots")
             
             for key in epoch_loss_val.keys():
                 epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
