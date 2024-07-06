@@ -435,18 +435,20 @@ class ViTVQ3D(nn.Module):
         for i_level in range(active_level):
             if i_level == 0:
                 x_hat, indices, loss = self.foward_at_level(pyramid_x[i_level], i_level)
-                indices_list.append(indices)
-                loss_list.append(loss)
+                indices_list.append(indices.cpu())
+                loss_list.append(loss.cpu())
             else:
                 resample_x = F.interpolate(pyramid_x[i_level - 1], scale_factor=2, mode='trilinear', align_corners=False)
                 input_x = pyramid_x[i_level] - resample_x
                 output_x, indices, loss = self.foward_at_level(input_x, i_level)
-                indices_list.append(indices)
-                loss_list.append(loss)
+                indices_list.append(indices.cpu())
+                loss_list.append(loss.cpu())
                 # upsample the x_hat to double the size in three dimensions
                 x_hat = F.interpolate(x_hat, scale_factor=2, mode='trilinear', align_corners=False)
                 x_hat = x_hat + output_x
 
+        # x_hat is in cuda
+        # indices_list and loss_list are in cpu
         return x_hat, indices_list, loss_list
 
 
@@ -850,10 +852,10 @@ def train_model_at_level(num_epoch, current_level):
 
             # record the codebook indices
             if pyramid_freeze_previous_stages:
-                epoch_codebook_train["indices"].extend(indices_list[-1].cpu().numpy().squeeze().flatten())
+                epoch_codebook_train["indices"].extend(indices_list[-1].numpy().squeeze().flatten())
             else:
                 for current_indices in indices_list:
-                    epoch_codebook_train["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
+                    epoch_codebook_train["indices"].extend(current_indices.numpy().squeeze().flatten())
         
         for key in epoch_loss_train.keys():
             epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
@@ -912,10 +914,10 @@ def train_model_at_level(num_epoch, current_level):
                     print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
 
                     if pyramid_freeze_previous_stages:
-                        epoch_codebook_val["indices"].extend(indices_list[-1].cpu().numpy().squeeze().flatten())
+                        epoch_codebook_val["indices"].extend(indices_list[-1].numpy().squeeze().flatten())
                     else:
                         for current_indices in indices_list:
-                            epoch_codebook_val["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
+                            epoch_codebook_val["indices"].extend(current_indices.numpy().squeeze().flatten())
 
             save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
             plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}_{current_level}.png", wandb_name="val_snapshots")
