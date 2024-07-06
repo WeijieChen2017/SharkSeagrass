@@ -127,7 +127,7 @@ pyramid_codebook_size = [32, 64, 128, 256]
 pyramid_strides = [2, 2, 2, 1]
 pyramid_num_res_units = [3, 4, 5, 6]
 pyramid_num_epoch = [100, 200, 400, 800]
-pyramid_freeze_previous_stages = False
+pyramid_freeze_previous_stages = True
 
 VQ_optimizer = "AdamW"
 VQ_optimizer_lr = 1e-4
@@ -435,20 +435,18 @@ class ViTVQ3D(nn.Module):
         for i_level in range(active_level):
             if i_level == 0:
                 x_hat, indices, loss = self.foward_at_level(pyramid_x[i_level], i_level)
-                indices_list.append(indices.cpu())
-                loss_list.append(loss.cpu())
+                indices_list.append(indices)
+                loss_list.append(loss)
             else:
                 resample_x = F.interpolate(pyramid_x[i_level - 1], scale_factor=2, mode='trilinear', align_corners=False)
                 input_x = pyramid_x[i_level] - resample_x
                 output_x, indices, loss = self.foward_at_level(input_x, i_level)
-                indices_list.append(indices.cpu())
-                loss_list.append(loss.cpu())
+                indices_list.append(indices)
+                loss_list.append(loss)
                 # upsample the x_hat to double the size in three dimensions
                 x_hat = F.interpolate(x_hat, scale_factor=2, mode='trilinear', align_corners=False)
                 x_hat = x_hat + output_x
 
-        # x_hat is in cuda
-        # indices_list and loss_list are in cpu
         return x_hat, indices_list, loss_list
 
 
@@ -830,13 +828,13 @@ def train_model_at_level(num_epoch, current_level):
             reconL2_loss = F.mse_loss(target_x, xrec)
             reconL1_loss = F.l1_loss(target_x, xrec)
             if pyramid_freeze_previous_stages:
-                codebook_loss = cb_loss_list[-1].detach().numpy()
+                codebook_loss = cb_loss_list[-1]
             else:
-                # average the codebook loss
-                codebook_loss = 0.0
-                for tensor in cb_loss_list:
-                    codebook_loss += tensor.detach().numpy()
-                codebook_loss = codebook_loss / len(cb_loss_list)
+                # cb_loss_list is a list of tensor with gradient
+                # Sum the tensors
+                sum_codebook_loss = torch.stack(cb_loss_list).sum(dim=0)
+                # Compute the average
+                codebook_loss = sum_codebook_loss / len(cb_loss_list)
             # take the weighted sum of the loss
             total_loss = loss_weights["reconL2"] * reconL2_loss + \
                             loss_weights["reconL1"] * reconL1_loss + \
@@ -855,10 +853,10 @@ def train_model_at_level(num_epoch, current_level):
 
             # record the codebook indices
             if pyramid_freeze_previous_stages:
-                epoch_codebook_train["indices"].extend(indices_list[-1].detach().numpy().squeeze().flatten())
+                epoch_codebook_train["indices"].extend(indices_list[-1].cpu().numpy().squeeze().flatten())
             else:
                 for current_indices in indices_list:
-                    epoch_codebook_train["indices"].extend(current_indices.detach().numpy().squeeze().flatten())
+                    epoch_codebook_train["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
         
         for key in epoch_loss_train.keys():
             epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
@@ -902,13 +900,13 @@ def train_model_at_level(num_epoch, current_level):
                     reconL2_loss = F.mse_loss(target_x, xrec)
                     reconL1_loss = F.l1_loss(target_x, xrec)
                     if pyramid_freeze_previous_stages:
-                        codebook_loss = cb_loss_list[-1].detach().numpy()
+                        codebook_loss = cb_loss_list[-1]
                     else:
-                        codebook_loss = 0.0
-                        # average the codebook loss
-                        for tensor in cb_loss_list:
-                            codebook_loss += tensor.detach().numpy()
-                        codebook_loss = codebook_loss / len(cb_loss_list)
+                        # cb_loss_list is a list of tensor with gradient
+                        # Sum the tensors
+                        sum_codebook_loss = torch.stack(cb_loss_list).sum(dim=0)
+                        # Compute the average
+                        codebook_loss = sum_codebook_loss / len(cb_loss_list)
                     # take the weighted sum of the loss
                     total_loss = loss_weights["reconL2"] * reconL2_loss + \
                                     loss_weights["reconL1"] * reconL1_loss + \
@@ -920,10 +918,10 @@ def train_model_at_level(num_epoch, current_level):
                     print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
 
                     if pyramid_freeze_previous_stages:
-                        epoch_codebook_val["indices"].extend(indices_list[-1].detach().numpy().squeeze().flatten())
+                        epoch_codebook_val["indices"].extend(indices_list[-1].cpu().numpy().squeeze().flatten())
                     else:
                         for current_indices in indices_list:
-                            epoch_codebook_val["indices"].extend(current_indices.detach().numpy().squeeze().flatten())
+                            epoch_codebook_val["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
 
             save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
             plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_folder+f"{save_name}_{current_level}.png", wandb_name="val_snapshots")
@@ -949,7 +947,7 @@ def train_model_at_level(num_epoch, current_level):
             embedding_num = len(activated_counts)
             logger.log(idx_epoch, "val_effective_num", effective_num)
             logger.log(idx_epoch, "val_embedding_num", embedding_num)
-        
+         
         # save the model every save_per_epoch
         if idx_epoch % save_per_epoch == 0:
             torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict_{current_level}.pth")
