@@ -122,22 +122,24 @@ random.seed(random_seed)
 np.random.seed(random_seed)
 torch.manual_seed(random_seed)
 
-pyramid_channels = [32, 64, 128, 256]
-pyramid_codebook_size = [32, 64, 128, 256]
+pyramid_channels = [64, 128, 256, 256]
+pyramid_codebook_size = [64, 128, 256, 256]
 pyramid_strides = [2, 2, 2, 1]
 pyramid_num_res_units = [3, 4, 5, 6]
-pyramid_num_epoch = [250, 250, 250, 250]
+# pyramid_num_epoch = [1000, 1000, 1000, 1000]
+# pyramid_batch_size = [256, 256, 32, 4]
+pyramid_num_epoch = [100, 100, 100, 100]
+pyramid_batch_size = [32, 32, 32, 4]
+pyramid_learning_rate = [1e-3, 5e-4, 2e-4, 1e-4]
+pyramid_weight_decay = [1e-4, 5e-5, 2e-5, 1e-5]
 pyramid_freeze_previous_stages = True
 
 VQ_optimizer = "AdamW"
-VQ_optimizer_lr = 1e-4
-VQ_optimizer_weight_decay = 5e-5
 
-VQ_loss_weight_recon_L2 = 1.0
-VQ_loss_weight_recon_L1 = 0.1
+VQ_loss_weight_recon_L2 = 0.1
+VQ_loss_weight_recon_L1 = 1.0
 VQ_loss_weight_codebook = 0.1
 
-VQ_train_epoch = 1000
 VQ_train_gradiernt_clip = 1.0
 
 model_message = "this is the first try to use cascaded VQ-VAE model of image pyramid"
@@ -163,12 +165,9 @@ wandb.init(
         "cache_ratio_train": cache_ratio_train,
         "cache_ratio_val": cache_ratio_val,
         "VQ_optimizer": VQ_optimizer,
-        "VQ_optimizer_lr": VQ_optimizer_lr,
-        "VQ_optimizer_weight_decay": VQ_optimizer_weight_decay,
         "VQ_loss_weight_recon_L2": VQ_loss_weight_recon_L2,
         "VQ_loss_weight_recon_L1": VQ_loss_weight_recon_L1,
         "VQ_loss_weight_codebook": VQ_loss_weight_codebook,
-        "VQ_train_epoch": VQ_train_epoch,
         "VQ_train_gradiernt_clip": VQ_train_gradiernt_clip,
         "pyramid_channels": pyramid_channels,
         "pyramid_codebook_size": pyramid_codebook_size,
@@ -176,6 +175,9 @@ wandb.init(
         "pyramid_num_res_units": pyramid_num_res_units,
         "pyramid_num_epoch": pyramid_num_epoch,
         "pyramid_freeze_previous_stages": pyramid_freeze_previous_stages,
+        "pyramid_batch_size": pyramid_batch_size,
+        "pyramid_learning_rate": pyramid_learning_rate,
+        "pyramid_weight_decay": pyramid_weight_decay,
         "model_message": model_message,
     }
 )
@@ -416,24 +418,17 @@ class ViTVQ3D(nn.Module):
                     nn.init.constant_(m.bias, 0)
 
     def foward_at_level(self, x: torch.FloatTensor, i_level: int) -> torch.FloatTensor:
-        if i_level == 0:
-            h = self.sub_models[i_level].encoder(x) # Access using dot notation
-            h = self.sub_models[i_level].pre_quant(h)
-            quant, indices, loss = self.sub_models[i_level].quantizer(h)
-            g = self.sub_models[i_level].post_quant(quant)
-            g = self.sub_models[i_level].decoder(g)
-        else:
-            print("x shape is ", x.shape)
-            h = self.sub_models[i_level].encoder(x) # Access using dot notation
-            print("after encoder, h shape is ", h.shape)
-            h = self.sub_models[i_level].pre_quant(h)
-            print("after pre_quant, h shape is ", h.shape)
-            quant, indices, loss = self.sub_models[i_level].quantizer(h)
-            print("after quantizer, quant shape is ", quant.shape)
-            g = self.sub_models[i_level].post_quant(quant)
-            print("after post_quant, g shape is ", g.shape)
-            g = self.sub_models[i_level].decoder(g)
-            print("after decoder, g shape is ", g.shape)
+        # print("x shape is ", x.shape)
+        h = self.sub_models[i_level].encoder(x) # Access using dot notation
+        # print("after encoder, h shape is ", h.shape)
+        h = self.sub_models[i_level].pre_quant(h)
+        # print("after pre_quant, h shape is ", h.shape)
+        quant, indices, loss = self.sub_models[i_level].quantizer(h)
+        # print("after quantizer, quant shape is ", quant.shape)
+        g = self.sub_models[i_level].post_quant(quant)
+        # print("after post_quant, g shape is ", g.shape)
+        g = self.sub_models[i_level].decoder(g)
+        # print("after decoder, g shape is ", g.shape)
         return g, indices, loss
 
     def forward(self, pyramid_x: list, active_level: int) -> torch.FloatTensor:
@@ -462,99 +457,97 @@ class ViTVQ3D(nn.Module):
 
         return x_hat, indices_list, loss_list
 
+def build_dataloader_train_val(batch_size: int):
+    train_transforms = Compose(
+        [
+            LoadImaged(keys=["image"]),
+            EnsureChannelFirstd(keys=["image"]),
+            Orientationd(keys=["image"], axcodes="RAS"),
+            Spacingd(
+                keys=["image"],
+                pixdim=(pix_dim, pix_dim, pix_dim),
+                mode=("bilinear"),
+            ),
+            ScaleIntensityRanged(
+                keys=["image"],
+                a_min=-1024,
+                a_max=2976,
+                b_min=0.0,
+                b_max=1.0,
+                clip=True,
+            ),
+            # CropForegroundd(keys=["image"], source_key="image"),
+            # random crop to the target size
+            RandSpatialCropd(keys=["image"], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
+            # add random flip and rotate
+            RandFlipd(keys=["image"], prob=0.5, spatial_axis=0),
+            RandFlipd(keys=["image"], prob=0.5, spatial_axis=1),
+            RandFlipd(keys=["image"], prob=0.5, spatial_axis=2),
+            RandRotated(keys=["image"], prob=0.5, range_x=15, range_y=15, range_z=15),
+        ]
+    )
+    val_transforms = Compose(
+        [
+            LoadImaged(keys=["image"]),
+            EnsureChannelFirstd(keys=["image"]),
+            Orientationd(keys=["image"], axcodes="RAS"),
+            Spacingd(
+                keys=["image"],
+                pixdim=(pix_dim, pix_dim, pix_dim),
+                mode=("bilinear"),
+            ),
+            ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=2976, b_min=0.0, b_max=1.0, clip=True),
+            # CropForegroundd(keys=["image"], source_key="image"),
+            RandSpatialCropd(keys=["image"], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
+            RandFlipd(keys=["image"], prob=0.5, spatial_axis=0),
+            RandFlipd(keys=["image"], prob=0.5, spatial_axis=1),
+            RandFlipd(keys=["image"], prob=0.5, spatial_axis=2),
+        ]
+    )
 
-train_transforms = Compose(
-    [
-        LoadImaged(keys=["image"]),
-        EnsureChannelFirstd(keys=["image"]),
-        Orientationd(keys=["image"], axcodes="RAS"),
-        Spacingd(
-            keys=["image"],
-            pixdim=(pix_dim, pix_dim, pix_dim),
-            mode=("bilinear"),
-        ),
-        ScaleIntensityRanged(
-            keys=["image"],
-            a_min=-1024,
-            a_max=2976,
-            b_min=0.0,
-            b_max=1.0,
-            clip=True,
-        ),
-        # CropForegroundd(keys=["image"], source_key="image"),
-        # random crop to the target size
-        RandSpatialCropd(keys=["image"], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
-        # add random flip and rotate
-        RandFlipd(keys=["image"], prob=0.5, spatial_axis=0),
-        RandFlipd(keys=["image"], prob=0.5, spatial_axis=1),
-        RandFlipd(keys=["image"], prob=0.5, spatial_axis=2),
-        RandRotated(keys=["image"], prob=0.5, range_x=15, range_y=15, range_z=15),
-    ]
-)
-val_transforms = Compose(
-    [
-        LoadImaged(keys=["image"]),
-        EnsureChannelFirstd(keys=["image"]),
-        Orientationd(keys=["image"], axcodes="RAS"),
-        Spacingd(
-            keys=["image"],
-            pixdim=(pix_dim, pix_dim, pix_dim),
-            mode=("bilinear"),
-        ),
-        ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=2976, b_min=0.0, b_max=1.0, clip=True),
-        # CropForegroundd(keys=["image"], source_key="image"),
-        RandSpatialCropd(keys=["image"], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
-        RandFlipd(keys=["image"], prob=0.5, spatial_axis=0),
-        RandFlipd(keys=["image"], prob=0.5, spatial_axis=1),
-        RandFlipd(keys=["image"], prob=0.5, spatial_axis=2),
-    ]
-)
+    # load data_chunks.json and specif chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
+    with open("data_chunks_80.json", "r") as f:
+        data_chunk = json.load(f)
 
-# load data_chunks.json and specif chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
-with open("data_chunks_80.json", "r") as f:
-    data_chunk = json.load(f)
+    train_files = []
+    val_files = []
+    test_files = []
 
-train_files = []
-val_files = []
-test_files = []
+    for i in range(5):
+        train_files.extend(data_chunk[f"chunk_{i}"])
+    for i in range(5, 8):
+        val_files.extend(data_chunk[f"chunk_{i}"])
+    for i in range(8, 10):
+        test_files.extend(data_chunk[f"chunk_{i}"])
 
-for i in range(5):
-    train_files.extend(data_chunk[f"chunk_{i}"])
-for i in range(5, 8):
-    val_files.extend(data_chunk[f"chunk_{i}"])
-for i in range(8, 10):
-    test_files.extend(data_chunk[f"chunk_{i}"])
+    num_train_files = len(train_files)
+    num_val_files = len(val_files)
+    num_test_files = len(test_files)
 
-num_train_files = len(train_files)
-num_val_files = len(val_files)
-num_test_files = len(test_files)
-
-print("Train files are ", len(train_files))
-print("Val files are ", len(val_files))
-print("Test files are ", len(test_files))
-
-
-train_ds = CacheDataset(
-    data=train_files,
-    transform=train_transforms,
-    cache_num=num_train_files,
-    cache_rate=cache_ratio_train, # 600 * 0.1 = 60
-    num_workers=num_workers_train_cache_dataset,
-)
-
-val_ds = CacheDataset(
-    data=val_files,
-    transform=val_transforms, 
-    cache_num=num_val_files,
-    cache_rate=cache_ratio_val, # 360 * 0.05 = 18
-    num_workers=num_workers_val_cache_dataset,)
+    print("Train files are ", len(train_files))
+    print("Val files are ", len(val_files))
+    print("Test files are ", len(test_files))
 
 
+    train_ds = CacheDataset(
+        data=train_files,
+        transform=train_transforms,
+        cache_num=num_train_files,
+        cache_rate=cache_ratio_train, # 600 * 0.1 = 60
+        num_workers=num_workers_train_cache_dataset,
+    )
 
-train_loader = DataLoader(train_ds, batch_size=batch_size_train, shuffle=True, num_workers=num_workers_train_dataloader)
-val_loader = DataLoader(val_ds, batch_size=batch_size_val, shuffle=False, num_workers=num_workers_val_dataloader)
+    val_ds = CacheDataset(
+        data=val_files,
+        transform=val_transforms, 
+        cache_num=num_val_files,
+        cache_rate=cache_ratio_val, # 360 * 0.05 = 18
+        num_workers=num_workers_val_cache_dataset,)
 
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers_train_dataloader)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers_val_dataloader)
 
+    return train_loader, val_loader
 
 
 encoder_8 = {
@@ -663,10 +656,13 @@ model = ViTVQ3D(
     device=device,
 )
 
+def build_optimizer(model, learning_rate, weight_decay):
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    return optimizer
 
-learning_rate = VQ_optimizer_lr
-# use AdamW optimizer
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=VQ_optimizer_weight_decay)
+# learning_rate = VQ_optimizer_lr
+# # use AdamW optimizer
+# optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=VQ_optimizer_weight_decay)
 
 # here we set the encoder model parameters
 
@@ -769,15 +765,12 @@ current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 log_file_path = f"train_log_{current_time}.json"
 logger = simple_logger(log_file_path)
 
-num_epoch = VQ_train_epoch
 loss_weights = {
     "reconL2": VQ_loss_weight_recon_L2,
     "reconL1": VQ_loss_weight_recon_L1,
     "codebook": VQ_loss_weight_codebook,
 }
 
-num_train_batch = len(train_loader)
-num_val_batch = len(val_loader)
 best_val_loss = 1e6
 save_folder = "./results/"
 # create the folder if not exist
@@ -786,20 +779,34 @@ if not os.path.exists(save_folder):
 
 def generate_input_data_pyramid(x, levels):
     pyramid_x = []
-    if levels == 1:
+    if levels >= 1:
         x_8 = F.interpolate(x, size=(8, 8, 8), mode="trilinear", align_corners=False).to(device)
         pyramid_x.append(x_8)
-    if levels == 2:
+    if levels >=2:
         x_16 = F.interpolate(x, size=(16, 16, 16), mode="trilinear", align_corners=False).to(device)
         pyramid_x.append(x_16)
-    if levels == 3:
+    if levels >= 3:
         x_32 = F.interpolate(x, size=(32, 32, 32), mode="trilinear", align_corners=False).to(device)
         pyramid_x.append(x_32)
-    if levels == 4:
+    if levels >= 4:
         pyramid_x.append(x.to(device))
+
+    # # describe the pyramid
+    # print("pyramid_x length", len(pyramid_x))
+    # for i in range(len(pyramid_x)):
+    #     print(pyramid_x[i].shape)
+    
     return pyramid_x
 
-def train_model_at_level(num_epoch, current_level):
+def train_model_at_level(current_level):
+
+    # set the data loaders for the current level
+    train_loader, val_loader = build_dataloader_train_val(pyramid_batch_size[current_level])
+    # set the optimizer for the current level
+    optimizer = build_optimizer(model, pyramid_learning_rate[current_level], pyramid_weight_decay[current_level])
+
+    num_train_batch = len(train_loader)
+    num_val_batch = len(val_loader)
 
     print("Current device is ", device)
 
@@ -819,7 +826,7 @@ def train_model_at_level(num_epoch, current_level):
             model.unfreeze_gradient_at_level(i_level)
 
     # start the training
-    for idx_epoch in range(num_epoch):
+    for idx_epoch in range(pyramid_num_epoch[current_level]):
         model.train()
         epoch_loss_train = {
             "reconL2": [],
@@ -973,6 +980,6 @@ def train_model_at_level(num_epoch, current_level):
             
 for current_level in range(4):
     # current level starts at 1
-    train_model_at_level(pyramid_num_epoch[current_level], current_level + 1)
+    train_model_at_level(current_level + 1)
 
 wandb.finish()
