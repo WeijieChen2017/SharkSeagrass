@@ -101,7 +101,7 @@ from monai.transforms import (
 
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
-random_seed = 729
+random_seed = 426
 volume_size = 64
 pix_dim = 1.5
 num_workers_train_dataloader = 8
@@ -127,7 +127,7 @@ pyramid_codebook_size = [64, 128, 256]
 pyramid_strides = [2, 2, 1]
 pyramid_num_res_units = [4, 5, 6]
 pyramid_num_epoch = [1000, 1000, 1000]
-pyramid_batch_size = [128, 128, 32]
+pyramid_batch_size = [128, 128, 16]
 # pyramid_num_epoch = [100, 100, 100, 100]
 # pyramid_batch_size = [4, 4, 4, 4]
 pyramid_learning_rate = [1e-3, 5e-4, 2e-4]
