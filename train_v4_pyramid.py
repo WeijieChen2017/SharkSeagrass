@@ -143,7 +143,7 @@ VQ_loss_weight_codebook = 0.1
 
 VQ_train_gradiernt_clip = 1.0
 
-model_message = "this is the first try to use cascaded VQ-VAE model of image pyramid"
+model_message = "depth = 4, and mini resolution is 8*8*8"
 
 
 wandb.init(
