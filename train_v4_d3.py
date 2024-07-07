@@ -145,7 +145,7 @@ VQ_loss_weight_codebook = 0.1
 
 VQ_train_gradiernt_clip = 1.0
 
-model_message = "this is the first try to use cascaded VQ-VAE model of image pyramid"
+model_message = "the mini resolution is 16, so each input is converted to B, 4096, C"
 
 
 wandb.init(
@@ -420,8 +420,7 @@ class ViTVQ3D(nn.Module):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
-    def foward_at_level(self, x: torch.FloatTensor, current_level: int) -> torch.FloatTensor:
-        i_level = current_level - 1
+    def foward_at_level(self, x: torch.FloatTensor, i_level: int) -> torch.FloatTensor:
         # print("x shape is ", x.shape)
         h = self.sub_models[i_level].encoder(x) # Access using dot notation
         # print("after encoder, h shape is ", h.shape)
@@ -711,25 +710,17 @@ if not os.path.exists(save_folder):
 
 def generate_input_data_pyramid(x, levels):
     pyramid_x = []
-    if levels >= 1:
-        x_8 = F.interpolate(x, size=(8, 8, 8), mode="trilinear", align_corners=False).to(device)
-        pyramid_x.append(x_8)
-    if levels >=2:
-        x_16 = F.interpolate(x, size=(16, 16, 16), mode="trilinear", align_corners=False).to(device)
-        pyramid_x.append(x_16)
-    if levels >= 3:
-        x_32 = F.interpolate(x, size=(32, 32, 32), mode="trilinear", align_corners=False).to(device)
-        pyramid_x.append(x_32)
-    if levels >= 4:
-        pyramid_x.append(x.to(device))
-
-    # # describe the pyramid
-    # print("pyramid_x length", len(pyramid_x))
-    # for i in range(len(pyramid_x)):
-    #     print(pyramid_x[i].shape)
+    for i in range(levels):
+        if i < levels - 1:
+            x_at_level = F.interpolate(x, size=(pyramid_mini_resolution*2**i,
+                                                pyramid_mini_resolution*2**i, 
+                                                pyramid_mini_resolution*2**i), mode="trilinear", align_corners=False).to(device)
+            pyramid_x.append(x_at_level)
+        else:
+            pyramid_x.append(x.to(device))
     
     return pyramid_x
-
+    
 def train_model_at_level(current_level):
 
     # set the data loaders for the current level
