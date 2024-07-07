@@ -134,7 +134,7 @@ pyramid_learning_rate = [1e-3, 5e-4, 2e-4]
 pyramid_weight_decay = [1e-4, 5e-5, 2e-5]
 pyramid_freeze_previous_stages = True
 # mini resolution is computed by volume_size / 2^len(pyramid_channels)
-pyramid_mini_resolution = volume_size // 2**len(pyramid_channels)
+pyramid_mini_resolution = volume_size // 2**(len(pyramid_channels)-1)
 
 
 VQ_optimizer = "AdamW"
@@ -711,7 +711,7 @@ if not os.path.exists(save_folder):
 def generate_input_data_pyramid(x, levels):
     pyramid_x = []
     for i in range(levels):
-        if i < levels - 1:
+        if i <= levels - 1:
             x_at_level = F.interpolate(x, size=(pyramid_mini_resolution*2**i,
                                                 pyramid_mini_resolution*2**i, 
                                                 pyramid_mini_resolution*2**i), mode="trilinear", align_corners=False).to(device)
@@ -901,7 +901,7 @@ def train_model_at_level(current_level):
             torch.save(optimizer.state_dict(), save_folder+f"optimizer_{idx_epoch}_state_dict_{current_level}.pth")
             logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
             
-for current_level in range(4):
+for current_level in range(len(pyramid_channels)):
     # current level starts at 1
     train_model_at_level(current_level + 1)
 
