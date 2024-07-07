@@ -8,7 +8,7 @@ mv model_best_181_state_dict.pth ./SharkSeagrass/
 cd SharkSeagrass
 ls
 echo "============================================"
-python train_v4_pyramid.py
+python train_v4_d3.py
 rm -rf tsv1_ct
 mv cache ./results/
 tar -czvf SharkSeagrass_results_$(date +"%m_%d_%H_%M").tar.gz results
