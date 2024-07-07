@@ -126,13 +126,14 @@ pyramid_channels = [64, 128, 256, 256]
 pyramid_codebook_size = [64, 128, 256, 256]
 pyramid_strides = [2, 2, 2, 1]
 pyramid_num_res_units = [3, 4, 5, 6]
-# pyramid_num_epoch = [1000, 1000, 1000, 1000]
-# pyramid_batch_size = [256, 256, 32, 4]
-pyramid_num_epoch = [100, 100, 100, 100]
-pyramid_batch_size = [32, 32, 32, 4]
+pyramid_num_epoch = [1000, 1000, 1000, 1000]
+pyramid_batch_size = [256, 256, 32, 4]
+# pyramid_num_epoch = [100, 100, 100, 100]
+# pyramid_batch_size = [4, 4, 4, 4]
 pyramid_learning_rate = [1e-3, 5e-4, 2e-4, 1e-4]
 pyramid_weight_decay = [1e-4, 5e-5, 2e-5, 1e-5]
 pyramid_freeze_previous_stages = True
+
 
 VQ_optimizer = "AdamW"
 
@@ -417,7 +418,8 @@ class ViTVQ3D(nn.Module):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
-    def foward_at_level(self, x: torch.FloatTensor, i_level: int) -> torch.FloatTensor:
+    def foward_at_level(self, x: torch.FloatTensor, current_level: int) -> torch.FloatTensor:
+        i_level = current_level - 1
         # print("x shape is ", x.shape)
         h = self.sub_models[i_level].encoder(x) # Access using dot notation
         # print("after encoder, h shape is ", h.shape)
@@ -440,15 +442,15 @@ class ViTVQ3D(nn.Module):
         indices_list = []
         loss_list = []
 
-        for i_level in range(active_level):
-            if i_level == 0:
-                x_hat, indices, loss = self.foward_at_level(pyramid_x[i_level], i_level)
+        for current_level in range(active_level):
+            if current_level == 0:
+                x_hat, indices, loss = self.foward_at_level(pyramid_x[current_level], current_level)
                 indices_list.append(indices)
                 loss_list.append(loss)
             else:
-                resample_x = F.interpolate(pyramid_x[i_level - 1], scale_factor=2, mode='trilinear', align_corners=False)
-                input_x = pyramid_x[i_level] - resample_x
-                output_x, indices, loss = self.foward_at_level(input_x, i_level)
+                resample_x = F.interpolate(pyramid_x[current_level - 1], scale_factor=2, mode='trilinear', align_corners=False)
+                input_x = pyramid_x[current_level] - resample_x
+                output_x, indices, loss = self.foward_at_level(input_x, current_level)
                 indices_list.append(indices)
                 loss_list.append(loss)
                 # upsample the x_hat to double the size in three dimensions
@@ -506,7 +508,7 @@ def build_dataloader_train_val(batch_size: int):
     )
 
     # load data_chunks.json and specif chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
-    with open("data_chunks_80.json", "r") as f:
+    with open("data_chunks.json", "r") as f:
         data_chunk = json.load(f)
 
     train_files = []
