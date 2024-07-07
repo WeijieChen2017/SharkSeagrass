@@ -122,17 +122,19 @@ random.seed(random_seed)
 np.random.seed(random_seed)
 torch.manual_seed(random_seed)
 
-pyramid_channels = [64, 128, 256, 256]
-pyramid_codebook_size = [64, 128, 256, 256]
-pyramid_strides = [2, 2, 2, 1]
-pyramid_num_res_units = [3, 4, 5, 6]
-pyramid_num_epoch = [1000, 1000, 1000, 1000]
-pyramid_batch_size = [256, 256, 32, 4]
+pyramid_channels = [64, 128, 256]
+pyramid_codebook_size = [64, 128, 256]
+pyramid_strides = [2, 2, 1]
+pyramid_num_res_units = [4, 5, 6]
+pyramid_num_epoch = [1000, 1000, 1000]
+pyramid_batch_size = [256, 256, 32]
 # pyramid_num_epoch = [100, 100, 100, 100]
 # pyramid_batch_size = [4, 4, 4, 4]
-pyramid_learning_rate = [1e-3, 5e-4, 2e-4, 1e-4]
-pyramid_weight_decay = [1e-4, 5e-5, 2e-5, 1e-5]
+pyramid_learning_rate = [1e-3, 5e-4, 2e-4]
+pyramid_weight_decay = [1e-4, 5e-5, 2e-5]
 pyramid_freeze_previous_stages = True
+# mini resolution is computed by volume_size / 2^len(pyramid_channels)
+pyramid_mini_resolution = volume_size // 2**len(pyramid_channels)
 
 
 VQ_optimizer = "AdamW"
@@ -418,7 +420,8 @@ class ViTVQ3D(nn.Module):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
-    def foward_at_level(self, x: torch.FloatTensor, i_level: int) -> torch.FloatTensor:
+    def foward_at_level(self, x: torch.FloatTensor, current_level: int) -> torch.FloatTensor:
+        i_level = current_level - 1
         # print("x shape is ", x.shape)
         h = self.sub_models[i_level].encoder(x) # Access using dot notation
         # print("after encoder, h shape is ", h.shape)
@@ -550,110 +553,38 @@ def build_dataloader_train_val(batch_size: int):
 
     return train_loader, val_loader
 
-
-encoder_8 = {
-    "spatial_dims": 3, "in_channels": 1,
-    "channels": [pyramid_channels[0]],
-    "strides": pyramid_strides[-1:],
-    "num_res_units": pyramid_num_res_units[0],
-}
-quantizer_8 = {
-    "dim": pyramid_channels[0], 
-    "codebook_size": pyramid_codebook_size[0],
-    "decay": 0.8, "commitment_weight": 1.0,
-    "use_cosine_sim": True, "threshold_ema_dead_code": 2,
-    "kmeans_init": True, "kmeans_iters": 10
-}
-decoder_8 = {
-    "spatial_dims": 3, "out_channels": 1,
-    "channels": [pyramid_channels[0]],
-    "strides": pyramid_strides[-1:],
-    "num_res_units": pyramid_num_res_units[0],
-}
-
-encoder_16 = {
-    "spatial_dims": 3, "in_channels": 1,
-    "channels": pyramid_channels[0:2],
-    "strides": pyramid_strides[-2:],
-    "num_res_units": pyramid_num_res_units[1],
-}
-quantizer_16 = {
-    "dim": pyramid_channels[1], 
-    "codebook_size": pyramid_codebook_size[1],
-    "decay": 0.8, "commitment_weight": 1.0,
-    "use_cosine_sim": True, "threshold_ema_dead_code": 2,
-    "kmeans_init": True, "kmeans_iters": 10
-}
-decoder_16 = {
-    "spatial_dims": 3, "out_channels": 1,
-    "channels": pyramid_channels[0:2],
-    "strides": pyramid_strides[-2:],
-    "num_res_units": pyramid_num_res_units[1],
-}
-
-encoder_32 = {
-    "spatial_dims": 3, "in_channels": 1,
-    "channels": pyramid_channels[0:3],
-    "strides": pyramid_strides[-3:],
-    "num_res_units": pyramid_num_res_units[2],
-}
-quantizer_32 = {
-    "dim": pyramid_channels[2], 
-    "codebook_size": pyramid_codebook_size[2],
-    "decay": 0.8, "commitment_weight": 1.0,
-    "use_cosine_sim": True, "threshold_ema_dead_code": 2,
-    "kmeans_init": True, "kmeans_iters": 10
-}
-decoder_32 = {
-    "spatial_dims": 3, "out_channels": 1,
-    "channels": pyramid_channels[0:3],
-    "strides": pyramid_strides[-3:],
-    "num_res_units": pyramid_num_res_units[2],
-}
-
-encoder_64 = {
-    "spatial_dims": 3, "in_channels": 1,
-    "channels": pyramid_channels[0:4],
-    "strides": pyramid_strides[-4:],
-    "num_res_units": pyramid_num_res_units[3],
-}
-quantizer_64 = {
-    "dim": pyramid_channels[3],
-    "codebook_size": pyramid_codebook_size[3],
-    "decay": 0.8, "commitment_weight": 1.0,
-    "use_cosine_sim": True, "threshold_ema_dead_code": 2,
-    "kmeans_init": True, "kmeans_iters": 10
-}
-decoder_64 = {
-    "spatial_dims": 3, "out_channels": 1,
-    "channels": pyramid_channels[0:4],
-    "strides": pyramid_strides[-4:],
-    "num_res_units": pyramid_num_res_units[3],
-}
+num_level = len(pyramid_channels)
+model_level = []
+for i in range(num_level):
+    encoder = {
+        "spatial_dims": 3, "in_channels": 1,
+        "channels": pyramid_channels[:i+1],
+        "strides": pyramid_strides[-(i+1):],
+        "num_res_units": pyramid_num_res_units[i],
+    }
+    quantizer = {
+        "dim": pyramid_channels[i], 
+        "codebook_size": pyramid_codebook_size[i],
+        "decay": 0.8, "commitment_weight": 1.0,
+        "use_cosine_sim": True, "threshold_ema_dead_code": 2,
+        "kmeans_init": True, "kmeans_iters": 10
+    }
+    decoder = {
+        "spatial_dims": 3, "out_channels": 1,
+        "channels": pyramid_channels[:i+1],
+        "strides": pyramid_strides[-(i+1):],
+        "num_res_units": pyramid_num_res_units[i],
+        "hwd": pyramid_mini_resolution,
+    }
+    model_level.append({
+        "encoder": encoder,
+        "decoder": decoder,
+        "quantizer": quantizer
+    }
+)
 
 model = ViTVQ3D(
-    model_level=[
-        {
-            "encoder": encoder_8,
-            "decoder": decoder_8,
-            "quantizer": quantizer_8
-        },
-        {
-            "encoder": encoder_16,
-            "decoder": decoder_16,
-            "quantizer": quantizer_16
-        },
-        {
-            "encoder": encoder_32,
-            "decoder": decoder_32,
-            "quantizer": quantizer_32
-        },
-        {
-            "encoder": encoder_64,
-            "decoder": decoder_64,
-            "quantizer": quantizer_64
-        },
-    ],
+    model_level=model_level,
     device=device,
 )
 
