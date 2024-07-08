@@ -1378,8 +1378,8 @@ for idx_epoch in range(num_epoch):
             torch.save(model.state_dict(), model_save_name)
             torch.save(optimizer.state_dict(), optimizer_save_name)
             # log the model
-            wandb_run.log_model(path=model_save_name, name=tag+"model_best_eval")
-            wandb_run.log_model(path=optimizer_save_name, name=tag+"optimizer_best_eval")
+            wandb_run.log_model(path=model_save_name, name="model_best_eval", alias=tag)
+            wandb_run.log_model(path=optimizer_save_name, name=tag+"optimizer_best_eval", alias=tag)
             logger.log(idx_epoch, "best_val_loss", best_val_loss)
 
         for key in epoch_codebook_val.keys():
@@ -1405,8 +1405,8 @@ for idx_epoch in range(num_epoch):
         torch.save(model.state_dict(), model_save_name)
         torch.save(optimizer.state_dict(), optimizer_save_name)
         # log the model
-        wandb_run.log_model(path=model_save_name, name=tag+"model_latest_save")
-        wandb_run.log_model(path=optimizer_save_name, name=tag+"optimizer_latest_save")
+        wandb_run.log_model(path=model_save_name, name="model_latest_save", alias=tag)
+        wandb_run.log_model(path=optimizer_save_name, name="optimizer_latest_save", alias=tag)
         logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
 wandb.finish()
