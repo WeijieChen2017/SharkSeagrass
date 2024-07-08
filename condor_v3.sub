@@ -12,7 +12,7 @@ when_to_transfer_output = ON_EXIT_OR_EVICT
 transfer_input_files = SharkSeagrass.zip, tsv1_ct.tar.gz
 
 +WantGPULab = true
-+GPUJobLength = "medium"
++GPUJobLength = "long"
 request_gpus = 1
 require_gpus = GlobalMemoryMb >= 20000
 request_cpus = 24
