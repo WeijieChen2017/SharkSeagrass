@@ -1224,7 +1224,7 @@ if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
 # log the code
-wandb_run.log_code(root=".", name="train_v3.py")
+wandb_run.log_code(root=".", name=tag+"train_v3.py")
 
 for idx_epoch in range(num_epoch):
     model.train()
