@@ -6,6 +6,7 @@ base_cache_dir = './cache'
 # Define and create necessary subdirectories within the base cache directory
 cache_dirs = {
     'WANDB_DIR': os.path.join(base_cache_dir, 'wandb'),
+    'WANDB_DATA_DIR': os.path.join(base_cache_dir, 'wandb_data'),
     'WANDB_CACHE_DIR': os.path.join(base_cache_dir, 'wandb_cache'),
     'WANDB_CONFIG_DIR': os.path.join(base_cache_dir, 'config'),
     'TRANSFORMERS_CACHE': os.path.join(base_cache_dir, 'transformers'),
