@@ -106,6 +106,8 @@ from monai.transforms import (
 
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
+tag = "conv128d3r4L1"
+
 random_seed = 729
 volume_size = 64
 pix_dim = 1.5
@@ -230,6 +232,7 @@ wandb_run = wandb.init(
     config={
         "volume_size": volume_size,
         "pix_dim": pix_dim,
+        "tag": tag,
         "num_workers_train_dataloader": num_workers_train_dataloader,
         "num_workers_val_dataloader": num_workers_val_dataloader,
         "num_workers_train_cache_dataset": num_workers_train_cache_dataset,
@@ -1375,8 +1378,8 @@ for idx_epoch in range(num_epoch):
             torch.save(model.state_dict(), model_save_name)
             torch.save(optimizer.state_dict(), optimizer_save_name)
             # log the model
-            wandb_run.log_model(path=model_save_name, name="model_best_eval")
-            wandb_run.log_model(path=optimizer_save_name, name="optimizer_best_eval")
+            wandb_run.log_model(path=model_save_name, name=tag+"model_best_eval")
+            wandb_run.log_model(path=optimizer_save_name, name=tag+"optimizer_best_eval")
             logger.log(idx_epoch, "best_val_loss", best_val_loss)
 
         for key in epoch_codebook_val.keys():
@@ -1402,8 +1405,8 @@ for idx_epoch in range(num_epoch):
         torch.save(model.state_dict(), model_save_name)
         torch.save(optimizer.state_dict(), optimizer_save_name)
         # log the model
-        wandb_run.log_model(path=model_save_name, name=f"model_latest_save")
-        wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_latest_save")
+        wandb_run.log_model(path=model_save_name, name=tag+"model_latest_save")
+        wandb_run.log_model(path=optimizer_save_name, name=tag+"optimizer_latest_save")
         logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
 wandb.finish()
