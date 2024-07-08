@@ -169,11 +169,11 @@ torch.manual_seed(random_seed)
 # VQ_decoder_mlp_dim = 1024
 # VQ_decoder_dim_head = 128
 
-VQ_encoder_channels = [256, 512, 1024]
-VQ_encoder_num_res_units = 6
+VQ_encoder_channels = [128, 256, 512]
+VQ_encoder_num_res_units = 4
 
-VQ_decoder_channels = [256, 512, 1024]
-VQ_decoder_num_res_units = 6
+VQ_decoder_channels = [128, 256, 512]
+VQ_decoder_num_res_units = 4
 
 # VQ_quantizer_embed_dim = 128
 # VQ_quantizer_n_embed = 1024
@@ -184,7 +184,7 @@ VQ_decoder_num_res_units = 6
 # vanilla vq
 VQ_lucidrains_VQ_type = "VectorQuantize"
 VQ_lucidrains_VQ_embed_dim = 1024
-VQ_lucidrains_VQ_n_embed = 1024
+VQ_lucidrains_VQ_n_embed = 512
 VQ_lucidrains_VQ_decay = 0.8
 VQ_lucidrains_VQ_commiment_weight = 1.0
 
@@ -206,7 +206,7 @@ VQ_lucidrains_threshold_ema_dead_code = 2
 VQ_lucidrains_VQ_message = "conv_encoder, conv_decoder, VQ -> kmeans init, cosine similarity, expiring stale embeddings"
 
 VQ_optimizer = "AdamW"
-VQ_optimizer_lr = 1e-4
+VQ_optimizer_lr = 5e-4
 VQ_optimizer_weight_decay = 5e-5
 
 VQ_loss_weight_recon_L2 = 1.0
@@ -214,12 +214,12 @@ VQ_loss_weight_recon_L1 = 0.1
 VQ_loss_weight_perceptual = 0.
 VQ_loss_weight_codebook = 0.1
 
-VQ_train_epoch = 1000
+VQ_train_epoch = 3000
 VQ_train_gradiernt_clip = 1.0
 
 
 
-wandb.init(
+wandb_run = wandb.init(
     # set the wandb project where this run will be logged
     project="CT_ViT_VQGAN",
 
@@ -1129,7 +1129,7 @@ class simple_logger():
 
         # log to wandb if msg is number
         if IS_LOGGER_WANDB and isinstance(msg, (int, float)):
-            wandb.log({key: msg})
+            wandb_run.log({key: msg})
 
 def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None, wandb_name="val_snapshots"):
     numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
@@ -1182,7 +1182,7 @@ def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None, wandb_name
 
     plt.tight_layout()
     plt.savefig(savename)
-    wandb.log({wandb_name: fig})
+    wandb_run.log({wandb_name: fig})
     plt.close()
     print(f"Save the plot to {savename}")
 
@@ -1219,6 +1219,9 @@ save_folder = "./results/"
 # create the folder if not exist
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
+
+# log the code
+wandb_run.log_code(root=".", name="train_v3.py")
 
 for idx_epoch in range(num_epoch):
     model.train()
@@ -1367,8 +1370,13 @@ for idx_epoch in range(num_epoch):
 
         if epoch_loss_val["total"].mean() < best_val_loss and IS_SAVE_MODEL:
             best_val_loss = epoch_loss_val["total"].mean()
-            torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict.pth")
-            torch.save(optimizer.state_dict(), save_folder+f"optimizer_best_{idx_epoch}_state_dict.pth")
+            model_save_name = save_folder+f"model_best_{idx_epoch}_state_dict.pth"
+            optimizer_save_name = save_folder+f"optimizer_best_{idx_epoch}_state_dict.pth"
+            torch.save(model.state_dict(), model_save_name)
+            torch.save(optimizer.state_dict(), optimizer_save_name)
+            # log the model
+            wandb_run.log_model(path=model_save_name, name="model_best_eval")
+            wandb_run.log_model(path=optimizer_save_name, name="optimizer_best_eval")
             logger.log(idx_epoch, "best_val_loss", best_val_loss)
 
         for key in epoch_codebook_val.keys():
@@ -1386,8 +1394,16 @@ for idx_epoch in range(num_epoch):
     
     # save the model every save_per_epoch
     if idx_epoch % save_per_epoch == 0 and IS_SAVE_MODEL:
-        torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict.pth")
-        torch.save(optimizer.state_dict(), save_folder+f"optimizer_{idx_epoch}_state_dict.pth")
+        # delete previous model
+        for f in glob.glob(save_folder+"latest_*"):
+            os.remove(f)
+        model_save_name = save_folder+f"latest_model_{idx_epoch}_state_dict.pth"
+        optimizer_save_name = save_folder+f"latest_optimizer_{idx_epoch}_state_dict.pth"
+        torch.save(model.state_dict(), model_save_name)
+        torch.save(optimizer.state_dict(), optimizer_save_name)
+        # log the model
+        wandb_run.log_model(path=model_save_name, name=f"model_latest_save")
+        wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_latest_save")
         logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
 wandb.finish()
