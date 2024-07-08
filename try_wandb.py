@@ -126,5 +126,32 @@ plot_and_save_x_xrec(x, xrec, num_per_direction=3, savename=save_name)
 # try histogram
 # wandb_run.log({"gradients": wandb.Histogram(np.ravel(x))})
 
+# try log code
+# wandb_run.log_code(root=".", include_globs=["*.py"])
+wandb_run.log_code(root=".", name="try_wandb.py")
+
+# build a UNet from monai
+
+import monai
+import torch
+
+model = monai.networks.nets.UNet(
+    spatial_dims=2,
+    in_channels=1,
+    out_channels=1,
+    channels=(4, 8, 16),
+    strides=(2, 2),
+    num_res_units=2
+)
+# save the model to disk naming as try_wandb_model.pth
+torch.save(model.state_dict(), "try_wandb_model.pth")
+
+# log the model
+wandb_run.log_model(
+    path="try_wandb_model.pth",
+    name="my_model_artifact",
+    aliases=["production"],
+)
+
 print("Done!")
 wandb.finish()
