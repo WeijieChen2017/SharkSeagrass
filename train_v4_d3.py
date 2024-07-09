@@ -920,7 +920,7 @@ def train_model_at_level(current_level):
             logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
 
 # log the code
-wandb_run.log_code(root=".", name=tag+"train_v4_universal.py", aliases=tag)
+wandb_run.log_code(root=".", name=tag+"train_v4_universal.py")
   
 for current_level in range(len(pyramid_channels)):
     # current level starts at 1
