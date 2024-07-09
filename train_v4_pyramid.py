@@ -95,7 +95,7 @@ from monai.transforms import (
 
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
-tag = "pyramid_mini8"
+tag = "pyramid_mini8_nonfixed"
 
 random_seed = 426
 volume_size = 64
@@ -122,13 +122,13 @@ pyramid_channels = [64, 128, 256, 256]
 pyramid_codebook_size = [32, 64, 128, 256]
 pyramid_strides = [2, 2, 2, 1]
 pyramid_num_res_units = [2, 3, 4, 5]
-pyramid_num_epoch = [1000, 1000, 1000, 1000]
+pyramid_num_epoch = [500, 500, 500, 500]
 pyramid_batch_size = [128, 128, 16, 2]
 # pyramid_num_epoch = [100, 100, 100, 100]
 # pyramid_batch_size = [4, 4, 4, 4]
 pyramid_learning_rate = [1e-3, 5e-4, 2e-4, 1e-4]
 pyramid_weight_decay = [1e-4, 5e-5, 2e-5, 1e-5]
-pyramid_freeze_previous_stages = True
+pyramid_freeze_previous_stages = False
 
 
 VQ_optimizer = "AdamW"
@@ -964,8 +964,8 @@ def train_model_at_level(current_level):
                 torch.save(model.state_dict(), model_save_name)
                 torch.save(optimizer.state_dict(), optimizer_save_name)
                 # log the model
-                wandb_run.log_model(path=model_save_name, name="model_best_eval", alias=tag)
-                wandb_run.log_model(path=optimizer_save_name, name="optimizer_best_eval", alias=tag)
+                wandb_run.log_model(path=model_save_name, name="model_best_eval", alias=tag+f"_{current_level}")
+                wandb_run.log_model(path=optimizer_save_name, name="optimizer_best_eval", alias=tag+f"_{current_level}")
                 logger.log(idx_epoch, "best_val_loss", best_val_loss)
 
             for key in epoch_codebook_val.keys():
@@ -989,8 +989,8 @@ def train_model_at_level(current_level):
             torch.save(model.state_dict(), model_save_name)
             torch.save(optimizer.state_dict(), optimizer_save_name)
             # log the model
-            wandb_run.log_model(path=model_save_name, name=f"model_latest_save", alias=tag)
-            wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_latest_save", alias=tag)
+            wandb_run.log_model(path=model_save_name, name=f"model_latest_save", alias=tag+f"_{current_level}")
+            wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_latest_save", alias=tag+f"_{current_level}")
             logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
             
 for current_level in range(4):
