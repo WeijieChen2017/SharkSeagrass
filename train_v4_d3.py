@@ -101,7 +101,7 @@ from monai.transforms import (
 
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
-tag = "pyramid_mini16_nonfixed"
+tag = "pyramid_mini16_fixed"
 
 random_seed = 426
 volume_size = 64
@@ -128,13 +128,13 @@ pyramid_channels = [64, 128, 256]
 pyramid_codebook_size = [32, 64, 128]
 pyramid_strides = [2, 2, 1]
 pyramid_num_res_units = [3, 4, 5]
-pyramid_num_epoch = [333, 333, 333]
+pyramid_num_epoch = [500, 500, 500]
 pyramid_batch_size = [128, 128, 16]
 # pyramid_num_epoch = [100, 100, 100, 100]
 # pyramid_batch_size = [4, 4, 4, 4]
 pyramid_learning_rate = [1e-3, 5e-4, 2e-4]
 pyramid_weight_decay = [1e-4, 5e-5, 2e-5]
-pyramid_freeze_previous_stages = False
+pyramid_freeze_previous_stages = True
 # mini resolution is computed by volume_size / 2^len(pyramid_channels)
 pyramid_mini_resolution = volume_size // 2**(len(pyramid_channels)-1)
 
