@@ -1224,7 +1224,7 @@ if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
 # log the code
-wandb_run.log_code(root=".", name=tag+"train_v3.py")
+wandb_run.log_code(root=".", name="train_v3.py", aliases=tag)
 
 for idx_epoch in range(num_epoch):
     model.train()
@@ -1378,8 +1378,8 @@ for idx_epoch in range(num_epoch):
             torch.save(model.state_dict(), model_save_name)
             torch.save(optimizer.state_dict(), optimizer_save_name)
             # log the model
-            wandb_run.log_model(path=model_save_name, name="model_best_eval", alias=tag)
-            wandb_run.log_model(path=optimizer_save_name, name=tag+"optimizer_best_eval", alias=tag)
+            wandb_run.log_model(path=model_save_name, name="model_best_eval", aliases=tag)
+            wandb_run.log_model(path=optimizer_save_name, name=tag+"optimizer_best_eval", aliases=tag)
             logger.log(idx_epoch, "best_val_loss", best_val_loss)
 
         for key in epoch_codebook_val.keys():
@@ -1405,8 +1405,8 @@ for idx_epoch in range(num_epoch):
         torch.save(model.state_dict(), model_save_name)
         torch.save(optimizer.state_dict(), optimizer_save_name)
         # log the model
-        wandb_run.log_model(path=model_save_name, name="model_latest_save", alias=tag)
-        wandb_run.log_model(path=optimizer_save_name, name="optimizer_latest_save", alias=tag)
+        wandb_run.log_model(path=model_save_name, name="model_latest_save", aliases=tag)
+        wandb_run.log_model(path=optimizer_save_name, name="optimizer_latest_save", aliases=tag)
         logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
 wandb.finish()

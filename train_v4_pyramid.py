@@ -777,7 +777,7 @@ if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
 # log the code
-wandb_run.log_code(root=".", name=tag+"train_v4_pyramid.py")
+wandb_run.log_code(root=".", name=tag+"train_v4_pyramid.py", aliases=tag)
 
 def generate_input_data_pyramid(x, levels):
     pyramid_x = []
@@ -964,8 +964,8 @@ def train_model_at_level(current_level):
                 torch.save(model.state_dict(), model_save_name)
                 torch.save(optimizer.state_dict(), optimizer_save_name)
                 # log the model
-                wandb_run.log_model(path=model_save_name, name="model_best_eval", alias=tag+f"_{current_level}")
-                wandb_run.log_model(path=optimizer_save_name, name="optimizer_best_eval", alias=tag+f"_{current_level}")
+                wandb_run.log_model(path=model_save_name, name="model_best_eval", aliases=tag+f"_{current_level}")
+                wandb_run.log_model(path=optimizer_save_name, name="optimizer_best_eval", aliases=tag+f"_{current_level}")
                 logger.log(idx_epoch, "best_val_loss", best_val_loss)
 
             for key in epoch_codebook_val.keys():
@@ -989,8 +989,8 @@ def train_model_at_level(current_level):
             torch.save(model.state_dict(), model_save_name)
             torch.save(optimizer.state_dict(), optimizer_save_name)
             # log the model
-            wandb_run.log_model(path=model_save_name, name=f"model_latest_save", alias=tag+f"_{current_level}")
-            wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_latest_save", alias=tag+f"_{current_level}")
+            wandb_run.log_model(path=model_save_name, name=f"model_latest_save", aliases=tag+f"_{current_level}")
+            wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_latest_save", aliases=tag+f"_{current_level}")
             logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
             
 for current_level in range(4):
