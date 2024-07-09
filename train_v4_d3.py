@@ -729,9 +729,9 @@ def train_model_at_level(current_level):
     best_val_loss = 1e6
 
     # set the data loaders for the current level
-    train_loader, val_loader = build_dataloader_train_val(pyramid_batch_size[current_level])
+    train_loader, val_loader = build_dataloader_train_val(pyramid_batch_size[current_level - 1])
     # set the optimizer for the current level
-    optimizer = build_optimizer(model, pyramid_learning_rate[current_level], pyramid_weight_decay[current_level])
+    optimizer = build_optimizer(model, pyramid_learning_rate[current_level - 1], pyramid_weight_decay[current_level - 1])
 
     num_train_batch = len(train_loader)
     num_val_batch = len(val_loader)
@@ -747,14 +747,14 @@ def train_model_at_level(current_level):
     # set the gradient freeze
     if pyramid_freeze_previous_stages:
         model.freeze_gradient_all()
-        model.unfreeze_gradient_at_level(current_level-1)
+        model.unfreeze_gradient_at_level(current_level - 1)
     else:
         model.freeze_gradient_all()
         for i_level in range(current_level):
             model.unfreeze_gradient_at_level(i_level)
 
     # start the training
-    for idx_epoch in range(pyramid_num_epoch[current_level]):
+    for idx_epoch in range(pyramid_num_epoch[current_level - 1]):
         model.train()
         epoch_loss_train = {
             "reconL2": [],
@@ -820,8 +820,8 @@ def train_model_at_level(current_level):
             epoch_codebook_train[key] = np.asanyarray(epoch_codebook_train[key])
         
         activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
-        if len(activated_counts) < pyramid_codebook_size[current_level]:
-            activated_counts = np.append(activated_counts, np.zeros(pyramid_codebook_size[current_level] - len(activated_counts)))
+        if len(activated_counts) < pyramid_codebook_size[current_level - 1]:
+            activated_counts = np.append(activated_counts, np.zeros(pyramid_codebook_size[current_level - 1] - len(activated_counts)))
         effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
         embedding_num = len(activated_counts)
         logger.log(idx_epoch, "train_effective_num", effective_num)
@@ -898,8 +898,8 @@ def train_model_at_level(current_level):
                 epoch_codebook_val[key] = np.asanyarray(epoch_codebook_val[key])
             
             activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
-            if len(activated_counts) < pyramid_codebook_size[current_level]:
-                activated_counts = np.append(activated_counts, np.zeros(pyramid_codebook_size[current_level] - len(activated_counts)))
+            if len(activated_counts) < pyramid_codebook_size[current_level - 1]:
+                activated_counts = np.append(activated_counts, np.zeros(pyramid_codebook_size[current_level - 1] - len(activated_counts)))
             effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
             embedding_num = len(activated_counts)
             logger.log(idx_epoch, "val_effective_num", effective_num)
