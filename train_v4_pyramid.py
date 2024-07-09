@@ -777,7 +777,7 @@ if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
 # log the code
-wandb_run.log_code(root=".", name=tag+"train_v4_pyramid.py", aliases=tag)
+wandb_run.log_code(root=".", name=tag+"train_v4_pyramid.py")
 
 def generate_input_data_pyramid(x, levels):
     pyramid_x = []
