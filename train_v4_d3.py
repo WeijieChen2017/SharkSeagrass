@@ -101,6 +101,8 @@ from monai.transforms import (
 
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
+tag = "pyramid_mini16"
+
 random_seed = 426
 volume_size = 64
 pix_dim = 1.5
@@ -114,7 +116,7 @@ cache_ratio_train = 0.2
 cache_ratio_val = 0.2
 IS_LOGGER_WANDB = True
 
-val_per_epoch = 25
+val_per_epoch = 50
 save_per_epoch = 100
 
 # set random seed
@@ -123,9 +125,9 @@ np.random.seed(random_seed)
 torch.manual_seed(random_seed)
 
 pyramid_channels = [64, 128, 256]
-pyramid_codebook_size = [64, 128, 256]
+pyramid_codebook_size = [32, 64, 128]
 pyramid_strides = [2, 2, 1]
-pyramid_num_res_units = [4, 5, 6]
+pyramid_num_res_units = [3, 4, 5]
 pyramid_num_epoch = [1000, 1000, 1000]
 pyramid_batch_size = [128, 128, 16]
 # pyramid_num_epoch = [100, 100, 100, 100]
@@ -148,7 +150,7 @@ VQ_train_gradiernt_clip = 1.0
 model_message = "the mini resolution is 16, so each input is converted to B, 4096, C"
 
 
-wandb.init(
+wandb_run = wandb.init(
     # set the wandb project where this run will be logged
     project="CT_ViT_VQGAN",
 
@@ -157,6 +159,7 @@ wandb.init(
 
     # track hyperparameters and run metadata
     config={
+        "tag": tag,
         "volume_size": volume_size,
         "pix_dim": pix_dim,
         "num_workers_train_dataloader": num_workers_train_dataloader,
@@ -562,7 +565,7 @@ for i in range(num_level):
         "num_res_units": pyramid_num_res_units[i],
     }
     quantizer = {
-        "dim": pyramid_channels[i], 
+        "dim": pyramid_channels[i]*2, 
         "codebook_size": pyramid_codebook_size[i],
         "decay": 0.8, "commitment_weight": 1.0,
         "use_cosine_sim": True, "threshold_ema_dead_code": 2,
@@ -621,7 +624,7 @@ class simple_logger():
 
         # log to wandb if msg is number
         if IS_LOGGER_WANDB and isinstance(msg, (int, float)):
-            wandb.log({key: msg})
+            wandb_run.log({key: msg})
 
 def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None, wandb_name="val_snapshots"):
     numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
@@ -674,7 +677,7 @@ def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None, wandb_name
 
     plt.tight_layout()
     plt.savefig(savename)
-    wandb.log({wandb_name: fig})
+    wandb_run.log({wandb_name: fig})
     plt.close()
     print(f"Save the plot to {savename}")
 
@@ -702,7 +705,7 @@ loss_weights = {
     "codebook": VQ_loss_weight_codebook,
 }
 
-best_val_loss = 1e6
+# best_val_loss = 1e6
 save_folder = "./results/"
 # create the folder if not exist
 if not os.path.exists(save_folder):
@@ -723,6 +726,8 @@ def generate_input_data_pyramid(x, levels):
     
 def train_model_at_level(current_level):
 
+    best_val_loss = 1e6
+
     # set the data loaders for the current level
     train_loader, val_loader = build_dataloader_train_val(pyramid_batch_size[current_level])
     # set the optimizer for the current level
@@ -733,7 +738,7 @@ def train_model_at_level(current_level):
 
     print("Current device is ", device)
 
-    global best_val_loss # use the global variable
+    # global best_val_loss # use the global variable
 
     # move the model to the device
     for i_level in range(current_level):
@@ -880,8 +885,13 @@ def train_model_at_level(current_level):
 
             if epoch_loss_val["total"].mean() < best_val_loss:
                 best_val_loss = epoch_loss_val["total"].mean()
-                torch.save(model.state_dict(), save_folder+f"model_best_{idx_epoch}_state_dict_{current_level}.pth")
-                torch.save(optimizer.state_dict(), save_folder+f"optimizer_best_{idx_epoch}_state_dict_{current_level}.pth")
+                model_save_name = save_folder+f"model_best_{idx_epoch}_state_dict_{current_level}.pth"
+                optimizer_save_name = save_folder+f"optimizer_best_{idx_epoch}_state_dict_{current_level}.pth"
+                torch.save(model.state_dict(), model_save_name)
+                torch.save(optimizer.state_dict(), optimizer_save_name)
+                # log the model
+                wandb_run.log_model(path=model_save_name, name="model_best_eval", alias=tag+f"_{current_level}")
+                wandb_run.log_model(path=optimizer_save_name, name="optimizer_best_eval", alias=tag+f"_{current_level}")
                 logger.log(idx_epoch, "best_val_loss", best_val_loss)
 
             for key in epoch_codebook_val.keys():
@@ -897,10 +907,21 @@ def train_model_at_level(current_level):
          
         # save the model every save_per_epoch
         if idx_epoch % save_per_epoch == 0:
-            torch.save(model.state_dict(), save_folder+f"model_{idx_epoch}_state_dict_{current_level}.pth")
-            torch.save(optimizer.state_dict(), save_folder+f"optimizer_{idx_epoch}_state_dict_{current_level}.pth")
+            # delete previous model
+            for f in glob.glob(save_folder+"latest_*"):
+                os.remove(f)
+            model_save_name = save_folder+f"latest_model_{idx_epoch}_state_dict.pth"
+            optimizer_save_name = save_folder+f"latest_optimizer_{idx_epoch}_state_dict.pth"
+            torch.save(model.state_dict(), model_save_name)
+            torch.save(optimizer.state_dict(), optimizer_save_name)
+            # log the model
+            wandb_run.log_model(path=model_save_name, name=f"model_latest_save", alias=tag+f"_{current_level}")
+            wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_latest_save", alias=tag+f"_{current_level}")
             logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
-            
+
+# log the code
+wandb_run.log_code(root=".", name=tag+"train_v4_universal.py")
+  
 for current_level in range(len(pyramid_channels)):
     # current level starts at 1
     train_model_at_level(current_level + 1)
