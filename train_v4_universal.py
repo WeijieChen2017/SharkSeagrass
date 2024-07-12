@@ -36,6 +36,7 @@ import torch.nn.functional as F
 import json
 import time
 import glob
+import yaml
 import torch
 import random
 import argparse
@@ -48,7 +49,7 @@ from train_v4_utils import plot_and_save_x_xrec, simple_logger, effective_number
 
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
-def train_model_at_level(current_level, global_config, model):
+def train_model_at_level(current_level, global_config, model, optimizer_weights):
 
     pyramid_batch_size = global_config['pyramid_batch_size']
     pyramid_learning_rate = global_config['pyramid_learning_rate']
@@ -75,6 +76,10 @@ def train_model_at_level(current_level, global_config, model):
     train_loader, val_loader = build_dataloader_train_val(pyramid_batch_size[current_level], global_config)
     # set the optimizer for the current level
     optimizer = build_optimizer(model, pyramid_learning_rate[current_level], pyramid_weight_decay[current_level])
+
+    if optimizer_weights is not None:
+        optimizer.load_state_dict(optimizer_weights)
+        print("Load optimizer weights")
 
     num_train_batch = len(train_loader)
     num_val_batch = len(val_loader)
@@ -429,9 +434,21 @@ def parse_arguments():
     parser.add_argument('--save_folder', type=str, default="./results/")
     return parser.parse_args()
 
+def parse_yaml_arguments():
+    parser = argparse.ArgumentParser(description='Train a 3D ViT-VQGAN model.')
+    parser.add_argument('--config_file_path', type=str, default="config_v4_mini8_fixed.yaml")
+    return parser.parse_args()
+
+def load_yaml_config(config_file_path):
+    with open(config_file_path, 'r') as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
+    return config
+
 def main():
-    args = parse_arguments()
-    global_config = vars(args)
+    # args = parse_arguments()
+    # global_config = vars(args)
+    config_file_path = parse_yaml_arguments().config_file_path
+    global_config = load_yaml_config(config_file_path)
     global_config['pyramid_mini_resolution'] = global_config['volume_size'] // 2**(len(global_config['pyramid_channels'])-1)
     pyramid_channels = global_config['pyramid_channels']
     tag = global_config['tag']
@@ -456,10 +473,59 @@ def main():
 
     # set the model
     model_levels = generate_model_levels(global_config)
-    model = ViTVQ3D(model_level=model_levels).to(device)
+    model = ViTVQ3D(model_level=model_levels)
 
-    for current_level in range(len(pyramid_channels)):
-        # current level starts at 1
-        train_model_at_level(current_level, global_config, model)
+    # load model from the previous training
+    if global_config["load_checkpoints"]:
+        model_artifact_name = global_config["model_artifact_name"]
+        model_artifact_version = global_config["model_artifact_version"]
+        optim_artifact_name = global_config["optim_artifact_name"]
+        optim_artifact_version = global_config["optim_artifact_version"]
+        model_checkpoint_name = model_artifact_name+":"+model_artifact_version
+        optim_checkpoint_name = optim_artifact_name+":"+optim_artifact_version
+        for artifact_name in [model_checkpoint_name, optim_checkpoint_name]:
+            artifact = wandb_run.use_artifact(f"convez376/CT_ViT_VQGAN/{artifact_name}")
+            artifact_dir = artifact.download()
+
+        # search the model and optimizer checkpoint
+        state_dict_model_path = glob.glob("./artifacts/"+model_checkpoint_name+"/"+"*.pth")[0]
+        state_dict_optim_path = glob.glob("./artifacts/"+optim_checkpoint_name+"/"+"*.pth")[0]
+        print(state_dict_model_path)
+        print(state_dict_optim_path)
+        state_dict_model = torch.load(state_dict_model_path)
+        state_dict_optim = torch.load(state_dict_optim_path)
+        
+        # print the model state_dict loaded from the checkpoint
+        print("Model state_dict loaded from the checkpoint: ")
+        print(state_dict_model_path)
+        print("The following keys are loaded: ")
+        for key in state_dict_model.keys():
+            print(key)
+        model.load_state_dict(state_dict_model).to(device)
+
+        # load previous trained epochs
+        # num_epoch is the number for each stage need to be trained, we need to find out which stage we are in
+        num_epoch = global_config['pyramid_num_epoch']
+        num_epoch_sum = 0
+        previous_training_epoch = global_config['previous_training_epoch']
+        for i in range(len(num_epoch)):
+            num_epoch_sum += num_epoch[i]
+            if num_epoch_sum >= previous_training_epoch:
+                break
+        current_level = i
+        print(f"Current level is {current_level}")
+        optimizer_weights = state_dict_optim
+        global_config["pyramid_num_epoch"][current_level] = num_epoch_sum - previous_training_epoch
+        train_model_at_level(current_level, global_config, model, optimizer_weights)
+
+        # if there are more stages to train
+        for i in range(current_level+1, len(pyramid_channels)):
+            train_model_at_level(i, global_config, model, None)
+
+    else:
+        model.to(device)
+        for current_level in range(len(pyramid_channels)):
+            # current level starts at 1
+            train_model_at_level(current_level, global_config, model, None)
 
     wandb.finish()
