@@ -82,8 +82,8 @@ torch.save(model.state_dict(), model_save_name)
 torch.save(optimizer.state_dict(), optimizer_save_name)
 
 # Log the model and optimizer state_dict to wandb
-wandb_run.log_model(path=model_save_name, name="model_best_eval", aliases=tag + f"_{current_level}")
-wandb_run.log_model(path=optimizer_save_name, name="optimizer_best_eval", aliases=tag + f"_{current_level}")
+wandb_run.log_model(path=model_save_name, name="model_best_eval", aliases=f"{current_level}")
+wandb_run.log_model(path=optimizer_save_name, name="optimizer_best_eval", aliases=f"{current_level}")
 ```
 
 ### Explanation of Parameters
