@@ -1,0 +1,63 @@
+description: Train a 3D ViT-VQGAN model
+tag: mini8_nonfixed
+random_seed: 426
+volume_size: 64
+pix_dim: 1.5
+num_workers_train_dataloader: 8
+num_workers_val_dataloader: 4
+num_workers_train_cache_dataset: 8
+num_workers_val_cache_dataset: 4
+batch_size_train: 32
+batch_size_val: 16
+cache_ratio_train: 0.2
+cache_ratio_val: 0.2
+val_per_epoch: 50
+save_per_epoch: 100
+IS_LOGGER_WANDB: true
+VQ_optimizer: AdamW
+VQ_loss_weight_recon_L2: 0.1
+VQ_loss_weight_recon_L1: 1.0
+VQ_loss_weight_codebook: 0.1
+VQ_train_gradiernt_clip: 1.0
+pyramid_channels: 
+  - 64
+  - 128
+  - 256
+  - 256
+pyramid_codebook_size: 
+  - 32
+  - 64
+  - 128
+  - 256
+pyramid_strides: 
+  - 2
+  - 2
+  - 2
+  - 1
+pyramid_num_res_units: 
+  - 2
+  - 3
+  - 4
+  - 5
+pyramid_num_epoch: 
+  - 500
+  - 500
+  - 500
+  - 500
+pyramid_batch_size: 
+  - 128
+  - 128
+  - 16
+  - 2
+pyramid_learning_rate: 
+  - 0.001
+  - 0.0005
+  - 0.0002
+  - 0.0001
+pyramid_weight_decay: 
+  - 0.0001
+  - 0.00005
+  - 0.00002
+  - 0.00001
+pyramid_freeze_previous_stages: true
+save_folder: ./results/
