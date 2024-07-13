@@ -473,7 +473,7 @@ def main():
 
     # set the model
     model_levels = generate_model_levels(global_config)
-    model = ViTVQ3D(model_level=model_levels)
+    model = ViTVQ3D(model_level=model_levels).to(device)
 
     # # load model from the previous training
     if global_config["load_checkpoints"]:
@@ -505,7 +505,7 @@ def main():
             print(key)
         model.load_state_dict(state_dict_model)
         print("Model state_dict loaded successfully")
-        model.to(device)
+        # model.to(device)
 
         # load previous trained epochs
         # num_epoch is the number for each stage need to be trained, we need to find out which stage we are in
@@ -527,7 +527,7 @@ def main():
             train_model_at_level(i, global_config, model, None)
 
     else:
-        model.to(device)
+        # model.to(device)
         for current_level in range(len(pyramid_channels)):
             # current level starts at 1
             train_model_at_level(current_level, global_config, model, None)
