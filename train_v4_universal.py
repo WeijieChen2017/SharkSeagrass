@@ -441,7 +441,7 @@ def parse_arguments():
 
 def parse_yaml_arguments():
     parser = argparse.ArgumentParser(description='Train a 3D ViT-VQGAN model.')
-    parser.add_argument('--config_file_path', type=str, default="config_v4_mini16_fixed.yaml")
+    parser.add_argument('--config_file_path', type=str, default="config_v4_mini8_nonfixed.yaml")
     return parser.parse_args()
 
 def load_yaml_config(config_file_path):
