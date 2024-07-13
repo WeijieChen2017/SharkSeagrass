@@ -475,21 +475,23 @@ def main():
     model_levels = generate_model_levels(global_config)
     model = ViTVQ3D(model_level=model_levels)
 
-    # load model from the previous training
+    # # load model from the previous training
     if global_config["load_checkpoints"]:
-        model_artifact_name = global_config["model_artifact_name"]
-        model_artifact_version = global_config["model_artifact_version"]
-        optim_artifact_name = global_config["optim_artifact_name"]
-        optim_artifact_version = global_config["optim_artifact_version"]
-        model_checkpoint_name = model_artifact_name+":"+model_artifact_version
-        optim_checkpoint_name = optim_artifact_name+":"+optim_artifact_version
-        for artifact_name in [model_checkpoint_name, optim_checkpoint_name]:
-            artifact = wandb_run.use_artifact(f"convez376/CT_ViT_VQGAN/{artifact_name}")
-            artifact_dir = artifact.download()
+    #     model_artifact_name = global_config["model_artifact_name"]
+    #     model_artifact_version = global_config["model_artifact_version"]
+    #     optim_artifact_name = global_config["optim_artifact_name"]
+    #     optim_artifact_version = global_config["optim_artifact_version"]
+    #     model_checkpoint_name = model_artifact_name+":"+model_artifact_version
+    #     optim_checkpoint_name = optim_artifact_name+":"+optim_artifact_version
+    #     for artifact_name in [model_checkpoint_name, optim_checkpoint_name]:
+    #         artifact = wandb_run.use_artifact(f"convez376/CT_ViT_VQGAN/{artifact_name}")
+    #         artifact_dir = artifact.download()
 
-        # search the model and optimizer checkpoint
-        state_dict_model_path = glob.glob("./artifacts/"+model_checkpoint_name+"/"+"*.pth")[0]
-        state_dict_optim_path = glob.glob("./artifacts/"+optim_checkpoint_name+"/"+"*.pth")[0]
+    #     # search the model and optimizer checkpoint
+    #     state_dict_model_path = glob.glob("./artifacts/"+model_checkpoint_name+"/"+"*.pth")[0]
+    #     state_dict_optim_path = glob.glob("./artifacts/"+optim_checkpoint_name+"/"+"*.pth")[0]
+        state_dict_model_path = global_config['state_dict_model_path']
+        state_dict_optim_path = global_config['state_dict_optim_path']
         print(state_dict_model_path)
         print(state_dict_optim_path)
         state_dict_model = torch.load(state_dict_model_path)
