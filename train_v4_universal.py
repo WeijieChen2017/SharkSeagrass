@@ -519,7 +519,7 @@ def main():
         current_level = i
         print(f"Current level is {current_level}")
         optimizer_weights = state_dict_optim
-        global_config["pyramid_num_epoch"][current_level] = num_epoch_sum - previous_training_epoch
+        global_config["pyramid_num_epoch"][current_level] = num_epoch_sum - previous_epochs_trained
         train_model_at_level(current_level, global_config, model, optimizer_weights)
 
         # if there are more stages to train
