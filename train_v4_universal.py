@@ -297,6 +297,7 @@ def generate_input_data_pyramid(x, levels, global_config):
         x_at_level = F.interpolate(x, size=(pyramid_mini_resolution*2**i,
                                             pyramid_mini_resolution*2**i, 
                                             pyramid_mini_resolution*2**i), mode="trilinear", align_corners=False).to(device)
+        print(f"Level {i} shape is {x_at_level.shape}")
         pyramid_x.append(x_at_level)
     
     return pyramid_x
