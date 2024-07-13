@@ -53,3 +53,11 @@ pyramid_weight_decay:
   - 0.00002
 pyramid_freeze_previous_stages: false
 save_folder: ./results/
+load_checkpoints: true
+model_artifact_name: model_latest_save
+model_artifact_version: v21
+optim_artifact_name: optimizer_latest_eval
+optim_artifact_version: v21
+previous_epochs_trained: 900
+state_dict_model_path: latest_model_400_state_dict.pth
+state_dict_optim_path: latest_optimizer_400_state_dict.pth
