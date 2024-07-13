@@ -293,7 +293,7 @@ def generate_model_levels(global_config):
 def generate_input_data_pyramid(x, levels, global_config):
     pyramid_mini_resolution = global_config['pyramid_mini_resolution']
     pyramid_x = []
-    for i in range(levels + 1):
+    for i in range(levels):
         x_at_level = F.interpolate(x, size=(pyramid_mini_resolution*2**i,
                                             pyramid_mini_resolution*2**i, 
                                             pyramid_mini_resolution*2**i), mode="trilinear", align_corners=False).to(device)
