@@ -68,4 +68,4 @@ optim_artifact_name: optimizer_latest_eval
 optim_artifact_version: v72
 finished_previous_epochs_trained: 1400
 state_dict_model_path: latest_model_900_state_dict.pth
-state_dict_optim_path: latest_optimizer_900_state_dict
+state_dict_optim_path: latest_optimizer_900_state_dict.pth
