@@ -503,7 +503,9 @@ def main():
         print("The following keys are loaded: ")
         for key in state_dict_model.keys():
             print(key)
-        model.load_state_dict(state_dict_model).to(device)
+        model.load_state_dict(state_dict_model)
+        print("Model state_dict loaded successfully")
+        model.to(device)
 
         # load previous trained epochs
         # num_epoch is the number for each stage need to be trained, we need to find out which stage we are in
