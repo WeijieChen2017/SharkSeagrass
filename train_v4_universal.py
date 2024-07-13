@@ -297,7 +297,7 @@ def generate_input_data_pyramid(x, levels, global_config):
         x_at_level = F.interpolate(x, size=(pyramid_mini_resolution*2**i,
                                             pyramid_mini_resolution*2**i, 
                                             pyramid_mini_resolution*2**i), mode="trilinear", align_corners=False).to(device)
-        print(f"Level {i} shape is {x_at_level.shape}")
+        # print(f"Level {i} shape is {x`_at_level.shape}")
         pyramid_x.append(x_at_level)
     
     return pyramid_x
@@ -390,7 +390,7 @@ class ViTVQ3D(nn.Module):
                 indices_list.append(indices)
                 loss_list.append(loss)
             else:
-                resample_x = F.interpolate(pyramid_x[current_level], scale_factor=2, mode='trilinear', align_corners=False)
+                resample_x = F.interpolate(pyramid_x[current_level - 1], scale_factor=2, mode='trilinear', align_corners=False)
                 input_x = pyramid_x[current_level] - resample_x
                 output_x, indices, loss = self.foward_at_level(input_x, current_level)
                 indices_list.append(indices)
