@@ -109,7 +109,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
         for idx_batch, batch in enumerate(train_loader):
             x = batch["image"]
             # generate the input data pyramid
-            pyramid_x = generate_input_data_pyramid(x, current_level)
+            pyramid_x = generate_input_data_pyramid(x, current_level, global_config)
             # target_x is the last element of the pyramid_x, which is to be reconstructed
             target_x = pyramid_x[-1]
             # input the pyramid_x to the model
@@ -184,7 +184,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                 for idx_batch, batch in enumerate(val_loader):
                     x = batch["image"]
                     # generate the input data pyramid
-                    pyramid_x = generate_input_data_pyramid(x, current_level)
+                    pyramid_x = generate_input_data_pyramid(x, current_level, global_config)
                     # target_x is the last element of the pyramid_x, which is to be reconstructed
                     target_x = pyramid_x[-1]
                     xrec, indices_list, cb_loss_list = model(pyramid_x, current_level)
