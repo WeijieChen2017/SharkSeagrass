@@ -529,3 +529,6 @@ def main():
             train_model_at_level(current_level, global_config, model, None)
 
     wandb.finish()
+
+if __name__ == "__main__":
+    main()
