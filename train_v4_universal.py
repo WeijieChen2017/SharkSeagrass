@@ -511,10 +511,10 @@ def main():
         # num_epoch is the number for each stage need to be trained, we need to find out which stage we are in
         num_epoch = global_config['pyramid_num_epoch']
         num_epoch_sum = 0
-        previous_training_epoch = global_config['previous_training_epoch']
+        previous_epochs_trained = global_config['previous_epochs_trained']
         for i in range(len(num_epoch)):
             num_epoch_sum += num_epoch[i]
-            if num_epoch_sum >= previous_training_epoch:
+            if num_epoch_sum >= previous_epochs_trained:
                 break
         current_level = i
         print(f"Current level is {current_level}")
