@@ -220,7 +220,7 @@ def build_dataloader_train_val(batch_size: int, global_config: Dict[str, Any]) -
             Orientationd(keys=["image"], axcodes="RAS"),
             Spacingd(
                 keys=["image"],
-                pixdim=(global_config.pix_dim, global_config.pix_dim, pix_dim),
+                pixdim=(pix_dim, pix_dim, pix_dim),
                 mode=("bilinear"),
             ),
             ScaleIntensityRanged(
