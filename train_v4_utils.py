@@ -204,14 +204,14 @@ class UNet3D_decoder(nn.Module):
 
 
 def build_dataloader_train_val(batch_size: int, global_config: Dict[str, Any]) -> Tuple[DataLoader, DataLoader]:
-    pix_dim = global_config.pix_dim
-    volume_size = global_config.volume_size
-    cache_ratio_train = global_config.cache_ratio_train
-    cache_ratio_val = global_config.cache_ratio_val
-    num_workers_train_cache_dataset = global_config.num_workers_train_cache_dataset
-    num_workers_val_cache_dataset = global_config.num_workers_val_cache_dataset
-    num_workers_train_dataloader = global_config.num_workers_train_dataloader
-    num_workers_val_dataloader = global_config.num_workers_val_dataloader
+    pix_dim = global_config["pix_dim"]
+    volume_size = global_config["volume_size"]
+    cache_ratio_train = global_config["cache_ratio_train"]
+    cache_ratio_val = global_config["cache_ratio_val"]
+    num_workers_train_cache_dataset = global_config["num_workers_train_cache_dataset"]
+    num_workers_val_cache_dataset = global_config["num_workers_val_cache_dataset"]
+    num_workers_train_dataloader = global_config["num_workers_train_dataloader"]
+    num_workers_val_dataloader = global_config["num_workers_val_dataloader"]
     
     train_transforms = Compose(
         [
@@ -308,8 +308,8 @@ class simple_logger():
     def __init__(self, log_file_path, global_config):
         self.log_file_path = log_file_path
         self.log_dict = dict()
-        self.IS_LOGGER_WANDB = global_config.IS_LOGGER_WANDB
-        self.wandb_run = global_config.wandb_run
+        self.IS_LOGGER_WANDB = global_config["IS_LOGGER_WANDB"]
+        self.wandb_run = global_config["wandb_run"]
     
     def log(self, global_epoch, key, msg):
         if key not in self.log_dict.keys():
@@ -330,7 +330,7 @@ class simple_logger():
             self.wandb_run.log({key: msg})
 
 def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None, wandb_name="val_snapshots", global_config=None):
-    wandb_run = global_config.wandb_run
+    wandb_run = global_config["wandb_run"]
     numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
     numpy_xrec = xrec[0, :, :, :, :].cpu().numpy().squeeze()
     x_clip = np.clip(numpy_x, 0, 1)
