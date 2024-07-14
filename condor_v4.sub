@@ -9,7 +9,7 @@ executable = run_v4.sh
 
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
-transfer_input_files = SharkSeagrass.zip, tsv1_ct.tar.gz, latest_model_400_state_dict.pth, latest_optimizer_400_state_dict.pth
+transfer_input_files = SharkSeagrass.zip, tsv1_ct.tar.gz, latest_model_200_state_dict.pth, latest_optimizer_200_state_dict.pth
 
 +WantGPULab = true
 +GPUJobLength = "long"

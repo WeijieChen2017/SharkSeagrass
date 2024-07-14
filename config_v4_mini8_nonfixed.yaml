@@ -43,7 +43,7 @@ pyramid_num_epoch:
   - 500
   - 500
   - 500
-  - 500
+  - 1500
 pyramid_batch_size: 
   - 128
   - 128
@@ -63,9 +63,9 @@ pyramid_freeze_previous_stages: false
 save_folder: ./results/
 load_checkpoints: true
 model_artifact_name: model_latest_save
-model_artifact_version: v56
+model_artifact_version: v85
 optim_artifact_name: optimizer_latest_eval
-optim_artifact_version: v56
-previous_epochs_trained: 900
-state_dict_model_path: latest_model_400_state_dict.pth
-state_dict_optim_path: latest_optimizer_400_state_dict.pth
+optim_artifact_version: v85
+previous_epochs_trained: 1501
+state_dict_model_path: latest_model_200_state_dict.pth
+state_dict_optim_path: latest_optimizer_200_state_dict.pth
