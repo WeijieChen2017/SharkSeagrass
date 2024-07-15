@@ -4,8 +4,8 @@ unzip SharkSeagrass.zip
 rm SharkSeagrass.zip
 rm tsv1_ct.tar.gz
 mv tsv1_ct ./SharkSeagrass/
-mv latest_model_400_state_dict.pth ./SharkSeagrass/
-mv latest_optimizer_400_state_dict.pth ./SharkSeagrass/
+mv latest_model_1300_state_dict.pth ./SharkSeagrass/
+mv latest_optimizer_1300_state_dict.pth ./SharkSeagrass/
 cd SharkSeagrass
 ls
 echo "============================================"
