@@ -38,7 +38,7 @@ pyramid_num_res_units:
 pyramid_num_epoch: 
   - 500
   - 500
-  - 1500
+  - 6000
 pyramid_batch_size: 
   - 128
   - 128
@@ -58,6 +58,6 @@ model_artifact_name: model_latest_save
 model_artifact_version: v92
 optim_artifact_name: optimizer_latest_eval
 optim_artifact_version: v92
-previous_epochs_trained: 1100
-state_dict_model_path: latest_model_400_state_dict.pth
-state_dict_optim_path: latest_optimizer_400_state_dict.pth
+previous_epochs_trained: 2300
+state_dict_model_path: latest_model_1300_state_dict.pth
+state_dict_optim_path: latest_optimizer_1300_state_dict.pth
