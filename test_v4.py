@@ -148,8 +148,9 @@ def build_dataloader_test(batch_size: int, global_config: Dict[str, Any]) -> Dat
 
     test_files = []
 
-    for i in range(8, 10):
-        test_files.extend(data_chunk[f"chunk_{i}"])
+    # for i in range(8, 10):
+    #     test_files.extend(data_chunk[f"chunk_{i}"])
+    test_files = data_chunk[f"chunk_0"]
 
     num_test_files = len(test_files)
 
