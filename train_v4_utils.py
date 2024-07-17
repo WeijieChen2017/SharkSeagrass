@@ -13,6 +13,12 @@ from typing import List, Tuple, Dict, Any, Optional, Union, Sequence
 from monai.networks.blocks.convolutions import Convolution, ResidualUnit
 from monai.networks.layers.factories import Act, Norm
 
+from monai.data import DataLoader, CacheDataset, load_decathlon_datalist
+from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, Orientationd, Spacingd, ScaleIntensityRanged, MapTransform
+from typing import Dict, Any
+import json
+import os
+
 
 from monai.data import (
     DataLoader,
@@ -33,8 +39,19 @@ from monai.transforms import (
     RandRotated,
 )
 
+class LoadImagedWithPath(LoadImaged):
+    def __call__(self, data):
+        data = super().__call__(data)
+        for key in self.keys:
+            data[key + "_filepath"] = data[key]
+        return data
 
-
+class ExtractFilePaths(MapTransform):
+    def __call__(self, data):
+        d = dict(data)
+        for key in self.keys:
+            d[key + "_filepath"] = d.get(key + "_filepath", None)
+        return d
 
 class UNet3D_encoder(nn.Module):
     def __init__(
@@ -201,7 +218,97 @@ class UNet3D_decoder(nn.Module):
         x = self.out(x)
         return x
 
+def build_dataloader_test(batch_size: int, global_config: Dict[str, Any]) -> DataLoader:
+    pix_dim = global_config["pix_dim"]
+    num_workers_test_cache_dataset = global_config["num_workers_test_cache_dataset"]
+    num_workers_test_dataloader = global_config["num_workers_test_dataloader"]
+    cache_ratio_test = global_config["cache_ratio_test"]
+    
+    test_transforms = Compose(
+        [
+            LoadImagedWithPath(keys=["image"]),
+            EnsureChannelFirstd(keys=["image"]),
+            Orientationd(keys=["image"], axcodes="RAS"),
+            Spacingd(
+                keys=["image"],
+                pixdim=(pix_dim, pix_dim, pix_dim),
+                mode=("bilinear"),
+            ),
+            ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=2976, b_min=0.0, b_max=1.0, clip=True),
+            ExtractFilePaths(keys=["image"])
+        ]
+    )
 
+    # load data_chunks.json and specify chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
+    with open("data_chunks.json", "r") as f:
+        data_chunk = json.load(f)
+
+    test_files = []
+
+    for i in range(8, 10):
+        test_files.extend(data_chunk[f"chunk_{i}"])
+
+    num_test_files = len(test_files)
+
+    print("Test files are ", len(test_files))
+
+    test_ds = CacheDataset(
+        data=test_files,
+        transform=test_transforms,
+        cache_num=num_test_files,
+        cache_rate=cache_ratio_test,  # 600 * 0.1 = 60
+        num_workers=num_workers_test_cache_dataset,
+    )
+
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers_test_dataloader)
+
+    return test_loader
+
+# def build_dataloader_test(batch_size: int, global_config: Dict[str, Any]) -> DataLoader:
+
+#     pix_dim = global_config["pix_dim"]
+#     num_workers_test_cache_dataset = global_config["num_workers_test_cache_dataset"]
+#     num_workers_test_dataloader = global_config["num_workers_test_dataloader"]
+#     cache_ratio_test = global_config["cache_ratio_test"]
+    
+#     test_transforms = Compose(
+#         [
+#             LoadImaged(keys=["image"]),
+#             EnsureChannelFirstd(keys=["image"]),
+#             Orientationd(keys=["image"], axcodes="RAS"),
+#             Spacingd(
+#                 keys=["image"],
+#                 pixdim=(pix_dim, pix_dim, pix_dim),
+#                 mode=("bilinear"),
+#             ),
+#             ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=2976, b_min=0.0, b_max=1.0, clip=True),
+#         ]
+#     )
+
+#     # load data_chunks.json and specif chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
+#     with open("data_chunks.json", "r") as f:
+#         data_chunk = json.load(f)
+
+#     test_files = []
+
+#     for i in range(8, 10):
+#         test_files.extend(data_chunk[f"chunk_{i}"])
+
+#     num_test_files = len(test_files)
+
+#     print("Test files are ", len(test_files))
+
+#     test_ds = CacheDataset(
+#         data=test_files,
+#         transform=test_transforms,
+#         cache_num=num_test_files,
+#         cache_rate=cache_ratio_test, # 600 * 0.1 = 60
+#         num_workers=num_workers_test_cache_dataset,
+#     )
+
+#     test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers_test_dataloader)
+
+#     return test_loader
 
 def build_dataloader_train_val(batch_size: int, global_config: Dict[str, Any]) -> Tuple[DataLoader, DataLoader]:
     pix_dim = global_config["pix_dim"]
