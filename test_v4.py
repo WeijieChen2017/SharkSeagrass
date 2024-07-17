@@ -66,7 +66,7 @@ from skimage.metrics import mean_squared_error
 
 
 from monai.data import DataLoader, CacheDataset
-from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, Orientationd, Spacingd, ScaleIntensityRanged, MapTransform, Identityd
+from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, Orientationd, Spacingd, ScaleIntensityRanged
 from typing import Dict, Any
 import json
 import os
@@ -119,21 +119,6 @@ def filter_data(data, range_min, range_max):
     mask = mask_1 * mask_2
     return mask
 
-
-class LoadImagedWithPath(LoadImaged):
-    def __call__(self, data):
-        data = super().__call__(data)
-        for key in self.keys:
-            data[key + "_filepath"] = data[key]
-        return data
-
-class ExtractFilePaths(MapTransform):
-    def __call__(self, data):
-        d = dict(data)
-        for key in self.keys:
-            d[key + "_filepath"] = d.get(key + "_filepath", None)
-        return d
-
 def build_dataloader_test(batch_size: int, global_config: Dict[str, Any]) -> DataLoader:
     pix_dim = global_config["pix_dim"]
     num_workers_test_cache_dataset = global_config["num_workers_test_cache_dataset"]
@@ -142,7 +127,7 @@ def build_dataloader_test(batch_size: int, global_config: Dict[str, Any]) -> Dat
     
     test_transforms = Compose(
         [
-            LoadImagedWithPath(keys=["image"]),
+            LoadImaged(keys=["image"], image_only=False),
             EnsureChannelFirstd(keys=["image"]),
             Orientationd(keys=["image"], axcodes="RAS"),
             Spacingd(
@@ -151,8 +136,6 @@ def build_dataloader_test(batch_size: int, global_config: Dict[str, Any]) -> Dat
                 mode=("bilinear"),
             ),
             ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=2976, b_min=0.0, b_max=1.0, clip=True),
-            ExtractFilePaths(keys=["image"]),
-            Identityd(keys=["image_filepath"])  # Ensure file paths are not converted
         ]
     )
 
@@ -251,17 +234,11 @@ def test_model(global_config, model):
 
     for idx_batch, batch in enumerate(test_loader):
         x = batch["image"].to(device)
-        filepaths = batch["image_filepath"]
+        image_meta = batch["image_meta"]
+        print(f"Processing case {idx_batch+1}/{num_test}", image_meta)
         # print("Current case is: ", ct_path)
         # ct_file = nib.load(ct_path)
         # ct_filename = os.path.basename(ct_path)
-        for ct_path in filepaths:
-            ct_path_str = ct_path.item() if isinstance(ct_path, torch.Tensor) else ct_path
-            print("Current case is: ", ct_path_str)
-            ct_file = nib.load(ct_path_str)  # Ensure ct_path is a string
-            ct_filename = os.path.basename(ct_path_str)
-            # Perform further processing on ct_file
-            print(ct_filename)
 
         with torch.no_grad():
             # xrec, indices_list, cb_loss_list = model(pyramid_x, max_depth)
