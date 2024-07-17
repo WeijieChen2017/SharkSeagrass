@@ -234,11 +234,12 @@ def test_model(global_config, model):
 
     for idx_batch, batch in enumerate(test_loader):
         x, meta = batch
+        x = batch["image"].to(device)
+        meta = batch["image_meta_dict"]
         print("Processing case ", idx_batch+1, "/", num_test)
         print("Current case is: ", meta)
-        x = batch["image"].to(device)
         # load the ct_file
-        ct_path = meta["image_meta"]["filename_or_obj"]
+        ct_path = meta["filename_or_obj"]
         ct_file = nib.load(ct_path)
         ct_filename = os.path.basename(ct_path)
 
