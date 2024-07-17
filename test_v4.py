@@ -278,8 +278,8 @@ def test_model(global_config, model):
         np.save(x_hat_npyname, x_hat.squeeze().cpu().numpy())
         print(f"Input image saved to {x_npyname}")
         print(f"Reconstructed image saved to {x_hat_npyname}")
-        wandb_run.log(path=x_npyname, name="test_input_x", aliases=f"{ct_filename}")
-        wandb_run.log(path=x_hat_npyname, name="test_recon_x", aliases=f"{ct_filename}")
+        wandb_run.log_model(path=x_npyname, name="test_input_x", aliases=f"{ct_filename}")
+        wandb_run.log_model(path=x_hat_npyname, name="test_recon_x", aliases=f"{ct_filename}")
         wandb.finish()
         exit()
 
