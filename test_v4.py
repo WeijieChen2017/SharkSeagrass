@@ -271,15 +271,17 @@ def test_model(global_config, model):
             # )
 
             x_hat = model(x)
-            print("Reconstructed image shape is ", x_hat.shape)
-            x_npyname = os.path.join(save_folder, f"{ct_filename}_input.npy")
-            x_hat_npyname = os.path.join(save_folder, f"{ct_filename}_recon.npy")
-            np.save(x_npyname, x.squeeze().cpu().numpy())
-            np.save(x_hat_npyname, x_hat.squeeze().cpu().numpy())
-            print(f"Input image saved to {x_npyname}")
-            print(f"Reconstructed image saved to {x_hat_npyname}")
-            wandb_run.log(path=x_npyname, name="test_input_x", aliases=f"{ct_filename}")
-            wandb_run.log(path=x_hat_npyname, name="test_recon_x", aliases=f"{ct_filename}")
+        print("Reconstructed image shape is ", x_hat.shape)
+        x_npyname = os.path.join(save_folder, f"{ct_filename}_input.npy")
+        x_hat_npyname = os.path.join(save_folder, f"{ct_filename}_recon.npy")
+        np.save(x_npyname, x.squeeze().cpu().numpy())
+        np.save(x_hat_npyname, x_hat.squeeze().cpu().numpy())
+        print(f"Input image saved to {x_npyname}")
+        print(f"Reconstructed image saved to {x_hat_npyname}")
+        wandb_run.log(path=x_npyname, name="test_input_x", aliases=f"{ct_filename}")
+        wandb_run.log(path=x_hat_npyname, name="test_recon_x", aliases=f"{ct_filename}")
+        wandb.finish()
+        exit()
 
 
         # save x and x_hat using the ct_file header and affine
