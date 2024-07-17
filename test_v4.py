@@ -273,21 +273,28 @@ def test_model(global_config, model):
             x_hat, pyramid_x, output_x_list = model(x)
         print("Reconstructed image shape is ", x_hat.shape)
         x_npyname = os.path.join(save_folder, f"{ct_filename}_input.npy")
-        x_hat_npyname = os.path.join(save_folder, f"{ct_filename}_recon.npy")
-        pyramid_x_npyname = os.path.join(save_folder, f"{ct_filename}_pyramid_x.npy")
-        pyramid_output_x_npyname = os.path.join(save_folder, f"{ct_filename}_pyramid_output_x.npy")
         np.save(x_npyname, x.squeeze().cpu().numpy())
-        np.save(x_hat_npyname, x_hat.squeeze().cpu().numpy())
-        np.save(pyramid_x_npyname, [x.squeeze().cpu().numpy() for x in pyramid_x])
-        np.save(pyramid_output_x_npyname, [x.squeeze().cpu().numpy() for x in output_x_list])
         print(f"Input image saved to {x_npyname}")
-        print(f"Reconstructed image saved to {x_hat_npyname}")
-        print(f"Pyramid input saved to {pyramid_x_npyname}")
-        print(f"Pyramid output saved to {pyramid_output_x_npyname}")
         wandb_run.log_model(path=x_npyname, name="test_input_x", aliases=f"{ct_filename}")
+
+        x_hat_npyname = os.path.join(save_folder, f"{ct_filename}_recon.npy")
+        np.save(x_hat_npyname, x_hat.squeeze().cpu().numpy())
+        print(f"Reconstructed image saved to {x_hat_npyname}")
         wandb_run.log_model(path=x_hat_npyname, name="test_recon_x", aliases=f"{ct_filename}")
+
+        pyramid_x_npyname = os.path.join(save_folder, f"{ct_filename}_pyramid_x.npy")
+        pyramid_x = [x.squeeze().cpu().numpy() for x in pyramid_x]
+        np.save(pyramid_x_npyname, np.array(pyramid_x, dtype=object))
+        print(f"Pyramid input saved to {pyramid_x_npyname}")
         wandb_run.log_model(path=pyramid_x_npyname, name="test_pyramid_x", aliases=f"{ct_filename}")
-        wandb_run.log_model(path=pyramid_output_x_npyname, name="test_pyramid_output_x", aliases=f"{ct_filename}")
+
+
+        output_x_list_name = os.path.join(save_folder, f"{ct_filename}_pyramid_output_x.npy")
+        output_x_list = [x.squeeze().cpu().numpy() for x in output_x_list]
+        np.save(output_x_list_name, np.array(output_x_list, dtype=object))
+        print(f"Pyramid output saved to {output_x_list_name}")
+        wandb_run.log_model(path=output_x_list_name, name="test_pyramid_output_x", aliases=f"{ct_filename}")
+        
         wandb.finish()
         exit()
 
