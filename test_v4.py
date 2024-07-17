@@ -270,16 +270,24 @@ def test_model(global_config, model):
             #     padding_mode="constant"
             # )
 
-            x_hat = model(x)
+            x_hat, pyramid_x, output_x_list = model(x)
         print("Reconstructed image shape is ", x_hat.shape)
         x_npyname = os.path.join(save_folder, f"{ct_filename}_input.npy")
         x_hat_npyname = os.path.join(save_folder, f"{ct_filename}_recon.npy")
+        pyramid_x_npyname = os.path.join(save_folder, f"{ct_filename}_pyramid_x.npy")
+        pyramid_output_x_npyname = os.path.join(save_folder, f"{ct_filename}_pyramid_output_x.npy")
         np.save(x_npyname, x.squeeze().cpu().numpy())
         np.save(x_hat_npyname, x_hat.squeeze().cpu().numpy())
+        np.save(pyramid_x_npyname, [x.squeeze().cpu().numpy() for x in pyramid_x])
+        np.save(pyramid_output_x_npyname, [x.squeeze().cpu().numpy() for x in output_x_list])
         print(f"Input image saved to {x_npyname}")
         print(f"Reconstructed image saved to {x_hat_npyname}")
+        print(f"Pyramid input saved to {pyramid_x_npyname}")
+        print(f"Pyramid output saved to {pyramid_output_x_npyname}")
         wandb_run.log_model(path=x_npyname, name="test_input_x", aliases=f"{ct_filename}")
         wandb_run.log_model(path=x_hat_npyname, name="test_recon_x", aliases=f"{ct_filename}")
+        wandb_run.log_model(path=pyramid_x_npyname, name="test_pyramid_x", aliases=f"{ct_filename}")
+        wandb_run.log_model(path=pyramid_output_x_npyname, name="test_pyramid_output_x", aliases=f"{ct_filename}")
         wandb.finish()
         exit()
 
@@ -442,6 +450,7 @@ class ViTVQ3D(nn.Module):
         x_hat = None
         # indices_list = []
         # loss_list = []
+        output_x_list = []
 
         pyramid_x = generate_input_data_pyramid(x)
 
@@ -450,17 +459,19 @@ class ViTVQ3D(nn.Module):
                 x_hat, indices, loss = self.foward_at_level(pyramid_x[current_level], current_level)
                 # indices_list.append(indices)
                 # loss_list.append(loss)
+                output_x_list.append(x_hat)
             else:
                 resample_x = F.interpolate(pyramid_x[current_level - 1], scale_factor=2, mode='trilinear', align_corners=False)
                 input_x = pyramid_x[current_level] - resample_x
                 output_x, indices, loss = self.foward_at_level(input_x, current_level)
+                output_x_list.append(output_x)
                 # indices_list.append(indices)
                 # loss_list.append(loss)
                 # upsample the x_hat to double the size in three dimensions
                 x_hat = F.interpolate(x_hat, scale_factor=2, mode='trilinear', align_corners=False)
                 x_hat = x_hat + output_x
 
-        return x_hat
+        return x_hat, pyramid_x, output_x_list
 
 def parse_yaml_arguments():
     parser = argparse.ArgumentParser(description='Train a 3D ViT-VQGAN model.')
