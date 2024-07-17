@@ -24,7 +24,7 @@ pyramid_num_res_units:
   - 4
   - 5
 save_folder: ./results/
-state_dict_model_path: latest_model_1300_state_dict.pth
+state_dict_model_path: model_best_1500_state_dict_2.pth
 metrics:
   - MAE
   - PSNR
