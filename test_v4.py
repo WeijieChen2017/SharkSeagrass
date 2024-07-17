@@ -66,7 +66,7 @@ from skimage.metrics import mean_squared_error
 
 
 from monai.data import DataLoader, CacheDataset
-from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, Orientationd, Spacingd, ScaleIntensityRanged
+from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, Orientationd, Spacingd, ScaleIntensityRanged, RandSpatialCropd
 from typing import Dict, Any
 import json
 import os
@@ -74,6 +74,7 @@ import os
 
 MAX_DEPTH = 3
 MINI_RES = 16
+VOLUME_SIZE = 64
 
 
 def denorm_CT(data):
@@ -121,6 +122,7 @@ def filter_data(data, range_min, range_max):
 
 def build_dataloader_test(batch_size: int, global_config: Dict[str, Any]) -> DataLoader:
     pix_dim = global_config["pix_dim"]
+    volume_size = global_config["volume_size"]
     num_workers_test_cache_dataset = global_config["num_workers_test_cache_dataset"]
     num_workers_test_dataloader = global_config["num_workers_test_dataloader"]
     cache_ratio_test = global_config["cache_ratio_test"]
@@ -136,6 +138,7 @@ def build_dataloader_test(batch_size: int, global_config: Dict[str, Any]) -> Dat
                 mode=("bilinear"),
             ),
             ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=2976, b_min=0.0, b_max=1.0, clip=True),
+            RandSpatialCropd(keys=["image"], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
         ]
     )
 
@@ -219,6 +222,7 @@ def compute_metrics(global_config, data_x, data_y, idx_batch):
 
 def test_model(global_config, model):
 
+    wandb_run = global_config['wandb_run']
     volume_size = global_config['volume_size']
     save_folder = global_config['save_folder']
     logger = global_config['logger']
@@ -243,6 +247,8 @@ def test_model(global_config, model):
         ct_path = meta["filename_or_obj"][0]
         ct_file = nib.load(ct_path)
         ct_filename = os.path.basename(ct_path)
+        # remove the .nii.gz
+        ct_filename = ct_filename[:-7]
 
         # image_meta = batch["image_meta"]
         # print(f"Processing case {idx_batch+1}/{num_test}", image_meta)
@@ -253,16 +259,28 @@ def test_model(global_config, model):
         with torch.no_grad():
             # xrec, indices_list, cb_loss_list = model(pyramid_x, max_depth)
             # x_hat = infer(input_data=x, model=model)
-            x_hat = sliding_window_inference(
-                inputs = x,
-                predictor = model,
-                roi_size = (volume_size, volume_size, volume_size),
-                sw_batch_size=1, 
-                overlap=0.25, 
-                mode="gaussian", 
-                sigma_scale=0.125, 
-                padding_mode="constant"
-            )
+            # x_hat = sliding_window_inference(
+            #     inputs = x,
+            #     predictor = model,
+            #     roi_size = (volume_size, volume_size, volume_size),
+            #     sw_batch_size=1, 
+            #     overlap=0.25, 
+            #     mode="gaussian", 
+            #     sigma_scale=0.125, 
+            #     padding_mode="constant"
+            # )
+
+            x_hat = model(x)
+            print("Reconstructed image shape is ", x_hat.shape)
+            x_npyname = os.path.join(save_folder, f"{ct_filename}_input.npy")
+            x_hat_npyname = os.path.join(save_folder, f"{ct_filename}_recon.npy")
+            np.save(x_npyname, x.squeeze().cpu().numpy())
+            np.save(x_hat_npyname, x_hat.squeeze().cpu().numpy())
+            print(f"Input image saved to {x_npyname}")
+            print(f"Reconstructed image saved to {x_hat_npyname}")
+            wandb_run.log(path=x_npyname, name="test_input_x", aliases=f"{ct_filename}")
+            wandb_run.log(path=x_hat_npyname, name="test_recon_x", aliases=f"{ct_filename}")
+
 
         # save x and x_hat using the ct_file header and affine
         x = x.squeeze().cpu().numpy()
