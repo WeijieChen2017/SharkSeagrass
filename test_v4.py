@@ -46,7 +46,7 @@ import nibabel as nib
 import torch.nn.functional as F
 
 from train_v4_utils import UNet3D_encoder, UNet3D_decoder
-from train_v4_utils import plot_and_save_x_xrec, simple_logger, effective_number_of_classes
+from train_v4_utils import plot_and_save_x_xrec, simple_logger
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
 # import slide_window_inference from monai
@@ -221,6 +221,7 @@ def test_model(global_config, model):
 
     volume_size = global_config['volume_size']
     save_folder = global_config['save_folder']
+    logger = global_config['logger']
 
     # set the data loaders for the current level
     test_batch_size = 1
@@ -262,6 +263,24 @@ def test_model(global_config, model):
                 sigma_scale=0.125, 
                 padding_mode="constant"
             )
+
+        # save x and x_hat using the ct_file header and affine
+        x = x.squeeze().cpu().numpy()
+        x_filename = os.path.join(save_folder, f"{ct_filename}_input.nii.gz")
+        x_nii = nib.Nifti1Image(x, ct_file.affine, ct_file.header)
+        nib.save(x_nii, x_filename)
+        print(f"Input image saved to {x_filename}")
+        logger.log(idx_batch, "input_saved", f"{ct_filename}_input.nii.gz")
+
+        x_hat = x_hat.squeeze().cpu().numpy()
+        x_hat_filename = os.path.join(save_folder, f"{ct_filename}_recon.nii.gz")
+        x_hat_nii = nib.Nifti1Image(x_hat, ct_file.affine, ct_file.header)
+        nib.save(x_hat_nii, x_hat_filename)
+        print(f"Reconstructed image saved to {x_hat_filename}")
+        logger.log(idx_batch, "recon_saved", f"{ct_filename}_recon.nii.gz")
+
+        # log the x and x_hat
+        plot_and_save_x_xrec(global_config, x, x_hat, idx_batch)
         
         # compute the metrics
         metrics_value_list = compute_metrics(global_config, x_hat, x, idx_batch)
@@ -271,10 +290,8 @@ def test_model(global_config, model):
         case_metrics_list.append(metrics_value_list)
 
         # save x_hat using the ct_file header and affine
-        x_hat_filename = os.path.join(save_folder, f"{ct_filename}_recon.nii.gz")
-        x_hat_nii = nib.Nifti1Image(x_hat, ct_file.affine, ct_file.header)
-        nib.save(x_hat_nii, x_hat_filename)
-        print(f"Reconstructed image saved to {x_hat_filename}")
+        
+        
 
     print()
     # compute the average metrics
@@ -324,7 +341,7 @@ def generate_input_data_pyramid(x: torch.FloatTensor):
         x_at_level = F.interpolate(x, size=(pyramid_mini_resolution*2**i,
                                             pyramid_mini_resolution*2**i, 
                                             pyramid_mini_resolution*2**i), mode="trilinear", align_corners=False).to(device)
-        # print(f"Level {i} shape is {x`_at_level.shape}")
+        print(f"Level {i} shape is {x_at_level.shape}")
         pyramid_x.append(x_at_level)
     
     return pyramid_x
