@@ -165,10 +165,7 @@ def compute_metrics(global_config, data_x, data_y, idx_batch):
 def test_model(global_config, model):
 
     volume_size = global_config['volume_size']
-    pyramid_codebook_size = global_config['pyramid_codebook_size']
-    logger = global_config['logger']
     save_folder = global_config['save_folder']
-    max_depth = len(pyramid_codebook_size)
 
     # set the data loaders for the current level
     test_batch_size = 1
@@ -180,15 +177,6 @@ def test_model(global_config, model):
     model.eval()
     case_metrics_list = []
 
-    infer = sliding_window_inference(
-                roi_size = (volume_size, volume_size, volume_size),
-                sw_batch_size=1, 
-                overlap=0.25, 
-                mode="gaussian", 
-                sigma_scale=0.125, 
-                padding_mode="constant"
-            )
-
     for idx_batch, batch in enumerate(test_loader):
         x = batch["image"].to(device)
         ct_path = batch["image_filepath"]
@@ -197,7 +185,17 @@ def test_model(global_config, model):
         ct_filename = os.path.basename(ct_path)
         with torch.no_grad():
             # xrec, indices_list, cb_loss_list = model(pyramid_x, max_depth)
-            x_hat = infer(input_data=x, model=model)
+            # x_hat = infer(input_data=x, model=model)
+            x_hat = sliding_window_inference(
+                inputs = x,
+                predictor = model,
+                roi_size = (volume_size, volume_size, volume_size),
+                sw_batch_size=1, 
+                overlap=0.25, 
+                mode="gaussian", 
+                sigma_scale=0.125, 
+                padding_mode="constant"
+            )
         
         # compute the metrics
         metrics_value_list = compute_metrics(global_config, x_hat, x, idx_batch)
