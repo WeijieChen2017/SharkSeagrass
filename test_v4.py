@@ -239,7 +239,7 @@ def test_model(global_config, model):
         print("Processing case ", idx_batch+1, "/", num_test)
         print("Current case is: ", meta)
         # load the ct_file
-        ct_path = meta["filename_or_obj"]
+        ct_path = meta["filename_or_obj"][0]
         ct_file = nib.load(ct_path)
         ct_filename = os.path.basename(ct_path)
 
