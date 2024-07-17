@@ -45,7 +45,7 @@ import torch.nn as nn
 import nibabel as nib
 import torch.nn.functional as F
 
-from train_v4_utils import UNet3D_encoder, UNet3D_decoder, build_dataloader_test
+from train_v4_utils import UNet3D_encoder, UNet3D_decoder
 from train_v4_utils import plot_and_save_x_xrec, simple_logger, effective_number_of_classes
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
@@ -63,6 +63,14 @@ from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from sklearn.metrics import confusion_matrix
 from skimage.metrics import mean_squared_error
+
+
+from monai.data import DataLoader, CacheDataset
+from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, Orientationd, Spacingd, ScaleIntensityRanged, MapTransform, Identityd
+from typing import Dict, Any
+import json
+import os
+
 
 MAX_DEPTH = 3
 MINI_RES = 16
@@ -110,6 +118,70 @@ def filter_data(data, range_min, range_max):
     mask_2 = mask_2.astype(int)
     mask = mask_1 * mask_2
     return mask
+
+
+class LoadImagedWithPath(LoadImaged):
+    def __call__(self, data):
+        data = super().__call__(data)
+        for key in self.keys:
+            data[key + "_filepath"] = data[key]
+        return data
+
+class ExtractFilePaths(MapTransform):
+    def __call__(self, data):
+        d = dict(data)
+        for key in self.keys:
+            d[key + "_filepath"] = d.get(key + "_filepath", None)
+        return d
+
+def build_dataloader_test(batch_size: int, global_config: Dict[str, Any]) -> DataLoader:
+    pix_dim = global_config["pix_dim"]
+    num_workers_test_cache_dataset = global_config["num_workers_test_cache_dataset"]
+    num_workers_test_dataloader = global_config["num_workers_test_dataloader"]
+    cache_ratio_test = global_config["cache_ratio_test"]
+    
+    test_transforms = Compose(
+        [
+            LoadImagedWithPath(keys=["image"]),
+            EnsureChannelFirstd(keys=["image"]),
+            Orientationd(keys=["image"], axcodes="RAS"),
+            Spacingd(
+                keys=["image"],
+                pixdim=(pix_dim, pix_dim, pix_dim),
+                mode=("bilinear"),
+            ),
+            ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=2976, b_min=0.0, b_max=1.0, clip=True),
+            ExtractFilePaths(keys=["image"]),
+            Identityd(keys=["image_filepath"])  # Ensure file paths are not converted
+        ]
+    )
+
+    # load data_chunks.json and specify chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
+    with open("data_chunks.json", "r") as f:
+        data_chunk = json.load(f)
+
+    test_files = []
+
+    for i in range(8, 10):
+        test_files.extend(data_chunk[f"chunk_{i}"])
+
+    num_test_files = len(test_files)
+
+    print("Test files are ", len(test_files))
+
+    test_ds = CacheDataset(
+        data=test_files,
+        transform=test_transforms,
+        cache_num=num_test_files,
+        cache_rate=cache_ratio_test,  # 600 * 0.1 = 60
+        num_workers=num_workers_test_cache_dataset,
+    )
+
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers_test_dataloader)
+
+    return test_loader
+
+
 
 def compute_metrics(global_config, data_x, data_y, idx_batch):
 
@@ -179,10 +251,18 @@ def test_model(global_config, model):
 
     for idx_batch, batch in enumerate(test_loader):
         x = batch["image"].to(device)
-        ct_path = batch["image_filepath"]
-        print("Current case is: ", ct_path)
-        ct_file = nib.load(ct_path)
-        ct_filename = os.path.basename(ct_path)
+        filepaths = batch["image_filepath"]
+        # print("Current case is: ", ct_path)
+        # ct_file = nib.load(ct_path)
+        # ct_filename = os.path.basename(ct_path)
+        for ct_path in filepaths:
+            ct_path_str = ct_path.item() if isinstance(ct_path, torch.Tensor) else ct_path
+            print("Current case is: ", ct_path_str)
+            ct_file = nib.load(ct_path_str)  # Ensure ct_path is a string
+            ct_filename = os.path.basename(ct_path_str)
+            # Perform further processing on ct_file
+            print(ct_filename)
+
         with torch.no_grad():
             # xrec, indices_list, cb_loss_list = model(pyramid_x, max_depth)
             # x_hat = infer(input_data=x, model=model)
