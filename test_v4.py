@@ -233,9 +233,17 @@ def test_model(global_config, model):
     case_metrics_list = []
 
     for idx_batch, batch in enumerate(test_loader):
+        x, meta = batch
+        print("Processing case ", idx_batch+1, "/", num_test)
+        print("Current case is: ", meta["image_meta"]["filename_or_obj"])
         x = batch["image"].to(device)
-        image_meta = batch["image_meta"]
-        print(f"Processing case {idx_batch+1}/{num_test}", image_meta)
+        # load the ct_file
+        ct_path = meta["image_meta"]["filename_or_obj"]
+        ct_file = nib.load(ct_path)
+        ct_filename = os.path.basename(ct_path)
+
+        # image_meta = batch["image_meta"]
+        # print(f"Processing case {idx_batch+1}/{num_test}", image_meta)
         # print("Current case is: ", ct_path)
         # ct_file = nib.load(ct_path)
         # ct_filename = os.path.basename(ct_path)
