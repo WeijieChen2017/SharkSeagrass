@@ -1,0 +1,22 @@
+universe = container
+container_image = docker://docker.io/convez376/monai_with_wb:v1.0.2
+
+log = job_$(Cluster)_$(Process).log
+error = job_$(Cluster)_$(Process).err
+output = job_$(Cluster)_$(Process).out
+
+executable = run_v4_test.sh
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+transfer_input_files = SharkSeagrass.zip, tsv1_ct.tar.gz, model_best_1500_state_dict_2.pth
+
++WantGPULab = true
++GPUJobLength = "long"
+request_gpus = 1
+require_gpus = GlobalMemoryMb >= 20000
+request_cpus = 24
+request_memory = 30GB
+request_disk = 80GB
+
+queue

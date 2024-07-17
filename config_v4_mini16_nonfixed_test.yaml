@@ -1,0 +1,37 @@
+description: Train a 3D ViT-VQGAN model
+tag: pyramid_mini16_nonfixed
+random_seed: 426
+volume_size: 64
+pix_dim: 1.5
+num_workers_test_dataloader: 4
+num_workers_test_cache_dataset: 4
+cache_ratio_test: 0.1
+IS_LOGGER_WANDB: true
+pyramid_channels: 
+  - 64
+  - 128
+  - 256
+pyramid_codebook_size: 
+  - 32
+  - 64
+  - 128
+pyramid_strides: 
+  - 2
+  - 2
+  - 1
+pyramid_num_res_units: 
+  - 3
+  - 4
+  - 5
+save_folder: ./results/
+state_dict_model_path: latest_model_1300_state_dict.pth
+state_dict_optim_path: latest_optimizer_1300_state_dict.pth
+metrics:
+  - MAE
+  - PSNR
+  - SSIM
+  - Actuance
+  - Dice_air
+  - Dice_bone
+  - Dice_soft
+  
