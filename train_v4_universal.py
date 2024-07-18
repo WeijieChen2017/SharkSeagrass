@@ -90,7 +90,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
         model.unfreeze_gradient_at_level(current_level)
     else:
         model.freeze_gradient_all()
-        for i_level in range(current_level):
+        for i_level in range(current_level + 1):
             model.unfreeze_gradient_at_level(i_level)
 
     # start the training
@@ -388,7 +388,7 @@ class ViTVQ3D(nn.Module):
         indices_list = []
         loss_list = []
 
-        for current_level in range(active_level):
+        for current_level in range(active_level + 1):
             if current_level == 0:
                 x_hat, indices, loss = self.foward_at_level(pyramid_x[current_level], current_level)
                 indices_list.append(indices)
