@@ -42,7 +42,7 @@ pyramid_num_epoch:
 pyramid_batch_size: 
   - 128
   - 128
-  - 16
+  - 4
 pyramid_learning_rate: 
   - 0.001
   - 0.0005
