@@ -298,6 +298,14 @@ def test_model(global_config, model):
         # wandb.finish()
         # exit()
 
+        # log the x and x_hat
+        plot_and_save_x_xrec(x=x,
+                             xrec=x_hat,
+                             num_per_direction=3, 
+                             savename=save_folder+f"{ct_filename}_recon.png",
+                             wandb_name="test_snapshots",
+                             global_config=global_config
+        )
 
         # save x and x_hat using the ct_file header and affine
         x = x.squeeze().cpu().numpy()
@@ -313,10 +321,6 @@ def test_model(global_config, model):
         nib.save(x_hat_nii, x_hat_filename)
         print(f"Reconstructed image saved to {x_hat_filename}")
         logger.log(idx_batch, "recon_saved", f"{ct_filename}_recon.nii.gz")
-
-        # log the x and x_hat
-        plot_and_save_x_xrec(x=x, xrec=x_hat, num_per_direction=3, 
-                             savename=save_folder+f"{ct_filename}_recon.png", wandb_name="test_snapshots", global_config=global_config)
         
         # compute the metrics
         metrics_value_list = compute_metrics(global_config, x_hat, x, idx_batch)
