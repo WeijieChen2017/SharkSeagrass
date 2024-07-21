@@ -242,7 +242,7 @@ def test_model(global_config, model):
         x, meta = batch
         x = batch["image"].to(device)
         meta = batch["image_meta_dict"]
-        print("Processing case ", idx_batch+1, "/", num_test)
+        print("Processing case ", idx_batch+1, "/", num_test, "data shape is ", x.shape)
         # print("Current case is: ", meta)
         # load the ct_file
         ct_path = meta["filename_or_obj"][0]
@@ -315,7 +315,8 @@ def test_model(global_config, model):
         logger.log(idx_batch, "recon_saved", f"{ct_filename}_recon.nii.gz")
 
         # log the x and x_hat
-        plot_and_save_x_xrec(global_config, x, x_hat, idx_batch)
+        plot_and_save_x_xrec(x=x, xrec=x_hat, num_per_direction=3, 
+                             savename=save_folder+f"{ct_filename}_recon.png", wandb_name="test_snapshots", global_config=global_config)
         
         # compute the metrics
         metrics_value_list = compute_metrics(global_config, x_hat, x, idx_batch)
@@ -376,7 +377,7 @@ def generate_input_data_pyramid(x: torch.FloatTensor):
         x_at_level = F.interpolate(x, size=(pyramid_mini_resolution*2**i,
                                             pyramid_mini_resolution*2**i, 
                                             pyramid_mini_resolution*2**i), mode="trilinear", align_corners=False).to(device)
-        print(f"Level {i} shape is {x_at_level.shape}")
+        # print(f"Level {i} shape is {x_at_level.shape}")
         pyramid_x.append(x_at_level)
     
     return pyramid_x
