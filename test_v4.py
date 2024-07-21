@@ -138,7 +138,7 @@ def build_dataloader_test(batch_size: int, global_config: Dict[str, Any]) -> Dat
                 mode=("bilinear"),
             ),
             ScaleIntensityRanged(keys=["image"], a_min=-1024, a_max=2976, b_min=0.0, b_max=1.0, clip=True),
-            RandSpatialCropd(keys=["image"], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
+            # RandSpatialCropd(keys=["image"], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
         ]
     )
 
@@ -243,7 +243,7 @@ def test_model(global_config, model):
         x = batch["image"].to(device)
         meta = batch["image_meta_dict"]
         print("Processing case ", idx_batch+1, "/", num_test)
-        print("Current case is: ", meta)
+        # print("Current case is: ", meta)
         # load the ct_file
         ct_path = meta["filename_or_obj"][0]
         ct_file = nib.load(ct_path)
@@ -260,44 +260,43 @@ def test_model(global_config, model):
         with torch.no_grad():
             # xrec, indices_list, cb_loss_list = model(pyramid_x, max_depth)
             # x_hat = infer(input_data=x, model=model)
-            # x_hat = sliding_window_inference(
-            #     inputs = x,
-            #     predictor = model,
-            #     roi_size = (volume_size, volume_size, volume_size),
-            #     sw_batch_size=1, 
-            #     overlap=0.25, 
-            #     mode="gaussian", 
-            #     sigma_scale=0.125, 
-            #     padding_mode="constant"
-            # )
+            x_hat = sliding_window_inference(
+                inputs = x,
+                predictor = model,
+                roi_size = (volume_size, volume_size, volume_size),
+                sw_batch_size=1, 
+                overlap=0.25, 
+                mode="gaussian", 
+                sigma_scale=0.125, 
+                padding_mode="constant"
+            )
+        #     x_hat, pyramid_x, output_x_list = model(x)
+        # print("Reconstructed image shape is ", x_hat.shape)
+        # x_npyname = os.path.join(save_folder, f"{ct_filename}_input.npy")
+        # np.save(x_npyname, x.squeeze().cpu().numpy())
+        # print(f"Input image saved to {x_npyname}")
+        # wandb_run.log_model(path=x_npyname, name="test_input_x", aliases=f"{ct_filename}")
 
-            x_hat, pyramid_x, output_x_list = model(x)
-        print("Reconstructed image shape is ", x_hat.shape)
-        x_npyname = os.path.join(save_folder, f"{ct_filename}_input.npy")
-        np.save(x_npyname, x.squeeze().cpu().numpy())
-        print(f"Input image saved to {x_npyname}")
-        wandb_run.log_model(path=x_npyname, name="test_input_x", aliases=f"{ct_filename}")
+        # x_hat_npyname = os.path.join(save_folder, f"{ct_filename}_recon.npy")
+        # np.save(x_hat_npyname, x_hat.squeeze().cpu().numpy())
+        # print(f"Reconstructed image saved to {x_hat_npyname}")
+        # wandb_run.log_model(path=x_hat_npyname, name="test_recon_x", aliases=f"{ct_filename}")
 
-        x_hat_npyname = os.path.join(save_folder, f"{ct_filename}_recon.npy")
-        np.save(x_hat_npyname, x_hat.squeeze().cpu().numpy())
-        print(f"Reconstructed image saved to {x_hat_npyname}")
-        wandb_run.log_model(path=x_hat_npyname, name="test_recon_x", aliases=f"{ct_filename}")
-
-        pyramid_x_npyname = os.path.join(save_folder, f"{ct_filename}_pyramid_x.npy")
-        pyramid_x = [x.squeeze().cpu().numpy() for x in pyramid_x]
-        np.save(pyramid_x_npyname, np.array(pyramid_x, dtype=object))
-        print(f"Pyramid input saved to {pyramid_x_npyname}")
-        wandb_run.log_model(path=pyramid_x_npyname, name="test_pyramid_x", aliases=f"{ct_filename}")
+        # pyramid_x_npyname = os.path.join(save_folder, f"{ct_filename}_pyramid_x.npy")
+        # pyramid_x = [x.squeeze().cpu().numpy() for x in pyramid_x]
+        # np.save(pyramid_x_npyname, np.array(pyramid_x, dtype=object))
+        # print(f"Pyramid input saved to {pyramid_x_npyname}")
+        # wandb_run.log_model(path=pyramid_x_npyname, name="test_pyramid_x", aliases=f"{ct_filename}")
 
 
-        output_x_list_name = os.path.join(save_folder, f"{ct_filename}_pyramid_output_x.npy")
-        output_x_list = [x.squeeze().cpu().numpy() for x in output_x_list]
-        np.save(output_x_list_name, np.array(output_x_list, dtype=object))
-        print(f"Pyramid output saved to {output_x_list_name}")
-        wandb_run.log_model(path=output_x_list_name, name="test_pyramid_output_x", aliases=f"{ct_filename}")
+        # output_x_list_name = os.path.join(save_folder, f"{ct_filename}_pyramid_output_x.npy")
+        # output_x_list = [x.squeeze().cpu().numpy() for x in output_x_list]
+        # np.save(output_x_list_name, np.array(output_x_list, dtype=object))
+        # print(f"Pyramid output saved to {output_x_list_name}")
+        # wandb_run.log_model(path=output_x_list_name, name="test_pyramid_output_x", aliases=f"{ct_filename}")
         
-        wandb.finish()
-        exit()
+        # wandb.finish()
+        # exit()
 
 
         # save x and x_hat using the ct_file header and affine
@@ -458,28 +457,31 @@ class ViTVQ3D(nn.Module):
         x_hat = None
         # indices_list = []
         # loss_list = []
-        output_x_list = []
+        # output_x_list = []
 
         pyramid_x = generate_input_data_pyramid(x)
 
         for current_level in range(active_level):
             if current_level == 0:
-                x_hat, indices, loss = self.foward_at_level(pyramid_x[current_level], current_level)
+                x_hat, _, _ = self.foward_at_level(pyramid_x[current_level], current_level)
+                # x_hat, indices, loss = self.foward_at_level(pyramid_x[current_level], current_level)
                 # indices_list.append(indices)
                 # loss_list.append(loss)
-                output_x_list.append(x_hat)
+                # output_x_list.append(x_hat)
             else:
                 resample_x = F.interpolate(pyramid_x[current_level - 1], scale_factor=2, mode='trilinear', align_corners=False)
                 input_x = pyramid_x[current_level] - resample_x
-                output_x, indices, loss = self.foward_at_level(input_x, current_level)
-                output_x_list.append(output_x)
+                output_x, _, _ = self.foward_at_level(input_x, current_level)
+                # output_x, indices, loss = self.foward_at_level(input_x, current_level)
+                # output_x_list.append(output_x)
                 # indices_list.append(indices)
                 # loss_list.append(loss)
                 # upsample the x_hat to double the size in three dimensions
                 x_hat = F.interpolate(x_hat, scale_factor=2, mode='trilinear', align_corners=False)
                 x_hat = x_hat + output_x
 
-        return x_hat, pyramid_x, output_x_list
+        return x_hat
+        # return x_hat, pyramid_x, output_x_list
 
 def parse_yaml_arguments():
     parser = argparse.ArgumentParser(description='Train a 3D ViT-VQGAN model.')
@@ -506,7 +508,7 @@ def main():
     # initialize wandb
     wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
     wandb_run = wandb.init(project="CT_ViT_VQGAN", dir=os.getenv("WANDB_DIR", "cache/wandb"), config=global_config)
-    wandb_run.log_code(root=".", name=tag+"train_v4_universal.py")
+    wandb_run.log_code(root=".", name=tag+"train_v4_test.py")
     global_config["wandb_run"] = wandb_run
 
     # set the logger
