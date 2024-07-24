@@ -12,12 +12,15 @@ print("="*40)
 tags_list = list(set(tags_list))
 
 print(tags_list)
+print("="*40)
+
 Q_list_PET = [3000, 4000, 5000, 6000]
 Q_list_CT = [1000, 2000, 3000, 4000]
 
 def calculate_percentiles(data, q_list):
     # Calculate the percentile values for each value in q_list
-    percentiles = [np.percentile(data, (np.sum(data <= q) / data.size) * 100) for q in q_list]
+    # percentiles = [np.percentile(data, (np.sum(data <= q) / data.size) * 100) for q in q_list]
+    percentiles = [(np.sum(data < q) / data.size) * 100 for q in q_list]
     return percentiles
 
 for tag in tags_list:
@@ -45,7 +48,7 @@ for tag in tags_list:
     for idx_Q in range(len(Q_list_PET)):
         pQ_PET = calculate_percentiles(PET_data, Q_list_PET)[idx_Q]
         pQ_CT = calculate_percentiles(CT_data, Q_list_CT)[idx_Q]
-        print(f"Q_{Q_list_PET[idx_Q]} PET: ", pQ_PET, f"Q_{Q_list_CT[idx_Q]} CT: ", pQ_CT)
+        print(f"{Q_list_PET[idx_Q]}% percentile PET: ", pQ_PET, f"{Q_list_CT[idx_Q]}% percentile CT: ", pQ_CT)
 
     print("="*40)
 
