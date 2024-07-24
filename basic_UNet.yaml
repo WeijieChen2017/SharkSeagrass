@@ -26,3 +26,4 @@ strides: [2, 2, 2, 1]
 num_res_units: 4
 optimizer_lr: 0.001
 optimizer_weight_decay: 0.01
+gap_sign: "<$>"

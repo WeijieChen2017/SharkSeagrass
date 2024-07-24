@@ -151,6 +151,7 @@ def main():
 
     # show the global_config
     print("The global_config is: ", global_config)
+    gap_sign = global_config["gap_sign"]
 
     # set the random seed
     random.seed(global_config['random_seed'])
@@ -173,13 +174,13 @@ def main():
         strides = global_config["strides"],
         num_res_units = global_config["num_res_units"],
     ).to(device)
-    print(f"The model {global_config['model_name']} is built successfully.")
-    print("<>"*50)
+    print(f"The model {model.__class__.__name__} is built successfully.")
+    print(gap_sign*50)
 
     # set optimizer
     optimizer = torch.optim.Adam(model.parameters(),
                                  lr=global_config["optimizer_lr"],
-                                 weight_decay=global_config["weight_decay"])
+                                 weight_decay=global_config["optimizer_weight_decay"])
     
     pix_dim = global_config["pix_dim"]
     volume_size = global_config["volume_size"]
@@ -271,7 +272,7 @@ def main():
     print("The number of train files is: ", num_train_files)
     print("The number of val files is: ", num_val_files)
     print("The number of test files is: ", num_test_files)
-    print("<>"*50)
+    print(gap_sign*50)
 
     train_ds = CacheDataset(
         data=train_files,
@@ -299,7 +300,7 @@ def main():
                             num_workers=global_config["num_workers_val_dataloader"])
     
     print("The data loaders are built successfully.")
-    print("<>"*50)
+    print(gap_sign*50)
 
     print("Start training...")
 
