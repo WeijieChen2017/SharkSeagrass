@@ -41,8 +41,8 @@ def save_data_at_z1_to_z2(data_1, data_2, loc_z, thickness_pixel, tag, affine_1,
     data_1_z_nii = nib.Nifti1Image(data_1_z, affine_1, header_1)
     data_2_z_nii = nib.Nifti1Image(data_2_z, affine_2, header_2)
 
-    savename_1 = f"synCT_PET_James/crop/{tag}_PET_thick_256_s{z1:03d}e{z2:03d}.nii.gz"
-    savename_2 = f"synCT_PET_James/crop/{tag}_CT_thick_256_s{z1:03d}e{z2:03d}.nii.gz"
+    savename_1 = f"synCT_PET_James/{tag}_PET_thick_256_norm01_s{z1:03d}e{z2:03d}.nii.gz"
+    savename_2 = f"synCT_PET_James/{tag}_CT_thick_256_norm01_s{z1:03d}e{z2:03d}.nii.gz"
 
     nib.save(data_1_z_nii, savename_1)
     nib.save(data_2_z_nii, savename_2)
@@ -113,6 +113,9 @@ for tag in tags_list[:2]:
 
     PET_data_clip = np.clip(PET_data, 0, 4000)
     CT_data_clip = np.clip(CT_data, -1024, 2976)
+
+    PET_data_clip = PET_data_clip / 4000
+    CT_data_clip = (CT_data_clip + 1024) / 4000
 
     # start with 0 to thickness_pixel, then move thickness_pixel - overlap
     # for example, 0 to 200, then 100 to 300, then 200 to 400
