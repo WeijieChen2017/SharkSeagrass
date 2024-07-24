@@ -1,7 +1,7 @@
 import glob
 import os
 
-file_list = glob.glob("synCT_PET_James/*.nii.gz")
+file_list = glob.glob("*.nii.gz")
 for filepath in file_list:
     print(filepath)
     filename = os.path.basename(filepath)
