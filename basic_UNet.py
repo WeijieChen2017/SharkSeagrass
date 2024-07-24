@@ -330,7 +330,7 @@ def main():
         
         for key in epoch_loss_train.keys():
             epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
-            logger.log("Epoch: ", idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
+            logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
         
         # validation
         if idx_epoch % val_per_epoch == 0:
@@ -349,7 +349,7 @@ def main():
             
             for key in epoch_loss_val.keys():
                 epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
-                logger.log("Epoch: ", idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
+                logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
             
             current_val_loss = epoch_loss_val["reconL1"].mean()
             if current_val_loss < best_val_loss:
@@ -358,7 +358,7 @@ def main():
                 optimizer_save_name = global_config["save_folder"]+f"optimizer_best_{idx_epoch}_state_dict.pth"
                 torch.save(model.state_dict(), model_save_name)
                 torch.save(optimizer.state_dict(), optimizer_save_name)
-                logger.log("Epoch: ", idx_epoch, "best_val_loss", best_val_loss)
+                logger.log(idx_epoch, "best_val_loss", best_val_loss)
             
         # save the model every save_per_epoch
         if idx_epoch % save_per_epoch == 0:
@@ -369,7 +369,7 @@ def main():
             optimizer_save_name = global_config["save_folder"]+f"latest_optimizer_{idx_epoch}_state_dict.pth"
             torch.save(model.state_dict(), model_save_name)
             torch.save(optimizer.state_dict(), optimizer_save_name)
-            logger.log("Epoch: ", idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
+            logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
         # plot the PET and CT every plot_per_epoch
         if idx_epoch % plot_per_epoch == 0:
