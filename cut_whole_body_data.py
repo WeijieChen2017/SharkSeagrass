@@ -21,7 +21,8 @@ Q_list_CT = [1000, 2000, 3000, 4000]
 def calculate_percentiles(data, q_list):
     # Calculate the percentile values for each value in q_list
     # percentiles = [np.percentile(data, (np.sum(data <= q) / data.size) * 100) for q in q_list]
-    percentiles = [(np.sum(data < q) / data.size) * 100 for q in q_list]
+    flatten_data = data.flatten()
+    percentiles = [(np.sum(flatten_data < q) / flatten_data.size) * 100 for q in q_list]
     return percentiles
 
 for tag in tags_list:
@@ -56,13 +57,13 @@ for tag in tags_list:
 
     # # original_CT is 467*467*730
     # # this should be cropped to 400*400*730
-    CT_data_crop = CT_data[33:433, 33:433, :]
-    print("New CT data shape: ", CT_data_crop.shape)
+    # CT_data_crop = CT_data[33:433, 33:433, :]
+    # print("New CT data shape: ", CT_data_crop.shape)
 
-    # # save the cropped CT data
-    CT_data_crop_nii = nib.Nifti1Image(CT_data_crop, PET_file.affine, PET_file.header)
-    savename = f"synCT_PET_James/ori/{tag}_CT_400.nii.gz"
-    nib.save(CT_data_crop_nii, savename)
-    print("---Cropped CT data saved at ", savename)
+    # # # save the cropped CT data
+    # CT_data_crop_nii = nib.Nifti1Image(CT_data_crop, PET_file.affine, PET_file.header)
+    # savename = f"synCT_PET_James/ori/{tag}_CT_400.nii.gz"
+    # nib.save(CT_data_crop_nii, savename)
+    # print("---Cropped CT data saved at ", savename)
 
     print("="*40)
