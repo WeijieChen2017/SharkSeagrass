@@ -48,6 +48,6 @@ def scan_and_divide_files(save_json_name, target_folder, n_chunks=5):
     print(f"Chunks saved to {os.path.join(target_folder, save_json_name)}")
 
 # Example usage
-target_folder = 'path_to_your_target_folder'
+target_folder = 'synCT_PET_James'
 save_json_name = 'paired_PET_CT_files.json'
 scan_and_divide_files(save_json_name, target_folder)
