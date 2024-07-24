@@ -43,14 +43,14 @@ for tag in tags_list:
     for q in Q_list:
         p_PET = np.percentile(PET_data, q)
         p_CT = np.percentile(CT_data, q)
-        print(f"{q:2f}% percentile of PET: {p_PET:2f}, {q:2f}% percentile of CT: {p_CT:2f}")
+        print(f">{q:2f}% percentile of PET: {p_PET:2f}, {q:2f}% percentile of CT: {p_CT:2f}")
     # output the percentile Q_list_PET and Q_list_CT
     # it is where the value in Q_list_PET is the percentage of the PET_data
     # for example, if Q_list_PET = 3000, then the value is the 75% percentile of PET_data
     for idx_Q in range(len(Q_list_PET)):
         pQ_PET = calculate_percentiles(PET_data, Q_list_PET)[idx_Q]
         pQ_CT = calculate_percentiles(CT_data, Q_list_CT)[idx_Q]
-        print(f"{pQ_PET:2f}% of PET: {Q_list_PET[idx_Q]}, {pQ_CT:2f}% of CT: {Q_list_CT[idx_Q]}")
+        print(f"<{pQ_PET:2f}% of PET: {Q_list_PET[idx_Q]}, {pQ_CT:2f}% of CT: {Q_list_CT[idx_Q]}")
 
     print("="*40)
 
