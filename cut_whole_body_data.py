@@ -9,7 +9,7 @@ print(tags_list)
 print("="*40)
 
 # filter out same tags in the list
-tags_list = list(set(tags_list))
+tags_list = sorted(list(set(tags_list)))
 
 print(tags_list)
 print("="*40)
@@ -50,8 +50,8 @@ for tag in tags_list:
     # for example, if Q_list_PET = 3000, then the value is the 75% percentile of PET_data
     pQ_PET = calculate_percentiles(PET_data, Q_list_PET)
     pQ_CT = calculate_percentiles(CT_data, Q_list_CT)
-    for idx_Q in range(len(Q_list_PET)):
-        print(f"<{pQ_PET:.2f}% of PET: {Q_list_PET[idx_Q]}, {pQ_CT:.2f}% of CT: {Q_list_CT[idx_Q]}")
+    for idx in range(len(Q_list_PET)):
+        print(f"<{pQ_PET[idx]:.2f}% of PET: {Q_list_PET[idx]}, {pQ_CT[idx]:.2f}% of CT: {Q_list_CT[idx]}")
 
     
 
