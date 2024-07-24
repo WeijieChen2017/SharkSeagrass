@@ -31,10 +31,11 @@ for tag in tags_list:
 
     # # original_CT is 467*467*730
     # # this should be cropped to 400*400*730
-    # CT_data_crop = CT_data[33:433, 33:433, :]
-    # print(CT_data_crop.shape)
+    CT_data_crop = CT_data[33:433, 33:433, :]
+    print(CT_data_crop.shape)
 
     # # save the cropped CT data
-    # CT_data_crop_nii = nib.Nifti1Image(CT_data_crop, PET_file.affine, PET_file.header)
-    # nib.save(CT_data_crop_nii, "synCT_PET_James/ori/E4055_CT_re_crop_PET_meta.nii.gz")
-    # print("Cropped CT data saved.")
+    CT_data_crop_nii = nib.Nifti1Image(CT_data_crop, PET_file.affine, PET_file.header)
+    savename = f"synCT_PET_James/ori/{tag}_CT_400.nii.gz"
+    nib.save(CT_data_crop_nii, savename)
+    print("Cropped CT data saved at ", savename)
