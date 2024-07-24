@@ -37,20 +37,20 @@ for tag in tags_list:
 
     print(tag)
     print("PET data shape: ", PET_data.shape, "CT data shape: ", CT_data.shape)
-    print(f"PET data max: {np.max(PET_data):2f}, PET data min: {np.min(PET_data):2f}")
-    print(f"CT data max: {np.max(CT_data):2f}, CT data min: {np.min(CT_data):2f}")
+    print(f"PET data max: {np.max(PET_data):.4f}, PET data min: {np.min(PET_data):.4f}")
+    print(f"CT data max: {np.max(CT_data):.4f}, CT data min: {np.min(CT_data):.4f}")
     # output 99%, 99.9% , 99.99% percentile for PET and CT
     for q in Q_list:
         p_PET = np.percentile(PET_data, q)
         p_CT = np.percentile(CT_data, q)
-        print(f">{q:2f}% percentile of PET: {p_PET:2f}, {q:2f}% percentile of CT: {p_CT:2f}")
+        print(f">{q:.4f}% percentile of PET: {p_PET:.4f}, {q:.4f}% percentile of CT: {p_CT:.4f}")
     # output the percentile Q_list_PET and Q_list_CT
     # it is where the value in Q_list_PET is the percentage of the PET_data
     # for example, if Q_list_PET = 3000, then the value is the 75% percentile of PET_data
     for idx_Q in range(len(Q_list_PET)):
         pQ_PET = calculate_percentiles(PET_data, Q_list_PET)[idx_Q]
         pQ_CT = calculate_percentiles(CT_data, Q_list_CT)[idx_Q]
-        print(f"<{pQ_PET:2f}% of PET: {Q_list_PET[idx_Q]}, {pQ_CT:2f}% of CT: {Q_list_CT[idx_Q]}")
+        print(f"<{pQ_PET:.4f}% of PET: {Q_list_PET[idx_Q]}, {pQ_CT:.4f}% of CT: {Q_list_CT[idx_Q]}")
 
     print("="*40)
 
