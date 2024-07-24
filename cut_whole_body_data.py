@@ -6,6 +6,7 @@ import glob
 tags_list = sorted(glob.glob("synCT_PET_James/ori/*_re.nii.gz"))
 tags_list = [os.path.basename(tag)[:5] for tag in tags_list]
 print(tags_list)
+print("="*40)
 
 # filter out same tags in the list
 tags_list = list(set(tags_list))
@@ -42,8 +43,8 @@ for tag in tags_list:
     # it is where the value in Q_list_PET is the percentage of the PET_data
     # for example, if Q_list_PET = 3000, then the value is the 75% percentile of PET_data
     for idx_Q in range(len(Q_list_PET)):
-        pQ_PET = np.percentile(PET_data, Q_list_PET[idx_Q])
-        pQ_CT = np.percentile(CT_data, Q_list_CT[idx_Q])
+        pQ_PET = calculate_percentiles(PET_data, Q_list_PET)[idx_Q]
+        pQ_CT = calculate_percentiles(CT_data, Q_list_CT)[idx_Q]
         print(f"Q_{Q_list_PET[idx_Q]} PET: ", pQ_PET, f"Q_{Q_list_CT[idx_Q]} CT: ", pQ_CT)
 
     print("="*40)
