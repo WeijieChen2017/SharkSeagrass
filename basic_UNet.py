@@ -145,8 +145,6 @@ def load_yaml_config(config_file_path):
     return config
 
 def main():
-    # args = parse_arguments()
-    # global_config = vars(args)
     config_file_path = parse_yaml_arguments().config_file_path
     global_config = load_yaml_config(config_file_path)
     os.makedirs(global_config['save_folder'], exist_ok=True)
@@ -168,14 +166,14 @@ def main():
 
     # set the model
     model = UNet(
-        dimensions = global_config["dimensions"],
+        spatial_dims = global_config["spatial_dims"],
         in_channels = global_config["in_channels"],
         out_channels = global_config["out_channels"],
         channels = global_config["channels"],
         strides = global_config["strides"],
         num_res_units = global_config["num_res_units"],
     ).to(device)
-    print("The model is built successfully.")
+    print(f"The model {global_config['model_name']} is built successfully.")
     print("<>"*50)
 
     # set optimizer
