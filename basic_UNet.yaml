@@ -1,0 +1,27 @@
+description: Train a 3D ViT-VQGAN model
+tag: mini8_fixed
+data_division: "synCT_PET_James/paired_PET_CT_files.json"
+save_folder: "project/basic_UNet_synCT"
+random_seed: 426
+volume_size: 64
+pix_dim: 1.5
+num_workers_train_dataloader: 8
+num_workers_val_dataloader: 4
+num_workers_train_cache_dataset: 8
+num_workers_val_cache_dataset: 4
+batch_size_train: 32
+batch_size_val: 16
+cache_ratio_train: 0.2
+cache_ratio_val: 0.2
+num_epoch: 1000
+val_per_epoch: 50
+save_per_epoch: 100
+plot_per_epoch: 50
+dimensions: 3
+in_channels: 1
+out_channels: 1
+channels: [64, 128, 256, 256]
+strides: [2, 2, 2, 1]
+num_res_units: 4
+optimizer_lr: 0.001
+optimizer_weight_decay: 0.01
