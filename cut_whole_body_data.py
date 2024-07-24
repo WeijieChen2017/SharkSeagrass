@@ -18,8 +18,8 @@ Q_list = [90, 99, 99.9, 99.99]
 Q_list_PET = [3000, 4000, 5000, 6000]
 Q_list_CT = [1000, 2000, 3000, 4000]
 
-thickness_pixel = 200
-overlap = 100
+thickness_pixel = 256
+overlap = 64
 
 def calculate_percentiles(data, q_list):
     # Calculate the percentile values for each value in q_list
