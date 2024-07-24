@@ -135,8 +135,8 @@ class local_logger():
         self.log_file.close()
 
 def parse_yaml_arguments():
-    parser = argparse.ArgumentParser(description='Train a 3D ViT-VQGAN model.')
-    parser.add_argument('--config_file_path', type=str, default="config_v4_mini8_nonfixed.yaml")
+    parser = argparse.ArgumentParser(description='Train a basic UNet model for PET to synthetic CT.')
+    parser.add_argument('--config_file_path', type=str, default="basic_UNet.yaml")
     return parser.parse_args()
 
 def load_yaml_config(config_file_path):
@@ -302,7 +302,7 @@ def main():
     
     print("The data loaders are built successfully.")
     print("<>"*50)
-    
+
     print("Start training...")
 
     val_per_epoch = global_config["val_per_epoch"]
