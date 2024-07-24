@@ -48,7 +48,7 @@ for tag in tags_list:
     for idx_Q in range(len(Q_list_PET)):
         pQ_PET = calculate_percentiles(PET_data, Q_list_PET)[idx_Q]
         pQ_CT = calculate_percentiles(CT_data, Q_list_CT)[idx_Q]
-        print(f"{Q_list_PET[idx_Q]}% percentile PET: ", pQ_PET, f"{Q_list_CT[idx_Q]}% percentile CT: ", pQ_CT)
+        print(f"{pQ_PET:4f}% of PET: {Q_list_PET[idx_Q]}, {pQ_CT:4f}% of CT: {Q_list_CT[idx_Q]}")
 
     print("="*40)
 
