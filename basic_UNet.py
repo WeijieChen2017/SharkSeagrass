@@ -151,16 +151,20 @@ def main():
     global_config = load_yaml_config(config_file_path)
     os.makedirs(global_config['save_folder'], exist_ok=True)
 
+    # show the global_config
+    print("The global_config is: ", global_config)
+
     # set the random seed
     random.seed(global_config['random_seed'])
     np.random.seed(global_config['random_seed'])
     torch.manual_seed(global_config['random_seed'])
+    print("The random seed is: ", global_config['random_seed'])
 
     # set the logger
     current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
     log_file_path = f"train_log_{current_time}.txt"
     logger = local_logger(log_file_path)
-    global_config["logger"] = logger
+    print("The log file path is: ", log_file_path)
 
     # set the model
     model = UNet(
@@ -171,6 +175,8 @@ def main():
         strides = global_config["strides"],
         num_res_units = global_config["num_res_units"],
     ).to(device)
+    print("The model is built successfully.")
+    print("<>"*50)
 
     # set optimizer
     optimizer = torch.optim.Adam(model.parameters(),
@@ -263,10 +269,11 @@ def main():
     num_train_files = len(train_files)
     num_val_files = len(val_files)
     num_test_files = len(test_files)
-
-    print("Train files are ", len(train_files))
-    print("Val files are ", len(val_files))
-    print("Test files are ", len(test_files))
+    
+    print("The number of train files is: ", num_train_files)
+    print("The number of val files is: ", num_val_files)
+    print("The number of test files is: ", num_test_files)
+    print("<>"*50)
 
     train_ds = CacheDataset(
         data=train_files,
@@ -293,6 +300,11 @@ def main():
                             shuffle=False, 
                             num_workers=global_config["num_workers_val_dataloader"])
     
+    print("The data loaders are built successfully.")
+    print("<>"*50)
+    
+    print("Start training...")
+
     val_per_epoch = global_config["val_per_epoch"]
     save_per_epoch = global_config["save_per_epoch"]
     plot_per_epoch = global_config["plot_per_epoch"]
