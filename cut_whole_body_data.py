@@ -14,6 +14,7 @@ tags_list = list(set(tags_list))
 print(tags_list)
 print("="*40)
 
+Q_list = [90, 99, 99.9, 99.99]
 Q_list_PET = [3000, 4000, 5000, 6000]
 Q_list_CT = [1000, 2000, 3000, 4000]
 
@@ -39,9 +40,10 @@ for tag in tags_list:
     print(f"PET data max: {np.max(PET_data):2f}, PET data min: {np.min(PET_data):2f}")
     print(f"CT data max: {np.max(CT_data):2f}, CT data min: {np.min(CT_data):2f}")
     # output 99%, 99.9% , 99.99% percentile for PET and CT
-    print(f"99% percentile PET: {np.percentile(PET_data, 99):2f}, 99% percentile CT: {np.percentile(CT_data, 99):2f}")
-    print(f"99.9% percentile PET: {np.percentile(PET_data, 99.9):2f}, 99.9% percentile CT: {np.percentile(CT_data, 99.9):2f}")
-    print(f"99.99% percentile PET: {np.percentile(PET_data, 99.99):2f}, 99.99% percentile CT: {np.percentile(CT_data, 99.99):2f}")
+    for q in Q_list:
+        p_PET = np.percentile(PET_data, q)
+        p_CT = np.percentile(CT_data, q)
+        print(f"{q:2f}% percentile of PET: {p_PET:2f}, {q:2f}% percentile of CT: {p_CT:2f}")
     # output the percentile Q_list_PET and Q_list_CT
     # it is where the value in Q_list_PET is the percentage of the PET_data
     # for example, if Q_list_PET = 3000, then the value is the 75% percentile of PET_data
