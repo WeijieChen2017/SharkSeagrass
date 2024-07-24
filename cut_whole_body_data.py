@@ -97,6 +97,11 @@ for tag in tags_list[:2]:
 
         loc_z += thickness_pixel - overlap
 
+    # last one is from len_z - thickness_pixel to len_z
+    PET_data_crop = PET_data_clip[:, :, len_z-thickness_pixel:len_z]
+    CT_data_crop = CT_data_clip[:, :, len_z-thickness_pixel:len_z]
+    print("Cropped PET data from ", len_z-thickness_pixel, " to ", len_z)
+    print("Cropped CT data from ", len_z-thickness_pixel, " to ", len_z)
 
 
     print("="*40)
