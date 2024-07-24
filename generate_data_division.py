@@ -11,6 +11,7 @@ def divide_into_chunks(data, n_chunks):
 def scan_and_divide_files(save_json_name, target_folder, n_chunks=5):
     # Scan all .nii.gz files
     nii_files = glob.glob(os.path.join(target_folder, '*.nii.gz'))
+    print(f"Found {len(nii_files)} .nii.gz files.")
     
     # Dictionary to hold pairs of PET and CT files
     file_pairs = {}
