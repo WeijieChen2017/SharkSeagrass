@@ -18,6 +18,6 @@ CT_data_crop = CT_data[33:433, 33:433, :]
 print(CT_data_crop.shape)
 
 # save the cropped CT data
-CT_data_crop_nii = nib.Nifti1Image(CT_data_crop, CT_file.affine, CT_file.header)
-nib.save(CT_data_crop_nii, "synCT_PET_James/ori/E4055_CT_re_crop.nii.gz")
+CT_data_crop_nii = nib.Nifti1Image(CT_data_crop, PET_file.affine, PET_file.header)
+nib.save(CT_data_crop_nii, "synCT_PET_James/ori/E4055_CT_re_crop_PET_meta.nii.gz")
 print("Cropped CT data saved.")
