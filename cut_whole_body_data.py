@@ -68,7 +68,7 @@ def save_data_at_z1_to_z2(data_1, data_2, loc_z, thickness_pixel, tag, affine_1,
     # print(f"---Cropped CT data saved at {savename_CT}")
 
 
-for tag in tags_list[:2]:
+for tag in tags_list:
 
     PET_file_path = f"synCT_PET_James/ori/{tag}_PET_re.nii.gz"
     CT_file_path = f"synCT_PET_James/ori/{tag}_CT_400.nii.gz"
