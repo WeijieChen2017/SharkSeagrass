@@ -51,7 +51,7 @@ for tag in tags_list:
     pQ_PET = calculate_percentiles(PET_data, Q_list_PET)
     pQ_CT = calculate_percentiles(CT_data, Q_list_CT)
     for idx in range(len(Q_list_PET)):
-        print(f"<{pQ_PET[idx]:.2f}% of PET: {Q_list_PET[idx]}, {pQ_CT[idx]:.2f}% of CT: {Q_list_CT[idx]}")
+        print(f"<{pQ_PET[idx]:.4f}% of PET: {Q_list_PET[idx]}, {pQ_CT[idx]:.4f}% of CT: {Q_list_CT[idx]}")
 
     
 
