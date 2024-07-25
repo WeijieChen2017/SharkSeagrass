@@ -41,7 +41,7 @@ for tag, n in n_files.items():
 # Divide the files into 5 chunks, where each chunk contains the similar number of files
 n_chunks = 5
 n_try = 100
-best_equalness = 100
+best_equalness = 10000
 chunk_division = []
 
 # randomly shuffle the tags and compute the number of files for each tag
