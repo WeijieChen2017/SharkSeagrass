@@ -125,3 +125,8 @@ for chunk_name, sub_tag_dict_list in output_dict.items():
     for sub_tag_dict in sub_tag_dict_list:
         print(sub_tag_dict)
     print("="*40)
+
+import json
+# save the output_dict as a json file
+with open("3PET1CT.json", "w") as json_file:
+    json.dump(output_dict, json_file, indent=4)
