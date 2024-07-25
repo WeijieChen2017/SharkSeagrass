@@ -52,7 +52,9 @@ for _ in range(n_try):
         chunk_n_files = sum([n_files[tag] for tag in chunk_tags])
         chunk_division.append((chunk_tags, chunk_n_files))
     # compute the equalness of the number of files in each chunk
-    equalness = max([n_files for _, n_files in chunk_division]) - min([n_files for _, n_files in chunk_division])
+    # equalness is the std of the number of files in each chunk
+    mean_files = sum([chunk_n_files for _, chunk_n_files in chunk_division]) / n_chunks
+    equalness = sum([(chunk_n_files - mean_files)**2 for _, chunk_n_files in chunk_division]) / n_chunks
     if equalness < best_equalness:
         best_equalness = equalness
         best_chunk_division = chunk_division
