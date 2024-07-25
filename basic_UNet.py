@@ -328,8 +328,8 @@ def main():
             current_val_loss = epoch_loss_val["reconL1"].mean()
             if current_val_loss < best_val_loss:
                 best_val_loss = current_val_loss
-                model_save_name = global_config["save_folder"]+f"model_best_{idx_epoch}_state_dict.pth"
-                optimizer_save_name = global_config["save_folder"]+f"optimizer_best_{idx_epoch}_state_dict.pth"
+                model_save_name = global_config["save_folder"]+f"/model_best_{idx_epoch}_state_dict.pth"
+                optimizer_save_name = global_config["save_folder"]+f"/optimizer_best_{idx_epoch}_state_dict.pth"
                 torch.save(model.state_dict(), model_save_name)
                 torch.save(optimizer.state_dict(), optimizer_save_name)
                 logger.log(idx_epoch, "best_val_loss", best_val_loss)
@@ -337,10 +337,10 @@ def main():
         # save the model every save_per_epoch
         if idx_epoch % save_per_epoch == 0:
             # delete previous model
-            for f in glob.glob(global_config["save_folder"]+"latest_*"):
+            for f in glob.glob(global_config["save_folder"]+"/latest_*"):
                 os.remove(f)
-            model_save_name = global_config["save_folder"]+f"latest_model_{idx_epoch}_state_dict.pth"
-            optimizer_save_name = global_config["save_folder"]+f"latest_optimizer_{idx_epoch}_state_dict.pth"
+            model_save_name = global_config["save_folder"]+f"/latest_model_{idx_epoch}_state_dict.pth"
+            optimizer_save_name = global_config["save_folder"]+f"/latest_optimizer_{idx_epoch}_state_dict.pth"
             torch.save(model.state_dict(), model_save_name)
             torch.save(optimizer.state_dict(), optimizer_save_name)
             logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
@@ -352,7 +352,7 @@ def main():
                                 y=y, 
                                 z=y_pred, 
                                 num_per_direction=3, 
-                                savename=f"{global_config['save_folder']}plot_{idx_epoch:04}.png")
+                                savename=f"{global_config['save_folder']}/plot_{idx_epoch:04}.png")
 
             
 if __name__ == "__main__":
