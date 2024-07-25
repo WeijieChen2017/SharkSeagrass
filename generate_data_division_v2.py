@@ -87,8 +87,9 @@ for chunk_name in chucks_dict.keys():
         print(f"---{tag}---")
         sub_tags = sorted(glob.glob(f"synCT_PET_James/{tag}*_s*"))
         print(sub_tags)
-        # find s384 from E4079_PET_thick_256_norm01_s384e640.nii.gz
-        loc_z = int(os.path.basename(sub_tags[0]).split("_s")[1][:3])
-        print(f"---{loc_z}---")
+        for sub_tag in sub_tags:
+            loc_s = int(sub_tag.split("_s")[1].split("e")[0])
+            print(sub_tag[loc_s:loc_s+4])
+        print("="*40)
         
 
