@@ -46,6 +46,7 @@ chunk_division = []
 
 # randomly shuffle the tags and compute the number of files for each tag
 for _ in range(n_try):
+    print(f"Try {_}")
     random.shuffle(tags_list)
     for i in range(n_chunks):
         chunk_tags = tags_list[i::n_chunks]
