@@ -11,3 +11,8 @@ tags_list = sorted(list(set(tags_list)))
 
 print(tags_list)
 print("="*40)
+
+# compute how many files for each tag
+n_files = {tag: len(glob.glob(f"synCT_PET_James/ori/{tag}*")) for tag in tags_list}
+for tag, n in n_files.items():
+    print(f"{tag}: {n} files")
