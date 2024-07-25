@@ -26,6 +26,8 @@ import os
 
 import os
 import torch
+# set the device to be GPU:1
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
 
