@@ -24,6 +24,7 @@ import os
 # # set the environment variable to use the GPU if available
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
+import os
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
@@ -130,6 +131,7 @@ class local_logger():
     def log(self, epoch, key, value):
         self.log_file = open(self.log_file_path, 'w')
         self.log_file.write(f"{epoch}, {key}, {value}\n")
+        print(f"{epoch}, {key}, {value}")
     
     def close(self):
         self.log_file.close()
@@ -196,27 +198,6 @@ def main():
             LoadImaged(keys=input_modality),
             EnsureChannelFirstd(keys=input_modality),
             Orientationd(keys=input_modality, axcodes="RAS"),
-            # Spacingd(
-            #     keys=["PET", "CT"],
-            #     pixdim=(pix_dim, pix_dim, pix_dim),
-            #     mode=("bilinear"),
-            # ),
-            # ScaleIntensityRanged(
-            #     keys=["PET"],
-            #     a_min=0,
-            #     a_max=4000,
-            #     b_min=0.0,
-            #     b_max=1.0,
-            #     clip=True,
-            # ),
-            # ScaleIntensityRanged(
-            #     keys=["CT"],
-            #     a_min=-1024,
-            #     a_max=2976,
-            #     b_min=0.0,
-            #     b_max=1.0,
-            #     clip=True,
-            # ),
             RandSpatialCropd(keys=input_modality, roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
@@ -230,27 +211,6 @@ def main():
             LoadImaged(keys=input_modality),
             EnsureChannelFirstd(keys=input_modality),
             Orientationd(keys=input_modality, axcodes="RAS"),
-            # Spacingd(
-            #     keys=["PET", "CT"],
-            #     pixdim=(pix_dim, pix_dim, pix_dim),
-            #     mode=("bilinear"),
-            # ),
-            # ScaleIntensityRanged(
-            #     keys=["PET"],
-            #     a_min=0,
-            #     a_max=4000,
-            #     b_min=0.0,
-            #     b_max=1.0,
-            #     clip=True,
-            # ),
-            # ScaleIntensityRanged(
-            #     keys=["CT"],
-            #     a_min=-1024,
-            #     a_max=2976,
-            #     b_min=0.0,
-            #     b_max=1.0,
-            #     clip=True,
-            # ),
             RandSpatialCropd(keys=input_modality, roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
         ]
     )
@@ -336,7 +296,7 @@ def main():
             loss.backward()
             optimizer.step()
             epoch_loss_train["reconL1"].append(loss.item())
-            print(f"<{idx_epoch}> [{idx_batch}/{num_train_files}] Total loss: {loss.item()}")
+            print(f"Train <{idx_epoch}> [{idx_batch}] Total loss: {loss.item()}")
         
         for key in epoch_loss_train.keys():
             epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
@@ -359,7 +319,7 @@ def main():
                     y_pred = model(x)
                     loss = F.l1_loss(y_pred, y)
                     epoch_loss_val["reconL1"].append(loss.item())
-                    print(f"<{idx_epoch}> [{idx_batch}/{num_val_files}] Total loss: {loss.item()}")
+                    print(f"Eval <{idx_epoch}> [{idx_batch}] Total loss: {loss.item()}")
             
             for key in epoch_loss_val.keys():
                 epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
@@ -386,6 +346,7 @@ def main():
             logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
         # plot the PET and CT every plot_per_epoch
+        print(x.shape, y.shape, y_pred.shape)
         if idx_epoch % plot_per_epoch == 0:
             plot_and_save_x_y_z(x=x[:, 0, :, :, :],
                                 y=y, 
