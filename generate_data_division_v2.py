@@ -98,7 +98,7 @@ for chunk_name in chucks_dict.keys():
         print("="*40)
         
         for sub_tag in sub_tags:
-            loc_s = int(sub_tag)
+            loc_s = int(sub_tag).zfill(3)
             loc_e = int(sub_tag) + 256
             loc_e = str(loc_e)
             sub_tag_dict = {
