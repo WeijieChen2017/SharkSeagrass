@@ -116,5 +116,12 @@ for chunk_name in chucks_dict.keys():
                     print(f"{modality} file does not exist.")
                     print(sub_tag_dict[modality])
             print("="*40)
+            output_dict[chunk_name].append(sub_tag_dict)
             
 
+# show the output_dict
+for chunk_name, sub_tag_dict_list in output_dict.items():
+    print(f"---{chunk_name}---")
+    for sub_tag_dict in sub_tag_dict_list:
+        print(sub_tag_dict)
+    print("="*40)
