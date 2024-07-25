@@ -58,4 +58,5 @@ chunks.append(chunk)
 
 # Print the chunks
 for i, chunk in enumerate(chunks):
-    print(f"Chunk {i+1}: {chunk}")
+    print(f"Chunk {i+1}: {chunk}", "number of files:", sum([n_files[tag] for tag in chunk]))
+
