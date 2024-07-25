@@ -86,6 +86,9 @@ for chunk_name in chucks_dict.keys():
     for tag in chucks_dict[chunk_name]:
         print(f"---{tag}---")
         file_path_list = sorted(glob.glob(f"synCT_PET_James/{tag}*_s*"))
+        for file_path in file_path_list:
+            print(file_path)
+
         sub_tags = []
         for sub_tag_path in file_path_list:
             sub_tag = sub_tag_path.split("1_s")[1].split("e")[0]
@@ -99,10 +102,10 @@ for chunk_name in chucks_dict.keys():
             loc_e = int(sub_tag) + 256
             loc_e = str(loc_e)
             sub_tag_dict = {
-                "CT": f'synCT_PET_James/E{tag}_CT_thick_256_norm01_s{sub_tag}e{loc_e}.nii.gz',
-                "PET_raw": f'synCT_PET_James/E{tag}_PET_thick_256_norm01_s{sub_tag}e{loc_e}.nii.gz',
-                "PET_blr": f'synCT_PET_James/E{tag}_PET_GauKer_3_norm01_s{sub_tag}e{loc_e}.nii.gz',
-                "PET_grd": f'synCT_PET_James/E{tag}_PET_GradMag_norm01_s{sub_tag}e{loc_e}.nii.gz',
+                "CT": f'synCT_PET_James/E{tag}_CT_thick_256_norm01_s{loc_s}e{loc_e}.nii.gz',
+                "PET_raw": f'synCT_PET_James/E{tag}_PET_thick_256_norm01_s{loc_s}e{loc_e}.nii.gz',
+                "PET_blr": f'synCT_PET_James/E{tag}_PET_GauKer_3_norm01_s{loc_s}e{loc_e}.nii.gz',
+                "PET_grd": f'synCT_PET_James/E{tag}_PET_GradMag_norm01_s{loc_s}e{loc_e}.nii.gz',
             }
 
             # check whether the files exist
