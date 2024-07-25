@@ -66,7 +66,7 @@ from monai.transforms import (
 )
 
 def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
-    numpy_x = x[0, :, :, :, :].cpu().numpy().squeeze()
+    numpy_x = x[0, 0, :, :, :].cpu().numpy().squeeze()
     numpy_y = y[0, :, :, :, :].cpu().numpy().squeeze()
     numpy_z = z[0, :, :, :, :].cpu().numpy().squeeze()
     x_clip = np.clip(numpy_x, 0, 1)
@@ -346,9 +346,9 @@ def main():
             logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
         # plot the PET and CT every plot_per_epoch
-        print(x.shape, y.shape, y_pred.shape)
+        # print(x.shape, y.shape, y_pred.shape)
         if idx_epoch % plot_per_epoch == 0:
-            plot_and_save_x_y_z(x=x[:, 0, :, :, :],
+            plot_and_save_x_y_z(x=x,
                                 y=y, 
                                 z=y_pred, 
                                 num_per_direction=3, 
