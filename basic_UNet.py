@@ -221,7 +221,7 @@ def main():
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
-            RandRotated(keys=input_modality, prob=0.5, range_x=15, range_y=15, range_z=15),
+            # RandRotated(keys=input_modality, prob=0.5, range_x=15, range_y=15, range_z=15),
         ]
     )
 
@@ -328,7 +328,7 @@ def main():
             x = batch["PET_raw"].to(device)
             # if there are other modalities, concatenate them at the channel dimension
             for modality in input_modality:
-                if modality != "PET_raw":
+                if modality != "PET_raw" and modality != "CT":
                     x = torch.cat((x, batch[modality].to(device)), dim=1)
             optimizer.zero_grad()
             y_pred = model(x)
@@ -354,7 +354,7 @@ def main():
                     x = batch["PET_raw"].to(device)
                     # if there are other modalities, concatenate them at the channel dimension
                     for modality in input_modality:
-                        if modality != "PET_raw":
+                        if modality != "PET_raw" and modality != "CT":
                             x = torch.cat((x, batch[modality].to(device)), dim=1)
                     y_pred = model(x)
                     loss = F.l1_loss(y_pred, y)
