@@ -165,10 +165,14 @@ def main():
     logger = local_logger(log_file_path)
     print("The log file path is: ", log_file_path)
 
+    # set the input modality
+    input_modality = global_config["input_modality"]
+    in_channels = len(input_modality)
+
     # set the model
     model = UNet(
         spatial_dims = global_config["spatial_dims"],
-        in_channels = global_config["in_channels"],
+        in_channels = in_channels,
         out_channels = global_config["out_channels"],
         channels = global_config["channels"],
         strides = global_config["strides"],
@@ -188,64 +192,65 @@ def main():
     # set the data transform
     train_transforms = Compose(
         [
-            LoadImaged(keys=["PET", "CT"]),
-            EnsureChannelFirstd(keys=["PET", "CT"]),
-            Orientationd(keys=["PET", "CT"], axcodes="RAS"),
-            Spacingd(
-                keys=["PET", "CT"],
-                pixdim=(pix_dim, pix_dim, pix_dim),
-                mode=("bilinear"),
-            ),
-            ScaleIntensityRanged(
-                keys=["PET"],
-                a_min=0,
-                a_max=4000,
-                b_min=0.0,
-                b_max=1.0,
-                clip=True,
-            ),
-            ScaleIntensityRanged(
-                keys=["CT"],
-                a_min=-1024,
-                a_max=2976,
-                b_min=0.0,
-                b_max=1.0,
-                clip=True,
-            ),
-            RandSpatialCropd(keys=["PET", "CT"], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
-            RandFlipd(keys=["PET", "CT"], prob=0.5, spatial_axis=0),
-            RandFlipd(keys=["PET", "CT"], prob=0.5, spatial_axis=1),
-            RandFlipd(keys=["PET", "CT"], prob=0.5, spatial_axis=2),
-            RandRotated(keys=["PET", "CT"], prob=0.5, range_x=15, range_y=15, range_z=15),
+            LoadImaged(keys=[input_modality]),
+            EnsureChannelFirstd(keys=[input_modality]),
+            Orientationd(keys=[input_modality], axcodes="RAS"),
+            # Spacingd(
+            #     keys=["PET", "CT"],
+            #     pixdim=(pix_dim, pix_dim, pix_dim),
+            #     mode=("bilinear"),
+            # ),
+            # ScaleIntensityRanged(
+            #     keys=["PET"],
+            #     a_min=0,
+            #     a_max=4000,
+            #     b_min=0.0,
+            #     b_max=1.0,
+            #     clip=True,
+            # ),
+            # ScaleIntensityRanged(
+            #     keys=["CT"],
+            #     a_min=-1024,
+            #     a_max=2976,
+            #     b_min=0.0,
+            #     b_max=1.0,
+            #     clip=True,
+            # ),
+            RandSpatialCropd(keys=[input_modality], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
+            RandFlipd(keys=[input_modality], prob=0.5, spatial_axis=0),
+            RandFlipd(keys=[input_modality], prob=0.5, spatial_axis=1),
+            RandFlipd(keys=[input_modality], prob=0.5, spatial_axis=2),
+            RandRotated(keys=[input_modality], prob=0.5, range_x=15, range_y=15, range_z=15),
         ]
     )
 
     val_transforms = Compose(
         [
-            LoadImaged(keys=["PET", "CT"]),
-            EnsureChannelFirstd(keys=["PET", "CT"]),
-            Orientationd(keys=["PET", "CT"], axcodes="RAS"),
-            Spacingd(
-                keys=["PET", "CT"],
-                pixdim=(pix_dim, pix_dim, pix_dim),
-                mode=("bilinear"),
-            ),
-            ScaleIntensityRanged(
-                keys=["PET"],
-                a_min=0,
-                a_max=4000,
-                b_min=0.0,
-                b_max=1.0,
-                clip=True,
-            ),
-            ScaleIntensityRanged(
-                keys=["CT"],
-                a_min=-1024,
-                a_max=2976,
-                b_min=0.0,
-                b_max=1.0,
-                clip=True,
-            ),
+            LoadImaged(keys=[input_modality]),
+            EnsureChannelFirstd(keys=[input_modality]),
+            Orientationd(keys=[input_modality], axcodes="RAS"),
+            # Spacingd(
+            #     keys=["PET", "CT"],
+            #     pixdim=(pix_dim, pix_dim, pix_dim),
+            #     mode=("bilinear"),
+            # ),
+            # ScaleIntensityRanged(
+            #     keys=["PET"],
+            #     a_min=0,
+            #     a_max=4000,
+            #     b_min=0.0,
+            #     b_max=1.0,
+            #     clip=True,
+            # ),
+            # ScaleIntensityRanged(
+            #     keys=["CT"],
+            #     a_min=-1024,
+            #     a_max=2976,
+            #     b_min=0.0,
+            #     b_max=1.0,
+            #     clip=True,
+            # ),
+            RandSpatialCropd(keys=[input_modality], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
         ]
     )
 
@@ -318,8 +323,12 @@ def main():
             "reconL1": [],
         }
         for idx_batch, batch in enumerate(train_loader):
-            x = batch["PET"].to(device)
             y = batch["CT"].to(device)
+            x = batch["PET_raw"].to(device)
+            # if there are other modalities, concatenate them at the channel dimension
+            for modality in input_modality:
+                if modality != "PET_raw":
+                    x = torch.cat((x, batch[modality].to(device)), dim=1)
             optimizer.zero_grad()
             y_pred = model(x)
             loss = F.l1_loss(y_pred, y)
@@ -340,8 +349,12 @@ def main():
             }
             with torch.no_grad():
                 for idx_batch, batch in enumerate(val_loader):
-                    x = batch["PET"].to(device)
                     y = batch["CT"].to(device)
+                    x = batch["PET_raw"].to(device)
+                    # if there are other modalities, concatenate them at the channel dimension
+                    for modality in input_modality:
+                        if modality != "PET_raw":
+                            x = torch.cat((x, batch[modality].to(device)), dim=1)
                     y_pred = model(x)
                     loss = F.l1_loss(y_pred, y)
                     epoch_loss_val["reconL1"].append(loss.item())
@@ -373,7 +386,7 @@ def main():
         
         # plot the PET and CT every plot_per_epoch
         if idx_epoch % plot_per_epoch == 0:
-            plot_and_save_x_y_z(x=x,
+            plot_and_save_x_y_z(x=x[:, 0, :, :, :],
                                 y=y, 
                                 z=y_pred, 
                                 num_per_direction=3, 
