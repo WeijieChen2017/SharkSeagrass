@@ -90,6 +90,7 @@ for chunk_name in chucks_dict.keys():
         for sub_tag_path in file_path_list:
             sub_tag = sub_tag_path.split("1_s")[1].split("e")[0]
             sub_tags.append(sub_tag)
+        sub_tags = sorted(list(set(sub_tags)))
         print(sub_tags)
         print("="*40)
         
