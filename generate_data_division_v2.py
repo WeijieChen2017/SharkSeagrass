@@ -85,12 +85,12 @@ output_dict = {
 for chunk_name in chucks_dict.keys():
     for tag in chucks_dict[chunk_name]:
         print(f"---{tag}---")
-        sub_tags = sorted(glob.glob(f"synCT_PET_James/{tag}*_s*"))
+        file_path_list = sorted(glob.glob(f"synCT_PET_James/{tag}*_s*"))
+        sub_tags = []
+        for sub_tag_path in file_path_list:
+            sub_tag = sub_tag_path.split("1_s")[1].split("e")[0]
+            sub_tags.append(sub_tag)
         print(sub_tags)
-        for sub_tag_path in sub_tags:
-            loc_s = sub_tag_path.split("1_s")[1].split("e")[0]
-            print(loc_s)
-            
         print("="*40)
         
 
