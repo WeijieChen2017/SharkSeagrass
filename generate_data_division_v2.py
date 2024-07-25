@@ -98,14 +98,14 @@ for chunk_name in chucks_dict.keys():
         print("="*40)
         
         for sub_tag in sub_tags:
-            loc_s = int(sub_tag).zfill(3)
+            loc_s = int(sub_tag)
             loc_e = int(sub_tag) + 256
             loc_e = str(loc_e)
             sub_tag_dict = {
-                "CT": f'synCT_PET_James/{tag}_CT_thick_256_norm01_s{loc_s}e{loc_e}.nii.gz',
-                "PET_raw": f'synCT_PET_James/{tag}_PET_thick_256_norm01_s{loc_s}e{loc_e}.nii.gz',
-                "PET_blr": f'synCT_PET_James/{tag}_PET_GauKer_3_norm01_s{loc_s}e{loc_e}.nii.gz',
-                "PET_grd": f'synCT_PET_James/{tag}_PET_GradMag_norm01_s{loc_s}e{loc_e}.nii.gz',
+                "CT": f'synCT_PET_James/{tag}_CT_thick_256_norm01_s{sub_tag}e{loc_e}.nii.gz',
+                "PET_raw": f'synCT_PET_James/{tag}_PET_thick_256_norm01_s{sub_tag}e{loc_e}.nii.gz',
+                "PET_blr": f'synCT_PET_James/{tag}_PET_GauKer_3_norm01_s{sub_tag}e{loc_e}.nii.gz',
+                "PET_grd": f'synCT_PET_James/{tag}_PET_GradMag_norm01_s{sub_tag}e{loc_e}.nii.gz',
             }
 
             # check whether the files exist
