@@ -94,4 +94,24 @@ for chunk_name in chucks_dict.keys():
         print(sub_tags)
         print("="*40)
         
+        for sub_tag in sub_tags:
+            loc_s = int(sub_tag)
+            loc_e = int(sub_tag) + 256
+            loc_e = str(loc_e)
+            sub_tag_dict = {
+                "CT": f'synCT_PET_James/E{tag}_CT_thick_256_norm01_s{sub_tag}e{loc_e}.nii.gz',
+                "PET_raw": f'synCT_PET_James/E{tag}_PET_thick_256_norm01_s{sub_tag}e{loc_e}.nii.gz',
+                "PET_blr": f'synCT_PET_James/E{tag}_PET_GauKer_3_norm01_s{sub_tag}e{loc_e}.nii.gz',
+                "PET_grd": f'synCT_PET_James/E{tag}_PET_GradMag_norm01_s{sub_tag}e{loc_e}.nii.gz',
+            }
+
+            # check whether the files exist
+            for modality in modality_list:
+                if os.path.exists(sub_tag_dict[modality]):
+                    print(f"{modality} file exists.")
+                else:
+                    print(f"{modality} file does not exist.")
+                    print(sub_tag_dict[modality])
+            print("="*40)
+            
 
