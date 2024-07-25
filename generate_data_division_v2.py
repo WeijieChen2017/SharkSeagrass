@@ -88,7 +88,7 @@ for chunk_name in chucks_dict.keys():
         sub_tags = sorted(glob.glob(f"synCT_PET_James/{tag}*_s*"))
         print(sub_tags)
         for sub_tag in sub_tags:
-            loc_s = int(sub_tag.split("_s")[1].split("e")[0])
+            loc_s = int(sub_tag.split("1_s")[1].split("e")[0])
             print(sub_tag[loc_s:loc_s+4])
         print("="*40)
         
