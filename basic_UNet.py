@@ -167,7 +167,7 @@ def main():
 
     # set the input modality
     input_modality = global_config["input_modality"]
-    in_channels = len(input_modality)
+    in_channels = len(input_modality) - 1
     print("The input modality is: ", input_modality)
 
     # set the model
@@ -193,9 +193,9 @@ def main():
     # set the data transform
     train_transforms = Compose(
         [
-            LoadImaged(keys=[input_modality]),
-            EnsureChannelFirstd(keys=[input_modality]),
-            Orientationd(keys=[input_modality], axcodes="RAS"),
+            LoadImaged(keys=input_modality),
+            EnsureChannelFirstd(keys=input_modality),
+            Orientationd(keys=input_modality, axcodes="RAS"),
             # Spacingd(
             #     keys=["PET", "CT"],
             #     pixdim=(pix_dim, pix_dim, pix_dim),
@@ -217,19 +217,19 @@ def main():
             #     b_max=1.0,
             #     clip=True,
             # ),
-            RandSpatialCropd(keys=[input_modality], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
-            RandFlipd(keys=[input_modality], prob=0.5, spatial_axis=0),
-            RandFlipd(keys=[input_modality], prob=0.5, spatial_axis=1),
-            RandFlipd(keys=[input_modality], prob=0.5, spatial_axis=2),
-            RandRotated(keys=[input_modality], prob=0.5, range_x=15, range_y=15, range_z=15),
+            RandSpatialCropd(keys=input_modality, roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
+            RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
+            RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
+            RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
+            RandRotated(keys=input_modality, prob=0.5, range_x=15, range_y=15, range_z=15),
         ]
     )
 
     val_transforms = Compose(
         [
-            LoadImaged(keys=[input_modality]),
-            EnsureChannelFirstd(keys=[input_modality]),
-            Orientationd(keys=[input_modality], axcodes="RAS"),
+            LoadImaged(keys=input_modality),
+            EnsureChannelFirstd(keys=input_modality),
+            Orientationd(keys=input_modality, axcodes="RAS"),
             # Spacingd(
             #     keys=["PET", "CT"],
             #     pixdim=(pix_dim, pix_dim, pix_dim),
@@ -251,7 +251,7 @@ def main():
             #     b_max=1.0,
             #     clip=True,
             # ),
-            RandSpatialCropd(keys=[input_modality], roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
+            RandSpatialCropd(keys=input_modality, roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
         ]
     )
 
