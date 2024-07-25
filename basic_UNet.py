@@ -352,7 +352,7 @@ def main():
                                 y=y, 
                                 z=y_pred, 
                                 num_per_direction=3, 
-                                savename=None)
+                                savename=f"{global_config['save_folder']}plot_{idx_epoch:04}.png")
 
             
 if __name__ == "__main__":
