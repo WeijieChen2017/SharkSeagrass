@@ -168,6 +168,7 @@ def main():
     # set the input modality
     input_modality = global_config["input_modality"]
     in_channels = len(input_modality)
+    print("The input modality is: ", input_modality)
 
     # set the model
     model = UNet(
