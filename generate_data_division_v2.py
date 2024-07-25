@@ -46,7 +46,6 @@ chunk_division = []
 
 # randomly shuffle the tags and compute the number of files for each tag
 for _ in range(n_try):
-    print(f"Try {_}")
     random.shuffle(tags_list)
     for i in range(n_chunks):
         chunk_tags = tags_list[i::n_chunks]
@@ -62,3 +61,34 @@ for _ in range(n_try):
         print(f"Best equalness: {best_equalness}")
         print(best_chunk_division)
     
+# [(['E4091', 'E4068', 'E4058', 'E4092'], 72), (['E4055', 'E4078', 'E4079', 'E4080'], 76), (['E4069', 'E4077', 'E4061', 'E4063'], 76), (['E4073', 'E4066', 'E4081', 'E4094'], 72), (['E
+# 4084', 'E4087', 'E4074'], 60)]
+
+chucks_dict = {
+    "chunk_0": ['E4091', 'E4068', 'E4058', 'E4092'],
+    "chunk_1": ['E4055', 'E4078', 'E4079', 'E4080'],
+    "chunk_2": ['E4069', 'E4077', 'E4061', 'E4063'],
+    "chunk_3": ['E4073', 'E4066', 'E4081', 'E4094'],
+    "chunk_4": ['E4084', 'E4087', 'E4074'],
+}
+
+modality_list = ["CT", "PET_raw", "PET_blr", "PET_grd"]
+
+output_dict = {
+    "chunk_0": [],
+    "chunk_1": [],
+    "chunk_2": [],
+    "chunk_3": [],
+    "chunk_4": [],
+}
+
+for chunk_name in chucks_dict.keys():
+    for tag in chucks_dict[chunk_name]:
+        print(f"---{tag}---")
+        sub_tags = sorted(glob.glob(f"synCT_PET_James/{tag}*_s*"))
+        print(sub_tags)
+        # find s384 from E4079_PET_thick_256_norm01_s384e640.nii.gz
+        loc_z = int(os.path.basename(sub_tags[0]).split("_s")[1][:3])
+        print(f"---{loc_z}---")
+        
+
