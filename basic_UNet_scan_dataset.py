@@ -127,6 +127,14 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
     plt.close()
     print(f"Save the plot to {savename}")
 
+def collate_fn(batch):
+  return {
+    'CT': torch.stack([x['CT'] for x in batch]),
+    'PET_raw': torch.stack([x['PET_raw'] for x in batch]),
+    'PET_blr': torch.stack([x['PET_blr'] for x in batch]),
+    'PET_grd': torch.stack([x['PET_grd'] for x in batch]),
+}
+
 class local_logger():
     def __init__(self, log_file_path):
         self.log_file_path = log_file_path
@@ -203,7 +211,7 @@ def main():
         [
             LoadImaged(keys=input_modality),
             EnsureChannelFirstd(keys=input_modality),
-            Orientationd(keys=input_modality, axcodes="RAS"),
+            # Orientationd(keys=input_modality, axcodes="RAS"),
             RandSpatialCropd(keys=input_modality, roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
@@ -216,7 +224,7 @@ def main():
         [
             LoadImaged(keys=input_modality),
             EnsureChannelFirstd(keys=input_modality),
-            Orientationd(keys=input_modality, axcodes="RAS"),
+            # Orientationd(keys=input_modality, axcodes="RAS"),
             RandSpatialCropd(keys=input_modality, roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
         ]
     )
@@ -265,11 +273,13 @@ def main():
     train_loader = DataLoader(train_ds, 
                               batch_size=global_config["batch_size_train"],
                               shuffle=True, 
-                              num_workers=global_config["num_workers_train_dataloader"])
+                              num_workers=global_config["num_workers_train_dataloader"],
+                              collate_fn=collate_fn)
     val_loader = DataLoader(val_ds, 
                             batch_size=global_config["batch_size_val"], 
                             shuffle=False, 
-                            num_workers=global_config["num_workers_val_dataloader"])
+                            num_workers=global_config["num_workers_val_dataloader"],
+                            collate_fn=collate_fn)
     
     print("The data loaders are built successfully.")
     print(gap_sign*50)
@@ -297,7 +307,7 @@ def main():
                 if modality != "PET_raw" and modality != "CT":
                     x = torch.cat((x, batch[modality].to(device)), dim=1)
 
-            print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape}, y: {y.shape}")
+            print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape} at device {x.device}, y: {y.shape} at device {y.device}")
         #     optimizer.zero_grad()
         #     y_pred = model(x)
         #     loss = F.l1_loss(y_pred, y)
