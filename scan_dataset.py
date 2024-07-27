@@ -20,7 +20,7 @@ for chunk_name, sub_tag_dict_list in data.items():
             if os.path.exists(file_path):
                 data = np.load(file_path, allow_pickle=True)
                 # print(f"{file_path} file exists and ", f"shape: {data.shape}")
-                if data.shape[2] == 256:
+                if data.shape[2] != 256:
                     print(f"{file_path} file exists and ", f"shape: {data.shape}")
                 # data = nib.load(file_path).get_fdata()
                 # print(f"{file_path} file exists and ", f"shape: {data.shape}")
