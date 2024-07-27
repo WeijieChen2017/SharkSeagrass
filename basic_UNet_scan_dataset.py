@@ -127,13 +127,20 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
     plt.close()
     print(f"Save the plot to {savename}")
 
-def collate_fn(batch):
-  return {
-    'CT': torch.stack([x['CT'] for x in batch]),
-    'PET_raw': torch.stack([x['PET_raw'] for x in batch]),
-    'PET_blr': torch.stack([x['PET_blr'] for x in batch]),
-    'PET_grd': torch.stack([x['PET_grd'] for x in batch]),
-}
+def custom_collate_fn(batch):
+    # Assuming your data is a dictionary with tensor values
+    keys = batch[0].keys()
+    collated_batch = {}
+    
+    for key in keys:
+        # Stack only tensor data
+        if isinstance(batch[0][key], torch.Tensor):
+            collated_batch[key] = torch.stack([item[key] for item in batch])
+        else:
+            collated_batch[key] = [item[key] for item in batch]
+    
+    return collated_batch
+
 
 class local_logger():
     def __init__(self, log_file_path):
