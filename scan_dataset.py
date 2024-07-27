@@ -13,7 +13,7 @@ for chunk_name, sub_tag_dict_list in data.items():
         for modality, file_path in sub_tag_dict.items():
             if os.path.exists(file_path):
                 data = nib.load(file_path).get_fdata()
-                print(f"{modality} file exists and ", f"shape: {data.shape}")
+                print(f"{file_path} file exists and ", f"shape: {data.shape}")
             else:
                 print(f"{modality} file does not exist.")
                 print(file_path)
