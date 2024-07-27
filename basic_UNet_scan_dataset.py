@@ -127,7 +127,7 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
     plt.close()
     print(f"Save the plot to {savename}")
 
-def custom_collate_fn(batch):
+def collate_fn(batch):
     # Assuming your data is a dictionary with tensor values
     keys = batch[0].keys()
     collated_batch = {}
@@ -140,7 +140,6 @@ def custom_collate_fn(batch):
             collated_batch[key] = [item[key] for item in batch]
     
     return collated_batch
-
 
 class local_logger():
     def __init__(self, log_file_path):
