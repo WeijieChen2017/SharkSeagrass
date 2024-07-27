@@ -55,6 +55,8 @@ from monai.data import (
     CacheDataset,
 )
 
+from torch.utils.data import Dataset
+
 from monai.transforms import (
     EnsureChannelFirstd,
     Compose,
@@ -67,6 +69,39 @@ from monai.transforms import (
     RandFlipd,
     RandRotated,
 )
+
+class MedicalImageDataset(Dataset):
+    def __init__(self, json_path, chunks, transform=None):
+        with open(json_path, 'r') as f:
+            data = json.load(f)
+        
+        self.samples = []
+        for chunk in chunks:
+            self.samples.extend(data[chunk])
+        
+        self.transform = transform
+    
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, idx):
+        sample = self.samples[idx]
+        data = {}
+        
+        for key, file_path in sample.items():
+            if key not in data:
+                data[key] = []
+            img = LoadImaged()(file_path)
+            data[key] = EnsureChannelFirstd()(img)
+        
+        # Include filename in the data dictionary
+        data['filename'] = {key: sample[key] for key in sample.keys()}
+        
+        if self.transform:
+            data = self.transform(data)
+        
+        return data
+
 
 def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
     numpy_x = x[0, 0, :, :, :].cpu().numpy().squeeze()
@@ -127,15 +162,15 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
     plt.close()
     print(f"Save the plot to {savename}")
 
-def collate_fn(batch):
-    # Assuming your data is a dictionary with tensor values
-    keys = batch[0].keys()
+def custom_collate_fn(batch):
     collated_batch = {}
+    keys = batch[0].keys()
     
     for key in keys:
-        # Stack only tensor data
         if isinstance(batch[0][key], torch.Tensor):
             collated_batch[key] = torch.stack([item[key] for item in batch])
+        elif isinstance(batch[0][key], dict):
+            collated_batch[key] = [{subkey: item[key][subkey] for subkey in item[key]} for item in batch]
         else:
             collated_batch[key] = [item[key] for item in batch]
     
@@ -235,57 +270,84 @@ def main():
         ]
     )
 
-    data_division_file = global_config["data_division"]
-    # load data_chunks.json and specif chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
-    with open(data_division_file, "r") as f:
-        data_chunk = json.load(f)
+    # data_division_file = global_config["data_division"]
+    # # load data_chunks.json and specif chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
+    # with open(data_division_file, "r") as f:
+    #     data_chunk = json.load(f)
 
-    train_files = []
-    val_files = []
-    test_files = []
+    # train_files = []
+    # val_files = []
+    # test_files = []
 
-    for i in range(3):
-        train_files.extend(data_chunk[f"chunk_{i}"])
-    for i in range(3, 4):
-        val_files.extend(data_chunk[f"chunk_{i}"])
-    for i in range(4, 5):
-        test_files.extend(data_chunk[f"chunk_{i}"])
+    # for i in range(3):
+    #     train_files.extend(data_chunk[f"chunk_{i}"])
+    # for i in range(3, 4):
+    #     val_files.extend(data_chunk[f"chunk_{i}"])
+    # for i in range(4, 5):
+    #     test_files.extend(data_chunk[f"chunk_{i}"])
 
-    num_train_files = len(train_files)
-    num_val_files = len(val_files)
-    num_test_files = len(test_files)
+    # num_train_files = len(train_files)
+    # num_val_files = len(val_files)
+    # num_test_files = len(test_files)
     
-    print("The number of train files is: ", num_train_files)
-    print("The number of val files is: ", num_val_files)
-    print("The number of test files is: ", num_test_files)
-    print(gap_sign*50)
+    # print("The number of train files is: ", num_train_files)
+    # print("The number of val files is: ", num_val_files)
+    # print("The number of test files is: ", num_test_files)
+    # print(gap_sign*50)
 
-    train_ds = CacheDataset(
-        data=train_files,
-        transform=train_transforms,
-        cache_num=num_train_files,
-        cache_rate=global_config["cache_ratio_train"],
-        num_workers=global_config["num_workers_train_cache_dataset"],
+    # Load data chunks
+    train_chunks = [f"chunk_{i}" for i in range(3)]
+    val_chunks = [f"chunk_{i}" for i in range(3, 4)]
+    test_chunks = [f"chunk_{i}" for i in range(4, 5)]
+
+    dataset_json = global_config["data_division"]
+
+    train_dataset = MedicalImageDataset(json_path=dataset_json, chunks=train_chunks, transform=train_transforms)
+    val_dataset = MedicalImageDataset(json_path=dataset_json, chunks=val_chunks, transform=val_transforms)
+    test_dataset = MedicalImageDataset(json_path=dataset_json, chunks=test_chunks, transform=val_transforms)
+
+    train_loader = DataLoader(
+        dataset=train_dataset,
+        batch_size=global_config["batch_size_train"],
+        shuffle=True,
+        num_workers=global_config["num_workers_train_dataloader"],
+        collate_fn=custom_collate_fn
     )
 
-    val_ds = CacheDataset(
-        data=val_files,
-        transform=val_transforms, 
-        cache_num=num_val_files,
-        cache_rate=global_config["cache_ratio_val"],
-        num_workers=global_config["num_workers_val_cache_dataset"],
+    val_loader = DataLoader(
+        dataset=val_dataset,
+        batch_size=global_config["batch_size_val"],
+        shuffle=False,
+        num_workers=global_config["num_workers_val_dataloader"],
+        collate_fn=custom_collate_fn
     )
 
-    train_loader = DataLoader(train_ds, 
-                              batch_size=global_config["batch_size_train"],
-                              shuffle=True, 
-                              num_workers=global_config["num_workers_train_dataloader"],
-                              collate_fn=collate_fn)
-    val_loader = DataLoader(val_ds, 
-                            batch_size=global_config["batch_size_val"], 
-                            shuffle=False, 
-                            num_workers=global_config["num_workers_val_dataloader"],
-                            collate_fn=collate_fn)
+    # train_ds = CacheDataset(
+    #     data=train_files,
+    #     transform=train_transforms,
+    #     cache_num=num_train_files,
+    #     cache_rate=global_config["cache_ratio_train"],
+    #     num_workers=global_config["num_workers_train_cache_dataset"],
+    # )
+
+    # val_ds = CacheDataset(
+    #     data=val_files,
+    #     transform=val_transforms, 
+    #     cache_num=num_val_files,
+    #     cache_rate=global_config["cache_ratio_val"],
+    #     num_workers=global_config["num_workers_val_cache_dataset"],
+    # )
+
+    # train_loader = DataLoader(train_ds, 
+    #                           batch_size=global_config["batch_size_train"],
+    #                           shuffle=True, 
+    #                           num_workers=global_config["num_workers_train_dataloader"],
+    #                           collate_fn=collate_fn)
+    # val_loader = DataLoader(val_ds, 
+    #                         batch_size=global_config["batch_size_val"], 
+    #                         shuffle=False, 
+    #                         num_workers=global_config["num_workers_val_dataloader"],
+    #                         collate_fn=collate_fn)
     
     print("The data loaders are built successfully.")
     print(gap_sign*50)
@@ -306,12 +368,14 @@ def main():
             "reconL1": [],
         }
         for idx_batch, batch in enumerate(train_loader):
+            print("Currently loading the batch named: ", batch["filename"])
             y = batch["CT"].to(device)
             x = batch["PET_raw"].to(device)
             # if there are other modalities, concatenate them at the channel dimension
             for modality in input_modality:
                 if modality != "PET_raw" and modality != "CT":
                     x = torch.cat((x, batch[modality].to(device)), dim=1)
+            filename = batch["filename"]
 
             print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape} at device {x.device}, y: {y.shape} at device {y.device}")
         #     optimizer.zero_grad()
