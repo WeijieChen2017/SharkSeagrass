@@ -91,16 +91,14 @@ class MedicalImageDataset(Dataset):
         data = {}
         
         for key, file_path in sample.items():
-            if key not in data:
-                data[key] = []
-            img = LoadImage()(file_path)
-            data[key] = EnsureChannelFirst()(img)
+            data[key] = file_path  # Store the file path initially
+        
+        # Load and transform images
+        if self.transform:
+            data = self.transform(data)
         
         # Include filename in the data dictionary
         data['filename'] = {key: sample[key] for key in sample.keys()}
-        
-        if self.transform:
-            data = self.transform(data)
         
         return data
 
