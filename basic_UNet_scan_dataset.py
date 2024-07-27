@@ -25,6 +25,7 @@ import os
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import os
+import time
 import torch
 # set the device to be GPU:1
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
@@ -151,6 +152,9 @@ def load_yaml_config(config_file_path):
 def main():
     config_file_path = parse_yaml_arguments().config_file_path
     global_config = load_yaml_config(config_file_path)
+    save_folder = global_config["save_folder"]
+    time_stamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+    global_config["save_folder"] = f"{save_folder}/{time_stamp}"
     os.makedirs(global_config['save_folder'], exist_ok=True)
 
     # show the global_config
@@ -349,14 +353,14 @@ def main():
         #     torch.save(optimizer.state_dict(), optimizer_save_name)
         #     logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
-        # plot the PET and CT every plot_per_epoch
-        # print(x.shape, y.shape, y_pred.shape)
-        if idx_epoch % plot_per_epoch == 0:
-            plot_and_save_x_y_z(x=x,
-                                y=y, 
-                                z=y_pred, 
-                                num_per_direction=3, 
-                                savename=f"{global_config['save_folder']}/plot_{idx_epoch:04}.png")
+        # # plot the PET and CT every plot_per_epoch
+        # # print(x.shape, y.shape, y_pred.shape)
+        # if idx_epoch % plot_per_epoch == 0:
+        #     plot_and_save_x_y_z(x=x,
+        #                         y=y, 
+        #                         z=y_pred, 
+        #                         num_per_direction=3, 
+        #                         savename=f"{global_config['save_folder']}/plot_{idx_epoch:04}.png")
 
             
 if __name__ == "__main__":
