@@ -70,6 +70,8 @@ from monai.transforms import (
     RandRotated,
 )
 
+from monai.transforms import LoadImage, Compose, EnsureChannelFirst
+
 class MedicalImageDataset(Dataset):
     def __init__(self, json_path, chunks, transform=None):
         with open(json_path, 'r') as f:
@@ -91,8 +93,8 @@ class MedicalImageDataset(Dataset):
         for key, file_path in sample.items():
             if key not in data:
                 data[key] = []
-            img = LoadImaged()(file_path)
-            data[key] = EnsureChannelFirstd()(img)
+            img = LoadImage()(file_path)
+            data[key] = EnsureChannelFirst()(img)
         
         # Include filename in the data dictionary
         data['filename'] = {key: sample[key] for key in sample.keys()}
