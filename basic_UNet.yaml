@@ -1,6 +1,6 @@
 description: Train a 3D ViT-VQGAN model
 tag: PET_R
-data_division: "synCT_PET_James/3PET1CT.npy"
+data_division: "synCT_PET_James/3PET1CT_npy.json"
 save_folder: "project/basic_UNet_synCT_PET_R"
 random_seed: 426
 volume_size: 64
