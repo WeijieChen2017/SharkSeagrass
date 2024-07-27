@@ -270,84 +270,86 @@ def main():
         ]
     )
 
-    # data_division_file = global_config["data_division"]
-    # # load data_chunks.json and specif chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
-    # with open(data_division_file, "r") as f:
-    #     data_chunk = json.load(f)
+    data_division_file = global_config["data_division"]
+    # load data_chunks.json and specif chunk_0 to chunk_4 for training, chunk_5 to chunk_7 for validation, chunk_8 and chunk_9 for testing
+    with open(data_division_file, "r") as f:
+        data_chunk = json.load(f)
 
-    # train_files = []
-    # val_files = []
-    # test_files = []
+    train_files = []
+    val_files = []
+    test_files = []
 
-    # for i in range(3):
-    #     train_files.extend(data_chunk[f"chunk_{i}"])
-    # for i in range(3, 4):
-    #     val_files.extend(data_chunk[f"chunk_{i}"])
-    # for i in range(4, 5):
-    #     test_files.extend(data_chunk[f"chunk_{i}"])
+    for i in range(3):
+        train_files.extend(data_chunk[f"chunk_{i}"])
+    for i in range(3, 4):
+        val_files.extend(data_chunk[f"chunk_{i}"])
+    for i in range(4, 5):
+        test_files.extend(data_chunk[f"chunk_{i}"])
 
-    # num_train_files = len(train_files)
-    # num_val_files = len(val_files)
-    # num_test_files = len(test_files)
+    num_train_files = len(train_files)
+    num_val_files = len(val_files)
+    num_test_files = len(test_files)
     
-    # print("The number of train files is: ", num_train_files)
-    # print("The number of val files is: ", num_val_files)
-    # print("The number of test files is: ", num_test_files)
-    # print(gap_sign*50)
+    print("The number of train files is: ", num_train_files)
+    print("The number of val files is: ", num_val_files)
+    print("The number of test files is: ", num_test_files)
+    print(gap_sign*50)
 
     # Load data chunks
-    train_chunks = [f"chunk_{i}" for i in range(3)]
-    val_chunks = [f"chunk_{i}" for i in range(3, 4)]
-    test_chunks = [f"chunk_{i}" for i in range(4, 5)]
+    # train_chunks = [f"chunk_{i}" for i in range(3)]
+    # val_chunks = [f"chunk_{i}" for i in range(3, 4)]
+    # test_chunks = [f"chunk_{i}" for i in range(4, 5)]
 
-    dataset_json = global_config["data_division"]
+    # dataset_json = global_config["data_division"]
 
-    train_dataset = MedicalImageDataset(json_path=dataset_json, chunks=train_chunks, transform=train_transforms)
-    val_dataset = MedicalImageDataset(json_path=dataset_json, chunks=val_chunks, transform=val_transforms)
-    test_dataset = MedicalImageDataset(json_path=dataset_json, chunks=test_chunks, transform=val_transforms)
+    # train_dataset = MedicalImageDataset(json_path=dataset_json, chunks=train_chunks, transform=train_transforms)
+    # val_dataset = MedicalImageDataset(json_path=dataset_json, chunks=val_chunks, transform=val_transforms)
+    # test_dataset = MedicalImageDataset(json_path=dataset_json, chunks=test_chunks, transform=val_transforms)
 
-    train_loader = DataLoader(
-        dataset=train_dataset,
-        batch_size=global_config["batch_size_train"],
-        shuffle=True,
-        num_workers=global_config["num_workers_train_dataloader"],
-        collate_fn=custom_collate_fn
-    )
-
-    val_loader = DataLoader(
-        dataset=val_dataset,
-        batch_size=global_config["batch_size_val"],
-        shuffle=False,
-        num_workers=global_config["num_workers_val_dataloader"],
-        collate_fn=custom_collate_fn
-    )
-
-    # train_ds = CacheDataset(
-    #     data=train_files,
-    #     transform=train_transforms,
-    #     cache_num=num_train_files,
-    #     cache_rate=global_config["cache_ratio_train"],
-    #     num_workers=global_config["num_workers_train_cache_dataset"],
+    # train_loader = DataLoader(
+    #     dataset=train_dataset,
+    #     batch_size=global_config["batch_size_train"],
+    #     shuffle=True,
+    #     num_workers=global_config["num_workers_train_dataloader"],
+    #     collate_fn=custom_collate_fn
     # )
 
-    # val_ds = CacheDataset(
-    #     data=val_files,
-    #     transform=val_transforms, 
-    #     cache_num=num_val_files,
-    #     cache_rate=global_config["cache_ratio_val"],
-    #     num_workers=global_config["num_workers_val_cache_dataset"],
+    # val_loader = DataLoader(
+    #     dataset=val_dataset,
+    #     batch_size=global_config["batch_size_val"],
+    #     shuffle=False,
+    #     num_workers=global_config["num_workers_val_dataloader"],
+    #     collate_fn=custom_collate_fn
     # )
 
-    # train_loader = DataLoader(train_ds, 
-    #                           batch_size=global_config["batch_size_train"],
-    #                           shuffle=True, 
-    #                           num_workers=global_config["num_workers_train_dataloader"],
-    #                           collate_fn=collate_fn)
-    # val_loader = DataLoader(val_ds, 
-    #                         batch_size=global_config["batch_size_val"], 
-    #                         shuffle=False, 
-    #                         num_workers=global_config["num_workers_val_dataloader"],
-    #                         collate_fn=collate_fn)
+    train_ds = CacheDataset(
+        data=train_files,
+        transform=train_transforms,
+        cache_num=num_train_files,
+        cache_rate=global_config["cache_ratio_train"],
+        num_workers=global_config["num_workers_train_cache_dataset"],
+    )
+
+    val_ds = CacheDataset(
+        data=val_files,
+        transform=val_transforms, 
+        cache_num=num_val_files,
+        cache_rate=global_config["cache_ratio_val"],
+        num_workers=global_config["num_workers_val_cache_dataset"],
+    )
+
+    train_loader = DataLoader(train_ds, 
+                              batch_size=global_config["batch_size_train"],
+                              shuffle=True, 
+                              num_workers=global_config["num_workers_train_dataloader"],
+                            #   collate_fn=collate_fn
+                              )
+    val_loader = DataLoader(val_ds, 
+                            batch_size=global_config["batch_size_val"], 
+                            shuffle=False, 
+                            num_workers=global_config["num_workers_val_dataloader"],
+                            # collate_fn=collate_fn
+                            )
     
     print("The data loaders are built successfully.")
     print(gap_sign*50)
@@ -368,14 +370,14 @@ def main():
             "reconL1": [],
         }
         for idx_batch, batch in enumerate(train_loader):
-            print("Currently loading the batch named: ", batch["filename"])
+            # print("Currently loading the batch named: ", batch["filename"])
             y = batch["CT"].to(device)
             x = batch["PET_raw"].to(device)
             # if there are other modalities, concatenate them at the channel dimension
             for modality in input_modality:
                 if modality != "PET_raw" and modality != "CT":
                     x = torch.cat((x, batch[modality].to(device)), dim=1)
-            filename = batch["filename"]
+            # filename = batch["filename"]
 
             print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape} at device {x.device}, y: {y.shape} at device {y.device}")
         #     optimizer.zero_grad()
