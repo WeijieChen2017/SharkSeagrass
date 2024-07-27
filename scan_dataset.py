@@ -18,8 +18,10 @@ for chunk_name, sub_tag_dict_list in data.items():
         chunk_npy_dict = {}
         for modality, file_path in sub_tag_dict.items():
             if os.path.exists(file_path):
-                data = np.load(file_path, allow_pickle=True).item()
-                print(f"{file_path} file exists and ", f"shape: {data.shape}")
+                data = np.load(file_path, allow_pickle=True)
+                # print(f"{file_path} file exists and ", f"shape: {data.shape}")
+                if data.shape[2] == 256:
+                    print(f"{file_path} file exists and ", f"shape: {data.shape}")
                 # data = nib.load(file_path).get_fdata()
                 # print(f"{file_path} file exists and ", f"shape: {data.shape}")
                 # npy_file_path = file_path.replace(".nii.gz", ".npy")
