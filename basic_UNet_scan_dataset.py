@@ -218,7 +218,7 @@ def main():
 
     # set the logger
     current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-    log_file_path = f"train_log_{current_time}.txt"
+    log_file_path = global_config["save_folder"]+f"train_log_{current_time}.txt"
     logger = local_logger(log_file_path)
     print("The log file path is: ", log_file_path)
 
