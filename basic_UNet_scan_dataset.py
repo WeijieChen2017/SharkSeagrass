@@ -292,9 +292,9 @@ class monai_UNet(nn.Module):
 
 
 def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
-    numpy_x = x[0, 0, :, :, :].cpu().numpy().squeeze()
-    numpy_y = y[0, :, :, :, :].cpu().numpy().squeeze()
-    numpy_z = z[0, :, :, :, :].cpu().numpy().squeeze()
+    numpy_x = x[0, 0, :, :, :].detach().cpu().numpy().squeeze()
+    numpy_y = y[0, :, :, :, :].detach().cpu().numpy().squeeze()
+    numpy_z = z[0, :, :, :, :].detach().cpu().numpy().squeeze()
     x_clip = np.clip(numpy_x, 0, 1)
     y_clip = np.clip(numpy_y, 0, 1)
     z_clip = np.clip(numpy_z, 0, 1)
@@ -442,7 +442,7 @@ def main():
     # set the data transform
     train_transforms = Compose(
         [
-            LoadImaged(keys=input_modality),
+            LoadImaged(keys=input_modality, image_only=False),
             EnsureChannelFirstd(keys=input_modality),
             # Orientationd(keys=input_modality, axcodes="RAS"),
             RandSpatialCropd(keys=input_modality, roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
@@ -486,33 +486,6 @@ def main():
     print("The number of val files is: ", num_val_files)
     print("The number of test files is: ", num_test_files)
     print(gap_sign*50)
-
-    # Load data chunks
-    # train_chunks = [f"chunk_{i}" for i in range(3)]
-    # val_chunks = [f"chunk_{i}" for i in range(3, 4)]
-    # test_chunks = [f"chunk_{i}" for i in range(4, 5)]
-
-    # dataset_json = global_config["data_division"]
-
-    # train_dataset = MedicalImageDataset(json_path=dataset_json, chunks=train_chunks, transform=train_transforms)
-    # val_dataset = MedicalImageDataset(json_path=dataset_json, chunks=val_chunks, transform=val_transforms)
-    # test_dataset = MedicalImageDataset(json_path=dataset_json, chunks=test_chunks, transform=val_transforms)
-
-    # train_loader = DataLoader(
-    #     dataset=train_dataset,
-    #     batch_size=global_config["batch_size_train"],
-    #     shuffle=True,
-    #     num_workers=global_config["num_workers_train_dataloader"],
-    #     collate_fn=custom_collate_fn
-    # )
-
-    # val_loader = DataLoader(
-    #     dataset=val_dataset,
-    #     batch_size=global_config["batch_size_val"],
-    #     shuffle=False,
-    #     num_workers=global_config["num_workers_val_dataloader"],
-    #     collate_fn=custom_collate_fn
-    # )
 
     train_ds = CacheDataset(
         data=train_files,
@@ -569,7 +542,8 @@ def main():
             for modality in input_modality:
                 if modality != "PET_raw" and modality != "CT":
                     x = torch.cat((x, batch[modality].to(device)), dim=1)
-            # filename = batch["filename"]
+            filename = batch["meta_dict"]["filename"]
+            print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape} at device {x.device}, y: {y.shape} at device {y.device}, filename: {filename}")
 
             # print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape} at device {x.device}, y: {y.shape} at device {y.device}")
             optimizer.zero_grad()
