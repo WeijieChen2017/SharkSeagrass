@@ -28,7 +28,7 @@ import os
 import time
 import torch
 # set the device to be GPU:1
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
 
