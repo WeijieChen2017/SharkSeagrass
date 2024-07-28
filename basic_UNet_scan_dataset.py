@@ -153,7 +153,7 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
         axs[1, 3*i+2].imshow(img_y, cmap="gray")
         axs[1, 3*i+2].set_title(f"C y {y_clip.shape[1]//(num_per_direction+1)*(i+1)}")
         axs[1, 3*i+2].axis("off")
-        axs[2, 3*i+2].imshow(img_z, cmap="bwr")
+        axs[2, 3*i+2].imshow(img_z, cmap="gray")
         axs[2, 3*i+2].set_title(f"C z {z_clip.shape[1]//(num_per_direction+1)*(i+1)}")
         axs[2, 3*i+2].axis("off")
 
@@ -380,67 +380,67 @@ def main():
             # filename = batch["filename"]
 
             print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape} at device {x.device}, y: {y.shape} at device {y.device}")
-        #     optimizer.zero_grad()
-        #     y_pred = model(x)
-        #     loss = F.l1_loss(y_pred, y)
-        #     loss.backward()
-        #     optimizer.step()
-        #     epoch_loss_train["reconL1"].append(loss.item())
-        #     print(f"Train <{idx_epoch}> [{idx_batch}] Total loss: {loss.item()}")
+            optimizer.zero_grad()
+            y_pred = model(x)
+            loss = F.l1_loss(y_pred, y)
+            loss.backward()
+            optimizer.step()
+            epoch_loss_train["reconL1"].append(loss.item())
+            print(f"Train <{idx_epoch}> [{idx_batch}] Total loss: {loss.item()}")
         
-        # for key in epoch_loss_train.keys():
-        #     epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
-        #     logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
+        for key in epoch_loss_train.keys():
+            epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
+            logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
         
-        # # validation
-        # if idx_epoch % val_per_epoch == 0:
-        #     model.eval()
-        #     epoch_loss_val = {
-        #         "reconL1": [],
-        #     }
-        #     with torch.no_grad():
-        #         for idx_batch, batch in enumerate(val_loader):
-        #             y = batch["CT"].to(device)
-        #             x = batch["PET_raw"].to(device)
-        #             # if there are other modalities, concatenate them at the channel dimension
-        #             for modality in input_modality:
-        #                 if modality != "PET_raw" and modality != "CT":
-        #                     x = torch.cat((x, batch[modality].to(device)), dim=1)
-        #             y_pred = model(x)
-        #             loss = F.l1_loss(y_pred, y)
-        #             epoch_loss_val["reconL1"].append(loss.item())
-        #             print(f"Eval <{idx_epoch}> [{idx_batch}] Total loss: {loss.item()}")
+        # validation
+        if idx_epoch % val_per_epoch == 0:
+            model.eval()
+            epoch_loss_val = {
+                "reconL1": [],
+            }
+            with torch.no_grad():
+                for idx_batch, batch in enumerate(val_loader):
+                    y = batch["CT"].to(device)
+                    x = batch["PET_raw"].to(device)
+                    # if there are other modalities, concatenate them at the channel dimension
+                    for modality in input_modality:
+                        if modality != "PET_raw" and modality != "CT":
+                            x = torch.cat((x, batch[modality].to(device)), dim=1)
+                    y_pred = model(x)
+                    loss = F.l1_loss(y_pred, y)
+                    epoch_loss_val["reconL1"].append(loss.item())
+                    print(f"Eval <{idx_epoch}> [{idx_batch}] Total loss: {loss.item()}")
             
-        #     for key in epoch_loss_val.keys():
-        #         epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
-        #         logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
+            for key in epoch_loss_val.keys():
+                epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
+                logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
             
-        #     current_val_loss = epoch_loss_val["reconL1"].mean()
-        #     if current_val_loss < best_val_loss:
-        #         best_val_loss = current_val_loss
-        #         model_save_name = global_config["save_folder"]+f"/model_best_{idx_epoch}_state_dict.pth"
-        #         optimizer_save_name = global_config["save_folder"]+f"/optimizer_best_{idx_epoch}_state_dict.pth"
-        #         torch.save(model.state_dict(), model_save_name)
-        #         torch.save(optimizer.state_dict(), optimizer_save_name)
-        #         logger.log(idx_epoch, "best_val_loss", best_val_loss)
+            current_val_loss = epoch_loss_val["reconL1"].mean()
+            if current_val_loss < best_val_loss:
+                best_val_loss = current_val_loss
+                model_save_name = global_config["save_folder"]+f"/model_best_{idx_epoch}_state_dict.pth"
+                optimizer_save_name = global_config["save_folder"]+f"/optimizer_best_{idx_epoch}_state_dict.pth"
+                torch.save(model.state_dict(), model_save_name)
+                torch.save(optimizer.state_dict(), optimizer_save_name)
+                logger.log(idx_epoch, "best_val_loss", best_val_loss)
             
-        # # save the model every save_per_epoch
-        # if idx_epoch % save_per_epoch == 0:
-        #     # delete previous model
-        #     for f in glob.glob(global_config["save_folder"]+"/latest_*"):
-        #         os.remove(f)
-        #     model_save_name = global_config["save_folder"]+f"/latest_model_{idx_epoch}_state_dict.pth"
-        #     optimizer_save_name = global_config["save_folder"]+f"/latest_optimizer_{idx_epoch}_state_dict.pth"
-        #     torch.save(model.state_dict(), model_save_name)
-        #     torch.save(optimizer.state_dict(), optimizer_save_name)
-        #     logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
+        # save the model every save_per_epoch
+        if idx_epoch % save_per_epoch == 0:
+            # delete previous model
+            for f in glob.glob(global_config["save_folder"]+"/latest_*"):
+                os.remove(f)
+            model_save_name = global_config["save_folder"]+f"/latest_model_{idx_epoch}_state_dict.pth"
+            optimizer_save_name = global_config["save_folder"]+f"/latest_optimizer_{idx_epoch}_state_dict.pth"
+            torch.save(model.state_dict(), model_save_name)
+            torch.save(optimizer.state_dict(), optimizer_save_name)
+            logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
         # plot the PET and CT every plot_per_epoch
         # print(x.shape, y.shape, y_pred.shape)
         if idx_epoch % plot_per_epoch == 0:
             plot_and_save_x_y_z(x=x,
                                 y=y, 
-                                z=y, 
+                                z=y_pred, 
                                 num_per_direction=3, 
                                 savename=f"{global_config['save_folder']}/plot_{idx_epoch:04}.png")
 
