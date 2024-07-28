@@ -435,14 +435,14 @@ def main():
         #     torch.save(optimizer.state_dict(), optimizer_save_name)
         #     logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
         
-        # # plot the PET and CT every plot_per_epoch
-        # # print(x.shape, y.shape, y_pred.shape)
-        # if idx_epoch % plot_per_epoch == 0:
-        #     plot_and_save_x_y_z(x=x,
-        #                         y=y, 
-        #                         z=y_pred, 
-        #                         num_per_direction=3, 
-        #                         savename=f"{global_config['save_folder']}/plot_{idx_epoch:04}.png")
+        # plot the PET and CT every plot_per_epoch
+        # print(x.shape, y.shape, y_pred.shape)
+        if idx_epoch % plot_per_epoch == 0:
+            plot_and_save_x_y_z(x=x,
+                                y=y, 
+                                z=y, 
+                                num_per_direction=3, 
+                                savename=f"{global_config['save_folder']}/plot_{idx_epoch:04}.png")
 
             
 if __name__ == "__main__":
