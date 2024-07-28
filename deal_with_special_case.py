@@ -2,11 +2,13 @@ import nibabel as nib
 import os
 import numpy as np
 
-CT_path = "synCT_PET_James/ori/E4063_CT_re.nii.gz"
+CT_path = "synCT_PET_James/ori/E4063_CT_400.nii.gz"
 
 CT_file = nib.load(CT_path)
 CT_data = CT_file.get_fdata()
 
+print("---CT data---")
+print(CT_data.shape)
 cut_data = CT_data[:, :, 1024:1280]
 
 print(cut_data.shape)
