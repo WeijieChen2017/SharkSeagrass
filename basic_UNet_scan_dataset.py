@@ -77,7 +77,8 @@ from monai.networks.layers.factories import Act, Norm
 from monai.networks.layers.simplelayers import SkipConnection
 from monai.utils import alias, export
 
-from collections.abc import Sequence
+# from collections import Sequence
+from typing import Sequence
 import warnings
 
 class monai_UNet(nn.Module):
@@ -88,13 +89,13 @@ class monai_UNet(nn.Module):
         spatial_dims: int,
         in_channels: int,
         out_channels: int,
-        channels: list,
-        strides: list,
-        kernel_size: int = 3,
-        up_kernel_size: int = 3,
+        channels: Sequence[int],
+        strides: Sequence[int],
+        kernel_size: Sequence[int] | int = 3,
+        up_kernel_size: Sequence[int] | int = 3,
         num_res_units: int = 0,
-        act: str = Act.PRELU,
-        norm: str = Norm.INSTANCE,
+        act: tuple | str = Act.PRELU,
+        norm: tuple | str = Norm.INSTANCE,
         dropout: float = 0.0,
         bias: bool = True,
         adn_ordering: str = "NDA",
