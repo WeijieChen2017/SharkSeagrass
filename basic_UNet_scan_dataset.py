@@ -94,8 +94,8 @@ class monai_UNet(nn.Module):
         kernel_size: Union[Sequence[int], int] = 3,
         up_kernel_size: Union[Sequence[int], int] = 3,
         num_res_units: int = 0,
-        act: tuple | str = Act.PRELU,
-        norm: tuple | str = Norm.INSTANCE,
+        act: Union[tuple, str] = Act.PRELU,
+        norm: Union[tuple, str] = Norm.INSTANCE,
         dropout: float = 0.0,
         bias: bool = True,
         adn_ordering: str = "NDA",
@@ -251,7 +251,7 @@ class monai_UNet(nn.Module):
             strides: convolution stride.
             is_top: True if this is the top block.
         """
-        conv: Convolution | nn.Sequential
+        conv: Union[Convolution, nn.Sequential]
 
         conv = Convolution(
             self.dimensions,
