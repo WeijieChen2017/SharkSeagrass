@@ -379,14 +379,14 @@ def main():
                     x = torch.cat((x, batch[modality].to(device)), dim=1)
             # filename = batch["filename"]
 
-            print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape} at device {x.device}, y: {y.shape} at device {y.device}")
+            # print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape} at device {x.device}, y: {y.shape} at device {y.device}")
             optimizer.zero_grad()
             y_pred = model(x)
             loss = F.l1_loss(y_pred, y)
             loss.backward()
             optimizer.step()
             epoch_loss_train["reconL1"].append(loss.item())
-            print(f"Train <{idx_epoch}> [{idx_batch}] Total loss: {loss.item()}")
+            print(f"Train <{idx_epoch}> [{idx_batch}] batch loss: {loss.item()}")
         
         for key in epoch_loss_train.keys():
             epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
