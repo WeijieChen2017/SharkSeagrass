@@ -9,7 +9,7 @@ num_workers_train_dataloader: 8
 num_workers_val_dataloader: 4
 num_workers_train_cache_dataset: 8
 num_workers_val_cache_dataset: 4
-batch_size_train: 16
+batch_size_train: 1
 batch_size_val: 8
 cache_ratio_train: 1.
 cache_ratio_val: 1.
