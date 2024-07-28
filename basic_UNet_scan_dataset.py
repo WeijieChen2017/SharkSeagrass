@@ -543,7 +543,7 @@ def main():
                 if modality != "PET_raw" and modality != "CT":
                     x = torch.cat((x, batch[modality].to(device)), dim=1)
             filename = batch["meta_data"]
-            print(filename)
+            print(batch.keys())
             filename = filename["filename"]
             print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape} at device {x.device}, y: {y.shape} at device {y.device}, filename: {filename}")
 
