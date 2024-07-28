@@ -542,8 +542,8 @@ def main():
             for modality in input_modality:
                 if modality != "PET_raw" and modality != "CT":
                     x = torch.cat((x, batch[modality].to(device)), dim=1)
-            for modality in input_modality:
-                print(f"{modality}_path:", batch[modality+"_meta_dict"]["filename_or_obj"])
+            # for modality in input_modality:
+            #     print(f"{modality}_path:", batch[modality+"_meta_dict"]["filename_or_obj"])
             
             # print(f"Train <{idx_epoch}> [{idx_batch}] x: {x.shape} at device {x.device}, y: {y.shape} at device {y.device}")
             optimizer.zero_grad()
