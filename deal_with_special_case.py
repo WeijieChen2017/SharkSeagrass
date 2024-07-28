@@ -24,9 +24,9 @@ print(cut_data_PET.shape)
 cut_CT_nii = nib.Nifti1Image(cut_data_CT, PET_file.affine, PET_file.header)
 new_CT_nii = "synCT_PET_James/E4063_CT_thick_256_norm01_s1013e1269.nii.gz"
 print(f"---Cropped data saved at {new_CT_nii}")
-# nib.save(cut_CT_nii, new_CT_nii)
+nib.save(cut_CT_nii, new_CT_nii)
 
 cut_PET_nii = nib.Nifti1Image(cut_data_PET, PET_file.affine, PET_file.header)
 new_PET_nii = "synCT_PET_James/E4063_PET_thick_256_norm01_s1013e1269.nii.gz"
 print(f"---Cropped data saved at {new_PET_nii}")
-# nib.save(cut_PET_nii, new_PET_nii)
+nib.save(cut_PET_nii, new_PET_nii)
