@@ -30,7 +30,7 @@ def generate_mask(data, threshold=100):
 
 
 
-PET_file = "synCT_PET_James/ori/E4079_CT_400.nii.gz"
+PET_file = "synCT_PET_James/ori/E4079_PET_re.nii.gz"
 PET_file = nib.load(PET_file)
 PET_data = PET_file.get_fdata()
 
