@@ -50,7 +50,7 @@ PET_list = sorted(glob.glob("synCT_PET_James/ori/*_PET_re.nii.gz"))
 num_files = len(PET_list)
 
 
-for idx_PET, PET_path in PET_list:
+for idx_PET, PET_path in enumerate(PET_list):
         
     print(f"[{idx_PET+1}/{num_files}] Processing {PET_path}")
 
