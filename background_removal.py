@@ -63,15 +63,15 @@ for idx_PET, PET_path in enumerate(PET_list):
     PET_data_smooth_gradient = np.gradient(PET_data_smooth)
     PET_data_smooth_gradient_magnitude = np.sqrt(PET_data_smooth_gradient[0]**2 + PET_data_smooth_gradient[1]**2 + PET_data_smooth_gradient[2]**2)
     
-    Ker3_filename = PET_path.replace("PET_re", f"PET_GauKer3")
-    Ker3_nii = nib.Nifti1Image(PET_data_smooth, PET_file.affine, PET_file.header)
-    nib.save(Ker3_nii, Ker3_filename)
-    print(f"---Smoothed data saved at {Ker3_filename}")
+    # Ker3_filename = PET_path.replace("PET_re", f"PET_GauKer3")
+    # Ker3_nii = nib.Nifti1Image(PET_data_smooth, PET_file.affine, PET_file.header)
+    # nib.save(Ker3_nii, Ker3_filename)
+    # print(f"---Smoothed data saved at {Ker3_filename}")
 
-    GradMag_filename = PET_path.replace("PET_re", f"PET_GradMag")
-    GradMag_nii = nib.Nifti1Image(PET_data_smooth_gradient_magnitude, PET_file.affine, PET_file.header)
-    nib.save(GradMag_nii, GradMag_filename)
-    print(f"---Gradient magnitude data saved at {GradMag_filename}")
+    # GradMag_filename = PET_path.replace("PET_re", f"PET_GradMag")
+    # GradMag_nii = nib.Nifti1Image(PET_data_smooth_gradient_magnitude, PET_file.affine, PET_file.header)
+    # nib.save(GradMag_nii, GradMag_filename)
+    # print(f"---Gradient magnitude data saved at {GradMag_filename}")
     
     for th_value in th_list:
         
