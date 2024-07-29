@@ -6,7 +6,7 @@ import numpy as np
 import scipy.ndimage as nd
 from scipy.ndimage import gaussian_filter
 
-th_list = [0.05, 0.04, 0.06]
+th_list = [0.05]
 
 def generate_mask(data, threshold=0.05):
     mask_data = np.zeros_like(data)
@@ -30,7 +30,26 @@ def generate_mask(data, threshold=0.05):
 
     return mask_data
 
+
+def crop_to_nonzero_rectangle(image, mask):
+    # Find non-zero indices in the mask
+    non_zero_indices = np.argwhere(mask)
+    
+    # Determine the bounding box for non-zero elements
+    x_min, y_min, _ = non_zero_indices.min(axis=0)
+    x_max, y_max, _ = non_zero_indices.max(axis=0)
+    
+    # Crop the PET image and mask based on the bounding box
+    cropped_image = image[x_min:x_max+1, y_min:y_max+1, :]
+    cropped_mask = mask[x_min:x_max+1, y_min:y_max+1, :]
+    
+    return cropped_image, cropped_mask
+
+
+
 PET_list = sorted(glob.glob("synCT_PET_James/ori/E4079_PET_re.nii.gz"))
+
+
 
 for PET_path in PET_list:
         
@@ -61,6 +80,33 @@ for PET_path in PET_list:
         PET_mask = generate_mask(PET_data_smooth, threshold=th_value)
 
         PET_mask_nii = nib.Nifti1Image(PET_mask, PET_file.affine, PET_file.header)
-        PET_mask_filename = PET_path.replace("PET_re", f"PET_mask_{th_value*100:02d}")
+        PET_mask_filename = PET_path.replace("PET_re", f"PET_mask_{int(th_value*100):02d}")
         nib.save(PET_mask_nii, PET_mask_filename)
         print(f"---Mask saved at {PET_mask_filename}")
+
+    CT_path = PET_path.replace("PET_re", "CT_400")
+    CT_file = nib.load(CT_path)
+    CT_data = CT_file.get_fdata()
+
+    CT_data = np.clip(CT_data, -1024, 2976)
+    CT_data = (CT_data + 1024) / 4000
+
+    CT_data_crop, _ = crop_to_nonzero_rectangle(CT_data, PET_mask)
+    PET_data_crop, PET_mask_crop = crop_to_nonzero_rectangle(PET_data, PET_mask)
+
+    CT_data_crop_nii = nib.Nifti1Image(CT_data_crop, PET_file.affine, PET_file.header)
+    PET_data_crop_nii = nib.Nifti1Image(PET_data_crop, PET_file.affine, PET_file.header)
+    PET_mask_crop_nii = nib.Nifti1Image(PET_mask_crop, PET_file.affine, PET_file.header)
+
+    CT_data_crop_filename = PET_path.replace("PET_re", "CT_crop")
+    PET_data_crop_filename = PET_path.replace("PET_re", "PET_crop")
+    PET_mask_crop_filename = PET_path.replace("PET_re", "PET_mask_crop")
+
+    nib.save(CT_data_crop_nii, CT_data_crop_filename)
+    nib.save(PET_data_crop_nii, PET_data_crop_filename)
+    nib.save(PET_mask_crop_nii, PET_mask_crop_filename)
+
+    print(f"---Cropped CT data saved at {CT_data_crop_filename}")
+    print(f"---Cropped PET data saved at {PET_data_crop_filename}")
+    print(f"---Cropped PET mask saved at {PET_mask_crop_filename}")
+
