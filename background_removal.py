@@ -6,7 +6,7 @@ import numpy as np
 import scipy.ndimage as nd
 from scipy.ndimage import gaussian_filter
 
-th_list = [0.05]
+th_list = [0.04]
 
 def generate_mask(data, threshold=0.04):
     mask_data = np.zeros_like(data)
@@ -30,7 +30,6 @@ def generate_mask(data, threshold=0.04):
 
     return mask_data
 
-
 def find_bounding_box(mask):
     # Find non-zero indices in the mask
     non_zero_indices = np.argwhere(mask)
@@ -48,7 +47,6 @@ def find_bounding_box(mask):
 
 PET_list = sorted(glob.glob("synCT_PET_James/ori/*_PET_re.nii.gz"))
 num_files = len(PET_list)
-
 
 for idx_PET, PET_path in enumerate(PET_list):
         
