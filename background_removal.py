@@ -6,7 +6,7 @@ import numpy as np
 import scipy.ndimage as nd
 from scipy.ndimage import gaussian_filter
 
-def generate_mask(data, threshold=0.05):
+def generate_mask(data, threshold=0.02):
     mask_data = np.zeros_like(data)
     mask_data[data >= threshold] = 1
 
