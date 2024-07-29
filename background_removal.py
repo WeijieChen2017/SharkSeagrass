@@ -35,11 +35,12 @@ PET_list = sorted(glob.glob("synCT_PET_James/ori/E4079_PET_re.nii.gz"))
 for th_value in th_list:
     for PET_path in PET_list:
         
+        print("Processing ", PET_path, "at threshold ", th_value)
         PET_file = nib.load(PET_path)
         PET_data = PET_file.get_fdata()
 
         PET_data = np.clip(PET_data, 0, 4000)
-        PET_data_smooth = PET_data_smooth / 4000
+        PET_data = PET_data / 4000
         PET_data_smooth = gaussian_filter(PET_data, sigma=3)
         PET_data_smooth_gradient = np.gradient(PET_data_smooth)
         PET_data_smooth_gradient_magnitude = np.sqrt(PET_data_smooth_gradient[0]**2 + PET_data_smooth_gradient[1]**2 + PET_data_smooth_gradient[2]**2)
