@@ -6,7 +6,7 @@ import numpy as np
 import scipy.ndimage as nd
 from scipy.ndimage import gaussian_filter
 
-def generate_mask(data, threshold=0.001):
+def generate_mask(data, threshold=0.0001):
     mask_data = np.zeros_like(data)
     mask_data[data >= threshold] = 1
 
@@ -34,8 +34,15 @@ PET_file = "synCT_PET_James/ori/E4079_CT_400.nii.gz"
 PET_file = nib.load(PET_file)
 PET_data = PET_file.get_fdata()
 
+PET_data = np.clip(PET_data, 0, 4000)
 PET_data = PET_data / 4000
 PET_data_smooth = gaussian_filter(PET_data, sigma=3)
+
+Ker3_filename = "synCT_PET_James/ori/E4079_CT_400_GauKer_3.nii.gz"
+Ker3_nii = nib.Nifti1Image(PET_data_smooth, PET_file.affine, PET_file.header)
+nib.save(Ker3_nii, Ker3_filename)
+print(f"---Smoothed data saved at {Ker3_filename}")
+
 PET_mask = generate_mask(PET_data_smooth)
 
 PET_mask_nii = nib.Nifti1Image(PET_mask, PET_file.affine, PET_file.header)
