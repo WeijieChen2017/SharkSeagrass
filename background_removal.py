@@ -32,30 +32,30 @@ def generate_mask(data, threshold=0.05):
 
 PET_list = sorted(glob.glob("synCT_PET_James/ori/E4079_PET_re.nii.gz"))
 
-for th_value in th_list:
-    for PET_path in PET_list:
+for PET_path in PET_list:
+        
+    PET_file = nib.load(PET_path)
+    PET_data = PET_file.get_fdata()
+
+    PET_data = np.clip(PET_data, 0, 4000)
+    PET_data = PET_data / 4000
+    PET_data_smooth = gaussian_filter(PET_data, sigma=3)
+    PET_data_smooth_gradient = np.gradient(PET_data_smooth)
+    PET_data_smooth_gradient_magnitude = np.sqrt(PET_data_smooth_gradient[0]**2 + PET_data_smooth_gradient[1]**2 + PET_data_smooth_gradient[2]**2)
+    
+    Ker3_filename = PET_path.replace("PET_re", f"PET_GauKer3")
+    Ker3_nii = nib.Nifti1Image(PET_data_smooth, PET_file.affine, PET_file.header)
+    nib.save(Ker3_nii, Ker3_filename)
+    print(f"---Smoothed data saved at {Ker3_filename}")
+
+    GradMag_filename = PET_path.replace("PET_re", f"PET_GradMag")
+    GradMag_nii = nib.Nifti1Image(PET_data_smooth_gradient_magnitude, PET_file.affine, PET_file.header)
+    nib.save(GradMag_nii, GradMag_filename)
+    print(f"---Gradient magnitude data saved at {GradMag_filename}")
+    
+    for th_value in th_list:
         
         print("Processing ", PET_path, "at threshold ", th_value)
-        PET_file = nib.load(PET_path)
-        PET_data = PET_file.get_fdata()
-
-        PET_data = np.clip(PET_data, 0, 4000)
-        PET_data = PET_data / 4000
-        PET_data_smooth = gaussian_filter(PET_data, sigma=3)
-        PET_data_smooth_gradient = np.gradient(PET_data_smooth)
-        PET_data_smooth_gradient_magnitude = np.sqrt(PET_data_smooth_gradient[0]**2 + PET_data_smooth_gradient[1]**2 + PET_data_smooth_gradient[2]**2)
-        
-        Ker3_filename = PET_path.replace("PET_re", f"PET_GauKer3")
-        Ker3_nii = nib.Nifti1Image(PET_data_smooth, PET_file.affine, PET_file.header)
-        nib.save(Ker3_nii, Ker3_filename)
-        print(f"---Smoothed data saved at {Ker3_filename}")
-
-        GradMag_filename = PET_path.replace("PET_re", f"PET_GradMag")
-        GradMag_nii = nib.Nifti1Image(PET_data_smooth_gradient_magnitude, PET_file.affine, PET_file.header)
-        nib.save(GradMag_nii, GradMag_filename)
-        print(f"---Gradient magnitude data saved at {GradMag_filename}")
-
-
         PET_mask = generate_mask(PET_data_smooth, threshold=th_value)
 
         PET_mask_nii = nib.Nifti1Image(PET_mask, PET_file.affine, PET_file.header)
