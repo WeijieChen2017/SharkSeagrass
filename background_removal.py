@@ -34,6 +34,8 @@ PET_list = sorted(glob.glob("synCT_PET_James/ori/E4079_PET_re.nii.gz"))
 
 for PET_path in PET_list:
         
+    print("Processing ", PET_path)
+
     PET_file = nib.load(PET_path)
     PET_data = PET_file.get_fdata()
 
