@@ -462,7 +462,8 @@ def main():
             #                  num_samples=global_config["batches_from_each_nii"]),
             RandSpatialCropSamplesd(keys=input_modality,
                                     roi_size=(volume_size, volume_size, volume_size),
-                                    num_samples=global_config["batches_from_each_nii"]),
+                                    num_samples=global_config["batches_from_each_nii"],
+                                    random_size=False, random_center=True),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
@@ -480,8 +481,9 @@ def main():
             #                  random_center=True, random_size=False,
             #                  num_samples=global_config["batches_from_each_nii"]),
             RandSpatialCropSamplesd(keys=input_modality,
-                        roi_size=(volume_size, volume_size, volume_size),
-                        num_samples=global_config["batches_from_each_nii"]),
+                                    roi_size=(volume_size, volume_size, volume_size),
+                                    num_samples=global_config["batches_from_each_nii"],
+                                    random_size=False, random_center=True),
         ]
     )
 
