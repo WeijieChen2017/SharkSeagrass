@@ -56,3 +56,5 @@ for idx_img in range(num_images):
     print(f"[{idx_img+1}/{num_images}] Saved at {save_name}")
 
 
+
+# after the observation, we say PET_mean < 0.01 is discarded
