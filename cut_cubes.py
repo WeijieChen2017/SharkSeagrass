@@ -12,16 +12,16 @@ print("Loaded PET data shape: ", PET_data.shape)
 
 # randomly cut 64*64*64 cubes from the PET data
 cut_size = 64
-num_cubes = 8
+num_cubes = 10
 num_images = 5
 
-width = num_images * 1.2
+width = num_images * 2
 height = 3
 
 for idx_img in range(num_images):
 
 
-    fig, ax = plt.subplots(1, 1, figsize=(width, height))
+    plt.figure(figsize=(width, height), dpi=200)
 
     for idx_cub in range(num_cubes):
         
@@ -37,17 +37,17 @@ for idx_img in range(num_images):
         plt.subplot(3, num_cubes, idx_cub+1)
         plt.imshow(cut_cube[:, :, cut_size//2], cmap="gray")
         plt.axis("off")
-        plt.title(f"Mean: {PET_mean:.2f}")
+        plt.title(f"{PET_mean:.4f}")
 
         plt.subplot(3, num_cubes, num_cubes+idx_cub+1)
         plt.imshow(cut_cube[:, cut_size//2, :], cmap="gray")
         plt.axis("off")
-        plt.title(f"Mean: {PET_mean:.2f}")
+        plt.title(f"{PET_mean:.4f}")
 
         plt.subplot(3, num_cubes, 2*num_cubes+idx_cub+1)
         plt.imshow(cut_cube[cut_size//2, :, :], cmap="gray")
         plt.axis("off")
-        plt.title(f"Mean: {PET_mean:.2f}")
+        plt.title(f"{PET_mean:.4f}")
 
     plt.tight_layout()
     save_name = f"synCT_PET_James/ori/crop/cut_cubes_{idx_img}.png"
