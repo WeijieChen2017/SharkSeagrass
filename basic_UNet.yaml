@@ -1,7 +1,7 @@
 description: Train a 3D ViT-VQGAN model
-tag: PET_R
-data_division: "synCT_PET_James/3PET1CT.json"
-save_folder: "project/basic_UNet_synCT_PET_R"
+tag: PET_RBG
+data_division: "crop/data_division.json"
+save_folder: "project/basic_UNet_synCT_PET_RBG"
 random_seed: 426
 volume_size: 64
 pix_dim: 1.5
@@ -9,6 +9,13 @@ num_workers_train_dataloader: 8
 num_workers_val_dataloader: 4
 num_workers_train_cache_dataset: 8
 num_workers_val_cache_dataset: 4
+chunk_train:
+  - 0
+  - 1
+chunk_val:
+  - 2
+chunk_test:
+  - 3
 batch_size_train: 16
 batch_size_val: 8
 cache_ratio_train: 1.
@@ -20,8 +27,11 @@ plot_per_epoch: 50
 model_name: UNet
 spatial_dims: 3
 input_modality:
+  - PET_blr
+  - PET_grd
   - PET_raw
   - CT
+PET_valid_th: 0.01
 out_channels: 1
 channels: [64, 128, 256, 256]
 strides: [2, 2, 2, 1]
