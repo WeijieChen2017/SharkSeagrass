@@ -367,7 +367,7 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
 
 def collate_fn(batch):
     # here is to filter out the samples with mean PET less than 0.01
-    valid_samples = [sample for sample in batch if sample["PET"].mean() > 0.01]
+    valid_samples = [sample for sample in batch if sample["PET_raw"].mean() > 0.01]
     if not valid_samples:
         return None
     valid_data = {key: torch.stack([sample[key] for sample in valid_samples]) for key in valid_samples[0]}
