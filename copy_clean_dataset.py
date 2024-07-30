@@ -6,10 +6,12 @@ import os
 #             "E4078", "E4079", "E4080", "E4081", "E4084",
 #             "E4087", "E4091", "E4092", "E4094"]
 
-tag_list = ["E4055", "E4058", "E4061",          "E4066",
-            "E4068", "E4069", "E4073", "E4074", "E4077",
-            "E4078", "E4079",          "E4081", "E4084",
-                     "E4091", "E4092", "E4094"]
+# tag_list = ["E4055", "E4058", "E4061",          "E4066",
+#             "E4068", "E4069", "E4073", "E4074", "E4077",
+#             "E4078", "E4079",          "E4081", "E4084",
+#                      "E4091", "E4092", "E4094"]
+
+tag_list = ["E4084", "E4091", "E4092", "E4094"]
 
 target_dir = f"synCT_PET_James/ori/crop/"
 
@@ -45,4 +47,3 @@ for tag in tag_list:
     print(f"---{pet_smooth_path} copied to {target_dir}")
     print(f"---{pet_grad_path} copied to {target_dir}")
 
-    
