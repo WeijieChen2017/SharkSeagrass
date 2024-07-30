@@ -37,8 +37,6 @@ def find_bounding_box(mask):
     # Determine the bounding box for non-zero elements
     x_min, y_min, _ = non_zero_indices.min(axis=0)
     x_max, y_max, _ = non_zero_indices.max(axis=0)
-
-    print("Bounding box: ", x_min, x_max, y_min, y_max)
     
     return x_min, x_max, y_min, y_max
 
@@ -101,7 +99,8 @@ for idx_PET, PET_path in enumerate(PET_list):
 
         # find the bounding box of the mask
         x_min, x_max, y_min, y_max = find_bounding_box(PET_mask)
-        z_max = PET_data.shape[2]
+        z_max = CT_data.shape[2]
+        print("Bounding box: ", x_min, x_max, y_min, y_max, z_max)
 
         # crop the data
         CT_data_crop = CT_data[x_min:x_max, y_min:y_max, :z_max]
