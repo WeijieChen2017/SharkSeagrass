@@ -99,7 +99,7 @@ for idx_PET, PET_path in enumerate(PET_list):
 
         # find the bounding box of the mask
         x_min, x_max, y_min, y_max = find_bounding_box(PET_mask)
-        z_max = CT_data.shape[2]
+        z_max = max(CT_data.shape[2], PET_data.shape[2])
         print("Bounding box: ", x_min, x_max, y_min, y_max, z_max)
 
         # crop the data
