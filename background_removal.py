@@ -49,90 +49,98 @@ exclude_list = ["E4055", "E4058", "E4061"]
 PET_list = sorted(glob.glob("synCT_PET_James/ori/*_PET_re.nii.gz"))
 num_files = len(PET_list)
 
-PET_list = [PET_path for PET_path in PET_list if os.path.basename(PET_path).split("_")[0] not in exclude_list]
-
 for idx_PET, PET_path in enumerate(PET_list):
 
-    print(f"[{idx_PET+1}/{num_files}] Processing {PET_path}")
-
-    PET_file = nib.load(PET_path)
-    PET_data = PET_file.get_fdata()
-
-    PET_data = np.clip(PET_data, 0, 4000)
-    PET_data = PET_data / 4000
-    PET_data_smooth = gaussian_filter(PET_data, sigma=3)
-    PET_data_smooth_gradient = np.gradient(PET_data_smooth)
-    PET_data_smooth_gradient_magnitude = np.sqrt(PET_data_smooth_gradient[0]**2 + PET_data_smooth_gradient[1]**2 + PET_data_smooth_gradient[2]**2)
+    isExcluded = False
+    for exclude_tag in exclude_list:
+        if exclude_tag in PET_path:
+            isExcluded = True
+            break
     
-    # Ker3_filename = PET_path.replace("PET_re", f"PET_GauKer3")
-    # Ker3_nii = nib.Nifti1Image(PET_data_smooth, PET_file.affine, PET_file.header)
-    # nib.save(Ker3_nii, Ker3_filename)
-    # print(f"---Smoothed data saved at {Ker3_filename}")
+    if isExcluded:
+        print(f"[{idx_PET+1}/{num_files}] {PET_path} is excluded.")
+        continue
+    else:
+        print(f"[{idx_PET+1}/{num_files}] Processing {PET_path}")
 
-    # GradMag_filename = PET_path.replace("PET_re", f"PET_GradMag")
-    # GradMag_nii = nib.Nifti1Image(PET_data_smooth_gradient_magnitude, PET_file.affine, PET_file.header)
-    # nib.save(GradMag_nii, GradMag_filename)
-    # print(f"---Gradient magnitude data saved at {GradMag_filename}")
-    
-    for th_value in th_list:
+        PET_file = nib.load(PET_path)
+        PET_data = PET_file.get_fdata()
+
+        PET_data = np.clip(PET_data, 0, 4000)
+        PET_data = PET_data / 4000
+        PET_data_smooth = gaussian_filter(PET_data, sigma=3)
+        PET_data_smooth_gradient = np.gradient(PET_data_smooth)
+        PET_data_smooth_gradient_magnitude = np.sqrt(PET_data_smooth_gradient[0]**2 + PET_data_smooth_gradient[1]**2 + PET_data_smooth_gradient[2]**2)
         
-        print("Processing ", PET_path, "at threshold ", th_value)
-        PET_mask = generate_mask(PET_data_smooth, threshold=th_value)
+        # Ker3_filename = PET_path.replace("PET_re", f"PET_GauKer3")
+        # Ker3_nii = nib.Nifti1Image(PET_data_smooth, PET_file.affine, PET_file.header)
+        # nib.save(Ker3_nii, Ker3_filename)
+        # print(f"---Smoothed data saved at {Ker3_filename}")
 
-        PET_mask_nii = nib.Nifti1Image(PET_mask, PET_file.affine, PET_file.header)
-        PET_mask_filename = PET_path.replace("PET_re", f"PET_mask_{int(th_value*100):02d}")
-        nib.save(PET_mask_nii, PET_mask_filename)
-        print(f"---Mask saved at {PET_mask_filename}")
+        # GradMag_filename = PET_path.replace("PET_re", f"PET_GradMag")
+        # GradMag_nii = nib.Nifti1Image(PET_data_smooth_gradient_magnitude, PET_file.affine, PET_file.header)
+        # nib.save(GradMag_nii, GradMag_filename)
+        # print(f"---Gradient magnitude data saved at {GradMag_filename}")
+        
+        for th_value in th_list:
+            
+            print("Processing ", PET_path, "at threshold ", th_value)
+            PET_mask = generate_mask(PET_data_smooth, threshold=th_value)
 
-    CT_path = PET_path.replace("PET_re", "CT_400")
-    CT_file = nib.load(CT_path)
-    CT_data = CT_file.get_fdata()
+            PET_mask_nii = nib.Nifti1Image(PET_mask, PET_file.affine, PET_file.header)
+            PET_mask_filename = PET_path.replace("PET_re", f"PET_mask_{int(th_value*100):02d}")
+            nib.save(PET_mask_nii, PET_mask_filename)
+            print(f"---Mask saved at {PET_mask_filename}")
 
-    CT_data = np.clip(CT_data, -1024, 2976)
-    CT_data = (CT_data + 1024) / 4000
+        CT_path = PET_path.replace("PET_re", "CT_400")
+        CT_file = nib.load(CT_path)
+        CT_data = CT_file.get_fdata()
 
-    # find the bounding box of the mask
-    x_min, x_max, y_min, y_max = find_bounding_box(PET_mask)
-    z_max = PET_data.shape[2]
+        CT_data = np.clip(CT_data, -1024, 2976)
+        CT_data = (CT_data + 1024) / 4000
 
-    # crop the data
-    CT_data_crop = CT_data[x_min:x_max, y_min:y_max, :z_max]
-    PET_data_crop = PET_data[x_min:x_max, y_min:y_max, :z_max]
-    PET_mask_crop = PET_mask[x_min:x_max, y_min:y_max, :z_max]
-    PET_data_smooth_crop = PET_data_smooth[x_min:x_max, y_min:y_max, :z_max]
-    PET_data_smooth_gradient_magnitude_crop = PET_data_smooth_gradient_magnitude[x_min:x_max, y_min:y_max, :z_max]
+        # find the bounding box of the mask
+        x_min, x_max, y_min, y_max = find_bounding_box(PET_mask)
+        z_max = PET_data.shape[2]
 
-    # apply the mask to the cropped data
-    CT_data_crop = CT_data_crop * PET_mask_crop
-    PET_data_crop = PET_data_crop * PET_mask_crop
-    PET_data_smooth_crop = PET_data_smooth_crop * PET_mask_crop
-    PET_data_smooth_gradient_magnitude_crop = PET_data_smooth_gradient_magnitude_crop * PET_mask_crop
+        # crop the data
+        CT_data_crop = CT_data[x_min:x_max, y_min:y_max, :z_max]
+        PET_data_crop = PET_data[x_min:x_max, y_min:y_max, :z_max]
+        PET_mask_crop = PET_mask[x_min:x_max, y_min:y_max, :z_max]
+        PET_data_smooth_crop = PET_data_smooth[x_min:x_max, y_min:y_max, :z_max]
+        PET_data_smooth_gradient_magnitude_crop = PET_data_smooth_gradient_magnitude[x_min:x_max, y_min:y_max, :z_max]
 
-    # create nifti files
-    CT_data_crop_nii = nib.Nifti1Image(CT_data_crop, PET_file.affine, PET_file.header)
-    PET_data_crop_nii = nib.Nifti1Image(PET_data_crop, PET_file.affine, PET_file.header)
-    PET_mask_crop_nii = nib.Nifti1Image(PET_mask_crop, PET_file.affine, PET_file.header)
-    PET_data_smooth_crop_nii = nib.Nifti1Image(PET_data_smooth_crop, PET_file.affine, PET_file.header)
-    PET_data_smooth_gradient_magnitude_crop_nii = nib.Nifti1Image(PET_data_smooth_gradient_magnitude_crop, PET_file.affine, PET_file.header)
+        # apply the mask to the cropped data
+        CT_data_crop = CT_data_crop * PET_mask_crop
+        PET_data_crop = PET_data_crop * PET_mask_crop
+        PET_data_smooth_crop = PET_data_smooth_crop * PET_mask_crop
+        PET_data_smooth_gradient_magnitude_crop = PET_data_smooth_gradient_magnitude_crop * PET_mask_crop
 
-    # modify the filename
-    CT_data_crop_filename = PET_path.replace("PET_re", f"CT_crop_th{int(th_value*100):02d}")
-    PET_data_crop_filename = PET_path.replace("PET_re", f"PET_crop_th{int(th_value*100):02d}")
-    PET_mask_crop_filename = PET_path.replace("PET_re", f"PET_mask_crop_th{int(th_value*100):02d}")
-    PET_data_smooth_crop_filename = PET_path.replace("PET_re", f"PET_GauKer3_crop_th{int(th_value*100):02d}")
-    PET_data_smooth_gradient_magnitude_crop_filename = PET_path.replace("PET_re", f"PET_GradMag_crop_th{int(th_value*100):02d}")
+        # create nifti files
+        CT_data_crop_nii = nib.Nifti1Image(CT_data_crop, PET_file.affine, PET_file.header)
+        PET_data_crop_nii = nib.Nifti1Image(PET_data_crop, PET_file.affine, PET_file.header)
+        PET_mask_crop_nii = nib.Nifti1Image(PET_mask_crop, PET_file.affine, PET_file.header)
+        PET_data_smooth_crop_nii = nib.Nifti1Image(PET_data_smooth_crop, PET_file.affine, PET_file.header)
+        PET_data_smooth_gradient_magnitude_crop_nii = nib.Nifti1Image(PET_data_smooth_gradient_magnitude_crop, PET_file.affine, PET_file.header)
 
-    # save the cropped data
-    nib.save(CT_data_crop_nii, CT_data_crop_filename)
-    nib.save(PET_data_crop_nii, PET_data_crop_filename)
-    nib.save(PET_mask_crop_nii, PET_mask_crop_filename)
-    nib.save(PET_data_smooth_crop_nii, PET_data_smooth_crop_filename)
-    nib.save(PET_data_smooth_gradient_magnitude_crop_nii, PET_data_smooth_gradient_magnitude_crop_filename)
+        # modify the filename
+        CT_data_crop_filename = PET_path.replace("PET_re", f"CT_crop_th{int(th_value*100):02d}")
+        PET_data_crop_filename = PET_path.replace("PET_re", f"PET_crop_th{int(th_value*100):02d}")
+        PET_mask_crop_filename = PET_path.replace("PET_re", f"PET_mask_crop_th{int(th_value*100):02d}")
+        PET_data_smooth_crop_filename = PET_path.replace("PET_re", f"PET_GauKer3_crop_th{int(th_value*100):02d}")
+        PET_data_smooth_gradient_magnitude_crop_filename = PET_path.replace("PET_re", f"PET_GradMag_crop_th{int(th_value*100):02d}")
 
-    # print the filename
-    print(f"---Cropped CT data saved at {CT_data_crop_filename}")
-    print(f"---Cropped PET data saved at {PET_data_crop_filename}")
-    print(f"---Cropped PET mask saved at {PET_mask_crop_filename}")
-    print(f"---Cropped smoothed PET data saved at {PET_data_smooth_crop_filename}")
-    print(f"---Cropped smoothed gradient magnitude PET data saved at {PET_data_smooth_gradient_magnitude_crop_filename}")
+        # save the cropped data
+        nib.save(CT_data_crop_nii, CT_data_crop_filename)
+        nib.save(PET_data_crop_nii, PET_data_crop_filename)
+        nib.save(PET_mask_crop_nii, PET_mask_crop_filename)
+        nib.save(PET_data_smooth_crop_nii, PET_data_smooth_crop_filename)
+        nib.save(PET_data_smooth_gradient_magnitude_crop_nii, PET_data_smooth_gradient_magnitude_crop_filename)
+
+        # print the filename
+        print(f"---Cropped CT data saved at {CT_data_crop_filename}")
+        print(f"---Cropped PET data saved at {PET_data_crop_filename}")
+        print(f"---Cropped PET mask saved at {PET_mask_crop_filename}")
+        print(f"---Cropped smoothed PET data saved at {PET_data_smooth_crop_filename}")
+        print(f"---Cropped smoothed gradient magnitude PET data saved at {PET_data_smooth_gradient_magnitude_crop_filename}")
 
