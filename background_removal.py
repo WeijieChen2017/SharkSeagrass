@@ -90,13 +90,14 @@ for idx_PET, PET_path in enumerate(PET_list):
 
     # find the bounding box of the mask
     x_min, x_max, y_min, y_max = find_bounding_box(PET_mask)
+    z_max = PET_data.shape[2]
 
     # crop the data
-    CT_data_crop = CT_data[x_min:x_max, y_min:y_max, :]
-    PET_data_crop = PET_data[x_min:x_max, y_min:y_max, :]
-    PET_mask_crop = PET_mask[x_min:x_max, y_min:y_max, :]
-    PET_data_smooth_crop = PET_data_smooth[x_min:x_max, y_min:y_max, :]
-    PET_data_smooth_gradient_magnitude_crop = PET_data_smooth_gradient_magnitude[x_min:x_max, y_min:y_max, :]
+    CT_data_crop = CT_data[x_min:x_max, y_min:y_max, :z_max]
+    PET_data_crop = PET_data[x_min:x_max, y_min:y_max, :z_max]
+    PET_mask_crop = PET_mask[x_min:x_max, y_min:y_max, :z_max]
+    PET_data_smooth_crop = PET_data_smooth[x_min:x_max, y_min:y_max, :z_max]
+    PET_data_smooth_gradient_magnitude_crop = PET_data_smooth_gradient_magnitude[x_min:x_max, y_min:y_max, :z_max]
 
     # apply the mask to the cropped data
     CT_data_crop = CT_data_crop * PET_mask_crop
