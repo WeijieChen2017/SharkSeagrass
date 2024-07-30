@@ -43,13 +43,16 @@ def find_bounding_box(mask):
     return x_min, x_max, y_min, y_max
 
 
+exclude_list = ["E4055", "E4058", "E4061"]
 
 
 PET_list = sorted(glob.glob("synCT_PET_James/ori/*_PET_re.nii.gz"))
 num_files = len(PET_list)
 
+PET_list = [PET_path for PET_path in PET_list if os.path.basename(PET_path).split("_")[0] not in exclude_list]
+
 for idx_PET, PET_path in enumerate(PET_list):
-        
+
     print(f"[{idx_PET+1}/{num_files}] Processing {PET_path}")
 
     PET_file = nib.load(PET_path)
