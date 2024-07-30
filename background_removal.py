@@ -41,7 +41,7 @@ def find_bounding_box(mask):
     return x_min, x_max, y_min, y_max
 
 
-exclude_list = ["E4055", "E4058", "E4061", "E4063",
+exclude_list = ["E4055", "E4058", "E4061", "E4063", "E4066",
                 "E4068", "E4069", "E4073", "E4074",
                 "E4077", "E4078", "E4079"]
 
