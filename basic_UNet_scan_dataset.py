@@ -367,6 +367,8 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
 #     return collated_batch
 
 def collate_fn(batch, pet_valid_th=0.01):
+    np.save("batch.npy", batch)
+    exit()
     # Flatten the list of lists into a single list of samples
     batch = [item for sublist in batch for item in sublist]
     valid_samples = [sample for sample in batch if sample["PET_raw"].mean() > pet_valid_th]
