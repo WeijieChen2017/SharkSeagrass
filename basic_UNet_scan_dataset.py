@@ -366,7 +366,10 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
     
 #     return collated_batch
 
-def collate_fn_multi_samples(batch, pet_valid_th=0.01):
+
+# def collate_fn_multi_samples(batch, pet_valid_th=0.01):
+
+def collate_fn(batch, pet_valid_th=0.01):
 
     idx, jdx = batch.shape
 
