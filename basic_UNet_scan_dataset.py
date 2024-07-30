@@ -372,8 +372,13 @@ def collate_fn(batch, pet_valid_th=0.01):
     valid_samples = [sample for sample in batch if sample["PET_raw"].mean() > pet_valid_th]
     if not valid_samples:
         return None
-    valid_data = {key: torch.stack([sample[key] for sample in valid_samples]) for key in valid_samples[0]}
-    return valid_data
+    # valid_data = {key: torch.stack([sample[key] for sample in valid_samples]) for key in valid_samples[0]}
+    print("The valid samples are: ", len(valid_samples))
+    for sample in valid_samples:
+        print(sample)
+    exit()
+
+    return valid_samples
 
 class local_logger():
     def __init__(self, log_file_path):
