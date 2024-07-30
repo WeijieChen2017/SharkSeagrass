@@ -351,19 +351,27 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
     plt.close()
     print(f"Save the plot to {savename}")
 
-def custom_collate_fn(batch):
-    collated_batch = {}
-    keys = batch[0].keys()
+# def custom_collate_fn(batch):
+#     collated_batch = {}
+#     keys = batch[0].keys()
     
-    for key in keys:
-        if isinstance(batch[0][key], torch.Tensor):
-            collated_batch[key] = torch.stack([item[key] for item in batch])
-        elif isinstance(batch[0][key], dict):
-            collated_batch[key] = [{subkey: item[key][subkey] for subkey in item[key]} for item in batch]
-        else:
-            collated_batch[key] = [item[key] for item in batch]
+#     for key in keys:
+#         if isinstance(batch[0][key], torch.Tensor):
+#             collated_batch[key] = torch.stack([item[key] for item in batch])
+#         elif isinstance(batch[0][key], dict):
+#             collated_batch[key] = [{subkey: item[key][subkey] for subkey in item[key]} for item in batch]
+#         else:
+#             collated_batch[key] = [item[key] for item in batch]
     
-    return collated_batch
+#     return collated_batch
+
+def collate_fn(batch):
+    # here is to filter out the samples with mean PET less than 0.01
+    valid_samples = [sample for sample in batch if sample["PET"].mean() > 0.01]
+    if not valid_samples:
+        return None
+    valid_data = {key: torch.stack([sample[key] for sample in valid_samples]) for key in valid_samples[0]}
+    return valid_data
 
 class local_logger():
     def __init__(self, log_file_path):
@@ -472,11 +480,22 @@ def main():
     val_files = []
     test_files = []
 
-    for i in range(3):
+    chunk_train = global_config["chunk_train"]
+    chunk_val = global_config["chunk_val"]
+    chunk_test = global_config["chunk_test"]
+    # if chunk is int, convert it to list
+    if isinstance(chunk_train, int):
+        chunk_train = [chunk_train]
+    if isinstance(chunk_val, int):
+        chunk_val = [chunk_val]
+    if isinstance(chunk_test, int):
+        chunk_test = [chunk_test]
+
+    for i in chunk_train:
         train_files.extend(data_chunk[f"chunk_{i}"])
-    for i in range(3, 4):
+    for i in chunk_val:
         val_files.extend(data_chunk[f"chunk_{i}"])
-    for i in range(4, 5):
+    for i in chunk_test:
         test_files.extend(data_chunk[f"chunk_{i}"])
 
     num_train_files = len(train_files)
@@ -508,13 +527,13 @@ def main():
                               batch_size=global_config["batch_size_train"],
                               shuffle=True, 
                               num_workers=global_config["num_workers_train_dataloader"],
-                            #   collate_fn=collate_fn
+                              collate_fn=collate_fn
                               )
     val_loader = DataLoader(val_ds, 
                             batch_size=global_config["batch_size_val"], 
                             shuffle=False, 
                             num_workers=global_config["num_workers_val_dataloader"],
-                            # collate_fn=collate_fn
+                            collate_fn=collate_fn
                             )
     
     print("The data loaders are built successfully.")
@@ -526,6 +545,7 @@ def main():
     save_per_epoch = global_config["save_per_epoch"]
     plot_per_epoch = global_config["plot_per_epoch"]
     best_val_loss = 1e6
+    PET_valid_th = global_config["PET_valid_th"]
 
     for idx_epoch in range(global_config["num_epoch"]):
         
@@ -536,9 +556,15 @@ def main():
             "reconL1": [],
         }
         for idx_batch, batch in enumerate(train_loader):
+
+            # skip the batch if it is None
+            if batch is None:
+                continue
+
             # print("Currently loading the batch named: ", batch["filename"])
             y = batch["CT"].to(device)
             x = batch["PET_raw"].to(device)
+            
             # if there are other modalities, concatenate them at the channel dimension
             for modality in input_modality:
                 if modality != "PET_raw" and modality != "CT":
@@ -553,7 +579,7 @@ def main():
             loss.backward()
             optimizer.step()
             epoch_loss_train["reconL1"].append(loss.item())
-            print(f"Train <{idx_epoch}> [{idx_batch}] batch loss: {loss.item()}")
+            print(f"Train <{idx_epoch}> [{idx_batch}] batch loss: {loss.item()} with {len(y)} valid samples.")
         
         for key in epoch_loss_train.keys():
             epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
@@ -567,6 +593,9 @@ def main():
             }
             with torch.no_grad():
                 for idx_batch, batch in enumerate(val_loader):
+                    # skip the batch if it is None
+                    if batch is None:
+                        continue
                     y = batch["CT"].to(device)
                     x = batch["PET_raw"].to(device)
                     # if there are other modalities, concatenate them at the channel dimension
