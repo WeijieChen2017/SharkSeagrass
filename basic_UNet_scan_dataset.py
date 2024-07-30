@@ -451,10 +451,13 @@ def main():
     # set the data transform
     train_transforms = Compose(
         [
-            LoadImaged(keys=input_modality, image_only=False),
+            LoadImaged(keys=input_modality, image_only=True),
             EnsureChannelFirstd(keys=input_modality),
             # Orientationd(keys=input_modality, axcodes="RAS"),
-            RandSpatialCropd(keys=input_modality, roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
+            RandSpatialCropd(keys=input_modality, 
+                             roi_size=(volume_size, volume_size, volume_size), 
+                             random_center=True, random_size=False,
+                             num_samples=global_config["batches_from_each_nii"]),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
             RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
@@ -467,7 +470,10 @@ def main():
             LoadImaged(keys=input_modality),
             EnsureChannelFirstd(keys=input_modality),
             # Orientationd(keys=input_modality, axcodes="RAS"),
-            RandSpatialCropd(keys=input_modality, roi_size=(volume_size, volume_size, volume_size), random_center=True, random_size=False),
+            RandSpatialCropd(keys=input_modality, 
+                             roi_size=(volume_size, volume_size, volume_size), 
+                             random_center=True, random_size=False,
+                             num_samples=global_config["batches_from_each_nii"]),
         ]
     )
 

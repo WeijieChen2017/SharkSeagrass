@@ -16,8 +16,9 @@ chunk_val:
   - 2
 chunk_test:
   - 3
-batch_size_train: 8
-batch_size_val: 4
+batch_size_train: 16
+batch_size_val: 8
+batches_from_each_nii: 8
 cache_ratio_train: 1.
 cache_ratio_val: 1.
 num_epoch: 50000
