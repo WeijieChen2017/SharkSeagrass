@@ -1,9 +1,9 @@
 import glob
 import os
 
-file_list = ["E4063_CT.nii.gz"]
+# file_list = ["E4063_CT.nii.gz"]
 
-# file_list = sorted(glob.glob("*.nii.gz"))
+file_list = sorted(glob.glob("*.nii.gz"))
 
 for filepath in file_list:
     print(filepath)

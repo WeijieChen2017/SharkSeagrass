@@ -42,8 +42,8 @@ def find_bounding_box(mask):
 
 
 exclude_list = ["E4055", "E4058", "E4061", "E4063", "E4066",
-                "E4068", "E4069", "E4073", "E4074",
-                "E4077", "E4078", "E4079"]
+                "E4068", "E4069", "E4073", "E4074", "E4077",
+                "E4078", "E4079", "E4080", "E4087", ]
 
 
 PET_list = sorted(glob.glob("synCT_PET_James/ori/*_PET_re.nii.gz"))
