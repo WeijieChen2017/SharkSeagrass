@@ -366,16 +366,36 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
     
 #     return collated_batch
 
-def collate_fn(batch, pet_valid_th=0.01):
-    np.save("batch.npy", batch)
-    exit()
-    # Flatten the list of lists into a single list of samples
-    batch = [item for sublist in batch for item in sublist]
-    valid_samples = [sample for sample in batch if sample["PET_raw"].mean() > pet_valid_th]
-    if not valid_samples:
-        return None
-    # valid_data = {key: torch.stack([sample[key] for sample in valid_samples]) for key in valid_samples[0]}
-    print("The valid samples are: ", len(valid_samples))
+def collate_fn_multi_samples(batch, pet_valid_th=0.01):
+
+    idx, jdx = batch.shape
+
+    modalities = batch[0][0].keys()
+
+    valid_samples = {
+        modal : [] for modal in modalities
+    }
+
+    for i in range(idx):
+        for j in range(jdx):
+            if batch[i][j]["PET_raw"].mean() > pet_valid_th:
+                for modal in modalities:
+                    valid_samples[modal].append(batch[i][j][modal])
+    
+    for modal in modalities:
+        valid_samples[modal] = torch.stack(valid_samples[modal])
+    
+    return valid_samples
+
+    # # Flatten the list of lists into a single list of samples
+    # batch = [item for sublist in batch for item in sublist]
+    # valid_samples = [sample for sample in batch if sample["PET_raw"].mean() > pet_valid_th]
+    # if not valid_samples:
+    #     return None
+    # # valid_data = {key: torch.stack([sample[key] for sample in valid_samples]) for key in valid_samples[0]}
+    
+
+
     for sample in valid_samples:
         print(sample)
     exit()
