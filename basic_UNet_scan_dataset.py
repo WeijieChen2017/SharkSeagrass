@@ -386,8 +386,8 @@ def collate_fn(batch, pet_valid_th=0.01):
                 for modal in modalities:
                     valid_samples[modal].append(batch[i][j][modal])
     
-    for modal in modalities:
-        print(modal, len(valid_samples[modal]))
+    # for modal in modalities:
+    #     print(modal, len(valid_samples[modal]))
 
     for modal in modalities:
         valid_samples[modal] = torch.stack(valid_samples[modal])
@@ -507,7 +507,7 @@ def main():
 
     val_transforms = Compose(
         [
-            LoadImaged(keys=input_modality),
+            LoadImaged(keys=input_modality, image_only=True),
             EnsureChannelFirstd(keys=input_modality),
             # Orientationd(keys=input_modality, axcodes="RAS"),
             # RandSpatialCropd(keys=input_modality, 

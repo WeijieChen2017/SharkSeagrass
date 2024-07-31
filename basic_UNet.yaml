@@ -8,7 +8,7 @@ pix_dim: 1.5
 num_workers_train_dataloader: 8
 num_workers_val_dataloader: 4
 num_workers_train_cache_dataset: 8
-num_workers_val_cache_dataset: 4
+num_workers_val_cache_dataset: 8
 chunk_train:
   - 0
   - 1
