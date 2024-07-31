@@ -387,6 +387,9 @@ def collate_fn(batch, pet_valid_th=0.01):
                     valid_samples[modal].append(batch[i][j][modal])
     
     for modal in modalities:
+        print(modal, len(valid_samples[modal]))
+
+    for modal in modalities:
         valid_samples[modal] = torch.stack(valid_samples[modal])
     
     return valid_samples
