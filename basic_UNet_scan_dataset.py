@@ -371,7 +371,8 @@ def plot_and_save_x_y_z(x, y, z, num_per_direction=1, savename=None):
 
 def collate_fn(batch, pet_valid_th=0.01):
 
-    idx, jdx = batch.shape
+    idx = len(batch)
+    jdx = len(batch[0])
 
     modalities = batch[0][0].keys()
 
