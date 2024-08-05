@@ -44,10 +44,152 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 
-from train_v4_utils import UNet3D_encoder, UNet3D_decoder, build_dataloader_train_val
+from train_v4_utils import UNet3D_encoder, UNet3D_decoder
 from train_v4_utils import plot_and_save_x_xrec, simple_logger, effective_number_of_classes
 
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
+
+from monai.data import (
+    DataLoader,
+    CacheDataset,
+)
+
+from monai.transforms import (
+    EnsureChannelFirstd,
+    Compose,
+    LoadImaged,
+    RandSpatialCropSamplesd,
+    RandFlipd,
+    RandRotated,
+)
+
+
+
+def collate_fn(batch, pet_valid_th=0.01):
+    # batch is a list of list of dictionary
+    idx = len(batch)
+    jdx = len(batch[0])
+    modalities = batch[0][0].keys()
+    valid_samples = {
+        modal : [] for modal in modalities
+    }
+    # here we need to filter out the samples with PET_raw mean value less than pet_valid_th
+    for i in range(idx):
+        for j in range(jdx):
+            if batch[i][j]["PET_raw"].mean() > pet_valid_th:
+                for modal in modalities:
+                    valid_samples[modal].append(batch[i][j][modal])
+    
+    # here we need to stack the valid samples
+    for modal in modalities:
+        valid_samples[modal] = torch.stack(valid_samples[modal])
+    # here we need to return the valid samples
+    return valid_samples
+
+
+def build_dataloader_train_val_PET_CT(batch_size, global_config):
+
+    volume_size = global_config["volume_size"]
+    input_modality = global_config["input_modality"]
+    gap_sign = global_config["gap_sign"]
+
+    # set the data transform
+    train_transforms = Compose(
+        [
+            LoadImaged(keys=input_modality, image_only=True),
+            EnsureChannelFirstd(keys=input_modality),
+            RandSpatialCropSamplesd(keys=input_modality,
+                                    roi_size=(volume_size, volume_size, volume_size),
+                                    num_samples=global_config["batches_from_each_nii"],
+                                    random_size=False, random_center=True),
+            RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
+            RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
+            RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
+            RandRotated(keys=input_modality, prob=0.5, range_x=15, range_y=15, range_z=15),
+        ]
+    )
+
+    val_transforms = Compose(
+        [
+            LoadImaged(keys=input_modality, image_only=True),
+            EnsureChannelFirstd(keys=input_modality),
+            RandSpatialCropSamplesd(keys=input_modality,
+                                    roi_size=(volume_size, volume_size, volume_size),
+                                    num_samples=global_config["batches_from_each_nii"],
+                                    random_size=False, random_center=True),
+        ]
+    )
+
+    data_division_file = global_config["data_division"]
+    with open(data_division_file, "r") as f:
+        data_chunk = json.load(f)
+
+    train_files = []
+    val_files = []
+    test_files = []
+
+    chunk_train = global_config["chunk_train"]
+    chunk_val = global_config["chunk_val"]
+    chunk_test = global_config["chunk_test"]
+    # if chunk is int, convert it to list
+    if isinstance(chunk_train, int):
+        chunk_train = [chunk_train]
+    if isinstance(chunk_val, int):
+        chunk_val = [chunk_val]
+    if isinstance(chunk_test, int):
+        chunk_test = [chunk_test]
+
+    for i in chunk_train:
+        train_files.extend(data_chunk[f"chunk_{i}"])
+    for i in chunk_val:
+        val_files.extend(data_chunk[f"chunk_{i}"])
+    for i in chunk_test:
+        test_files.extend(data_chunk[f"chunk_{i}"])
+
+    num_train_files = len(train_files)
+    num_val_files = len(val_files)
+    num_test_files = len(test_files)
+    
+    print("The number of train files is: ", num_train_files)
+    print("The number of val files is: ", num_val_files)
+    print("The number of test files is: ", num_test_files)
+    print(gap_sign*50)
+
+    train_ds = CacheDataset(
+        data=train_files,
+        transform=train_transforms,
+        cache_num=num_train_files,
+        cache_rate=global_config["cache_ratio_train"],
+        num_workers=global_config["num_workers_train_cache_dataset"],
+    )
+
+    val_ds = CacheDataset(
+        data=val_files,
+        transform=val_transforms, 
+        cache_num=num_val_files,
+        cache_rate=global_config["cache_ratio_val"],
+        num_workers=global_config["num_workers_val_cache_dataset"],
+    )
+
+    train_loader = DataLoader(train_ds, 
+                              batch_size=batch_size,
+                              shuffle=True, 
+                              num_workers=global_config["num_workers_train_dataloader"],
+                              collate_fn=collate_fn
+                              )
+    val_loader = DataLoader(val_ds, 
+                            batch_size=batch_size, 
+                            shuffle=False, 
+                            num_workers=global_config["num_workers_val_dataloader"],
+                            collate_fn=collate_fn
+                            )
+    
+    return train_loader, val_loader
+
+
+
+
+
 
 def train_model_at_level(current_level, global_config, model, optimizer_weights):
 
@@ -63,9 +205,9 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
     save_per_epoch = global_config['save_per_epoch']
     wandb_run = global_config['wandb_run']
     loss_weights = {
-        "reconL2": global_config['VQ_loss_weight_recon_L2'],
-        "reconL1": global_config['VQ_loss_weight_recon_L1'],
-        "codebook": global_config['VQ_loss_weight_codebook'],
+        "dE_l2": global_config['dE_loss_l2'],
+        "dE_infoNCE": global_config['dE_loss_infoNCE'],
+        "dE_commit": global_config['dE_loss_commit'],
     }
     logger = global_config['logger']
     save_folder = global_config['save_folder']
@@ -73,7 +215,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
     best_val_loss = 1e6
 
     # set the data loaders for the current level
-    train_loader, val_loader = build_dataloader_train_val(pyramid_batch_size[current_level], global_config)
+    train_loader, val_loader = build_dataloader_train_val_PET_CT(pyramid_batch_size[current_level], global_config)
     # set the optimizer for the current level
     optimizer = build_optimizer(model, pyramid_learning_rate[current_level], pyramid_weight_decay[current_level])
 
@@ -81,42 +223,58 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
         optimizer.load_state_dict(optimizer_weights)
         print("Load optimizer weights")
 
+    
     num_train_batch = len(train_loader)
     num_val_batch = len(val_loader)
-
-    # set the gradient freeze
-    if pyramid_freeze_previous_stages:
-        model.freeze_gradient_all()
-        model.unfreeze_gradient_at_level(current_level)
-    else:
-        model.freeze_gradient_all()
-        for i_level in range(current_level + 1):
-            model.unfreeze_gradient_at_level(i_level)
+    # unfreeze the gradient at the current level for the second encoder
+    model.unfreeze_second_encder(current_level)
+    input_modality = global_config["input_modality"]
 
     # start the training
     for idx_epoch in range(pyramid_num_epoch[current_level]):
         model.train()
         epoch_loss_train = {
-            "reconL2": [],
-            "reconL1": [],
-            "codebook": [],
-            "total": [],
-        }
-        epoch_codebook_train = {
-            "indices": [],
+            "dE_l2": [],
+            "dE_infoNCE": [],
+            "dE_commit": [],
         }
 
         for idx_batch, batch in enumerate(train_loader):
-            x = batch["image"]
+
+            # skip the batch if it is None
+            if batch is None:
+                continue
+            # print("Currently loading the batch named: ", batch["filename"])
+            y = batch["CT"].to(device)
+            x = batch["PET_raw"].to(device)
+            # if there are other modalities, concatenate them at the channel dimension
+            for modality in input_modality:
+                if modality != "PET_raw" and modality != "CT":
+                    x = torch.cat((x, batch[modality].to(device)), dim=1)
+
             # generate the input data pyramid
             pyramid_x = generate_input_data_pyramid(x, current_level, global_config)
-            # target_x is the last element of the pyramid_x, which is to be reconstructed
-            target_x = pyramid_x[-1]
-            # input the pyramid_x to the model
-            xrec, indices_list, cb_loss_list = model(pyramid_x, current_level)
+            pyramid_y = generate_input_data_pyramid(y, current_level, global_config)
+
+            # foward the pyramid_x to the model
+            xrec, x_indices_list, x_cb_loss_list, x_embed_list = model.foward_to_decoder(pyramid_x, current_level, second_encoder=True)
+            yrec, y_indices_list, y_cb_loss_list, y_embed_list = model.foward_to_decoder(pyramid_y, current_level, second_encoder=False)
+            
             # initialize the optimizer
             optimizer.zero_grad()
             # compute the loss
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
             reconL2_loss = F.mse_loss(target_x, xrec)
             reconL1_loss = F.l1_loss(target_x, xrec)
             if pyramid_freeze_previous_stages:
@@ -268,7 +426,7 @@ def generate_model_levels(global_config):
     model_level = []
     for i in range(num_level):
         encoder = {
-            "spatial_dims": 3, "in_channels": 1,
+            "spatial_dims": 3, "in_channels": len(global_config['input_modality']),
             "channels": global_config['pyramid_channels'][:i+1],
             "strides": global_config['pyramid_strides'][-(i+1):],
             "num_res_units": global_config['pyramid_num_res_units'][i],
@@ -323,6 +481,7 @@ class ViTVQ3D_dualEncoder(nn.Module):
             sub_model.decoder = UNet3D_decoder(**level_setting["decoder"])
             sub_model.quantizer = lucidrains_VQ(**level_setting["quantizer"])
             sub_model.pre_quant = nn.Linear(level_setting["encoder"]["channels"][-1], level_setting["quantizer"]["dim"])
+            sub_model.second_pre_quant = nn.Linear(level_setting["encoder"]["channels"][-1], level_setting["quantizer"]["dim"])
             sub_model.post_quant = nn.Linear(level_setting["quantizer"]["dim"], level_setting["decoder"]["channels"][0])
             
             # Append the submodule to the ModuleList
@@ -335,6 +494,10 @@ class ViTVQ3D_dualEncoder(nn.Module):
         for level in range(self.num_level):
             self.freeze_gradient_at_level(level)
         print("Freeze all gradients")
+
+    def unfreeze_second_encder(self, i_level: int) -> None:
+        self.sub_models[i_level].second_encoder.requires_grad_(True)
+        print(f"Unfreeze second encoder at level {i_level}")
 
     def freeze_gradient_at_level(self, i_level: int) -> None:
         self.sub_models[i_level].encoder.requires_grad_(False)
@@ -368,50 +531,54 @@ class ViTVQ3D_dualEncoder(nn.Module):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
-    def foward_at_level_only_encoder(self, x: torch.FloatTensor, u: torch.FloatTensor, i_level: int) -> torch.FloatTensor:
-        h = self.sub_models[i_level].encoder(x)
-        h_second = self.sub_models[i_level].second_encoder(u)
-        return h, h_second
+    def at_level_forward_to_encoder(self, x: torch.FloatTensor, i_level: int, second_encoder: bool = False) -> torch.FloatTensor:
+        if second_encoder:
+            h = self.sub_models[i_level].second_encoder(x)
+            h = self.sub_models[i_level].second_pre_quant(h)
+        else:
+            h = self.sub_models[i_level].encoder(x)
+            h = self.sub_models[i_level].pre_quant(h)
+        return h
 
-    def foward_at_level(self, x: torch.FloatTensor, i_level: int) -> torch.FloatTensor:
-        # print("x shape is ", x.shape)
-        h = self.sub_models[i_level].encoder(x) # Access using dot notation
-        # print("after encoder, h shape is ", h.shape)
-        h = self.sub_models[i_level].pre_quant(h)
-        # print("after pre_quant, h shape is ", h.shape)
-        quant, indices, loss = self.sub_models[i_level].quantizer(h)
-        # print("after quantizer, quant shape is ", quant.shape)
-        g = self.sub_models[i_level].post_quant(quant)
-        # print("after post_quant, g shape is ", g.shape)
-        g = self.sub_models[i_level].decoder(g)
-        # print("after decoder, g shape is ", g.shape)
-        return g, indices, loss
+    def at_level_forward_to_codebook(self, x: torch.FloatTensor, i_level: int, second_encoder: bool = False) -> torch.FloatTensor:
+        x_embed = self.at_level_forward_to_encoder(x, i_level, second_encoder)
+        quant, indices, loss = self.sub_models[i_level].quantizer(x_embed)
+        return quant, indices, loss, x_embed
+    
+    def at_level_forward_to_decoder(self, x: torch.FloatTensor, i_level: int, second_encoder: bool = False) -> torch.FloatTensor:
+        quant, indices, loss, x_embed = self.at_level_forward_to_codebook(x, i_level, second_encoder)
+        x_hat = self.sub_models[i_level].post_quant(quant)
+        x_hat = self.sub_models[i_level].decoder(x_hat)
+        return x_hat, quant, indices, loss, x_embed
 
+    def foward_to_decoder(self, pyramid_x: torch.FloatTensor, active_level: int, second_encoder: bool = False) -> torch.FloatTensor:
 
-    def forward_only_encoder(self, pyramid_x: list, pyramid_u: list, active_level: int) -> torch.FloatTensor:
-        
-        assert active_level <= self.num_level
+        x_fea_map_list = []
+        x_embbding_list = []
+        indices_list = []
+        loss_list = []
 
         for current_level in range(active_level + 1):
             if current_level == 0:
-                x_hat, u_hat = self.foward_at_level_only_encoder(pyramid_x[current_level], pyramid_u[current_level], current_level)
+                x_hat, quant, indices, loss, x_embed = self.at_level_forward_to_decoder
+                x_fea_map_list.append(x_embed)
+                x_embbding_list.append(quant)
+                indices_list.append(indices)
+                loss_list.append(loss)
             else:
                 resample_x = F.interpolate(pyramid_x[current_level - 1], scale_factor=2, mode='trilinear', align_corners=False)
                 input_x = pyramid_x[current_level] - resample_x
 
-                resample_u = F.interpolate(pyramid_u[current_level - 1], scale_factor=2, mode='trilinear', align_corners=False)
-                input_u = pyramid_u[current_level] - resample_u
-
-                output_x, output_u = self.foward_at_level_only_encoder(input_x, input_u, current_level)
+                output_x, quant, indices, loss, x_embed = self.at_level_forward_to_decoder(input_x, current_level, second_encoder)
+                x_fea_map_list.append(x_embed)
+                x_embbding_list.append(quant)
+                indices_list.append(indices)
+                loss_list.append(loss)
 
                 x_hat = F.interpolate(x_hat, scale_factor=2, mode='trilinear', align_corners=False)
                 x_hat = x_hat + output_x
-
-                u_hat = F.interpolate(u_hat, scale_factor=2, mode='trilinear', align_corners=False)
-                u_hat = u_hat + output_u
         
-        return x_hat, u_hat
-
+        return x_hat, x_fea_map_list, x_embbding_list, indices_list, loss_list
 
     def forward(self, pyramid_x: list, active_level: int) -> torch.FloatTensor:
         # pyramid_x is a list of tensorFloat, like [8*8*8, 16*16*16, 32*32*32, 64*64*64]
@@ -439,43 +606,9 @@ class ViTVQ3D_dualEncoder(nn.Module):
 
         return x_hat, indices_list, loss_list
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(description='Train a 3D ViT-VQGAN model.')
-    parser.add_argument('--tag', type=str, default="pyramid_mini16_fixed")
-    parser.add_argument('--random_seed', type=int, default=426)
-    parser.add_argument('--volume_size', type=int, default=64)
-    parser.add_argument('--pix_dim', type=float, default=1.5)
-    parser.add_argument('--num_workers_train_dataloader', type=int, default=8)
-    parser.add_argument('--num_workers_val_dataloader', type=int, default=4)
-    parser.add_argument('--num_workers_train_cache_dataset', type=int, default=8)
-    parser.add_argument('--num_workers_val_cache_dataset', type=int, default=4)
-    parser.add_argument('--batch_size_train', type=int, default=32)
-    parser.add_argument('--batch_size_val', type=int, default=16)
-    parser.add_argument('--cache_ratio_train', type=float, default=0.2)
-    parser.add_argument('--cache_ratio_val', type=float, default=0.2)
-    parser.add_argument('--val_per_epoch', type=int, default=50)
-    parser.add_argument('--save_per_epoch', type=int, default=100)
-    parser.add_argument('--IS_LOGGER_WANDB', type=bool, default=True)
-    parser.add_argument('--VQ_optimizer', type=str, default="AdamW")
-    parser.add_argument('--VQ_loss_weight_recon_L2', type=float, default=0.1)
-    parser.add_argument('--VQ_loss_weight_recon_L1', type=float, default=1.0)
-    parser.add_argument('--VQ_loss_weight_codebook', type=float, default=0.1)
-    parser.add_argument('--VQ_train_gradiernt_clip', type=float, default=1.0)
-    parser.add_argument('--pyramid_channels', type=int, nargs='+', default=[64, 128, 256])
-    parser.add_argument('--pyramid_codebook_size', type=int, nargs='+', default=[32, 64, 128])
-    parser.add_argument('--pyramid_strides', type=int, nargs='+', default=[2, 2, 1])
-    parser.add_argument('--pyramid_num_res_units', type=int, nargs='+', default=[3, 4, 5])
-    parser.add_argument('--pyramid_num_epoch', type=int, nargs='+', default=[500, 500, 500])
-    parser.add_argument('--pyramid_batch_size', type=int, nargs='+', default=[128, 128, 16])
-    parser.add_argument('--pyramid_learning_rate', type=float, nargs='+', default=[1e-3, 5e-4, 2e-4])
-    parser.add_argument('--pyramid_weight_decay', type=float, nargs='+', default=[1e-4, 5e-5, 2e-5])
-    parser.add_argument('--pyramid_freeze_previous_stages', type=bool, default=True)
-    parser.add_argument('--save_folder', type=str, default="./results/")
-    return parser.parse_args()
-
 def parse_yaml_arguments():
     parser = argparse.ArgumentParser(description='Train a 3D ViT-VQGAN model.')
-    parser.add_argument('--config_file_path', type=str, default="config_v4_mini8_nonfixed.yaml")
+    parser.add_argument('--config_file_path', type=str, default="config_v5_mini16_nonfixed.yaml")
     return parser.parse_args()
 
 def load_yaml_config(config_file_path):
@@ -501,7 +634,7 @@ def main():
     # initialize wandb
     wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
     wandb_run = wandb.init(project="CT_ViT_VQGAN", dir=os.getenv("WANDB_DIR", "cache/wandb"), config=global_config)
-    wandb_run.log_code(root=".", name=tag+"train_v4_universal.py")
+    wandb_run.log_code(root=".", name=tag+"train_v5.py")
     global_config["wandb_run"] = wandb_run
 
     # set the logger
@@ -512,64 +645,40 @@ def main():
 
     # set the model
     model_levels = generate_model_levels(global_config)
-    model = ViTVQ3D(model_level=model_levels).to(device)
+    model = ViTVQ3D_dualEncoder(model_level=model_levels).to(device)
 
     # # load model from the previous training
-    if global_config["load_checkpoints"]:
-    #     model_artifact_name = global_config["model_artifact_name"]
-    #     model_artifact_version = global_config["model_artifact_version"]
-    #     optim_artifact_name = global_config["optim_artifact_name"]
-    #     optim_artifact_version = global_config["optim_artifact_version"]
-    #     model_checkpoint_name = model_artifact_name+":"+model_artifact_version
-    #     optim_checkpoint_name = optim_artifact_name+":"+optim_artifact_version
-    #     for artifact_name in [model_checkpoint_name, optim_checkpoint_name]:
-    #         artifact = wandb_run.use_artifact(f"convez376/CT_ViT_VQGAN/{artifact_name}")
-    #         artifact_dir = artifact.download()
+    state_dict_model_path = global_config['state_dict_model_path']
+    print(state_dict_model_path)
+    state_dict_model = torch.load(state_dict_model_path)
+    
+    # print the model state_dict loaded from the checkpoint
+    print("Model state_dict loaded from the checkpoint: ")
+    print(state_dict_model_path)
+    print("The following keys are loaded: ")
+    for key in state_dict_model.keys():
+        print(key)
+    model.load_state_dict(state_dict_model)
+    print("Model state_dict loaded successfully")
+    # model.to(device)
 
-    #     # search the model and optimizer checkpoint
-    #     state_dict_model_path = glob.glob("./artifacts/"+model_checkpoint_name+"/"+"*.pth")[0]
-    #     state_dict_optim_path = glob.glob("./artifacts/"+optim_checkpoint_name+"/"+"*.pth")[0]
-        state_dict_model_path = global_config['state_dict_model_path']
-        state_dict_optim_path = global_config['state_dict_optim_path']
-        print(state_dict_model_path)
-        print(state_dict_optim_path)
-        state_dict_model = torch.load(state_dict_model_path)
-        state_dict_optim = torch.load(state_dict_optim_path)
-        
-        # print the model state_dict loaded from the checkpoint
-        print("Model state_dict loaded from the checkpoint: ")
-        print(state_dict_model_path)
-        print("The following keys are loaded: ")
-        for key in state_dict_model.keys():
-            print(key)
-        model.load_state_dict(state_dict_model)
-        print("Model state_dict loaded successfully")
-        # model.to(device)
+    # load previous trained epochs
+    # num_epoch is the number for each stage need to be trained, we need to find out which stage we are in
+    num_epoch = global_config['pyramid_num_epoch']
+    num_epoch_sum = 0
+    previous_epochs_trained = global_config['previous_epochs_trained']
+    for i in range(len(num_epoch)):
+        num_epoch_sum += num_epoch[i]
+        if num_epoch_sum >= previous_epochs_trained:
+            break
+    current_level = i
+    print(f"Current level is {current_level}")
+    global_config["pyramid_num_epoch"][current_level] = num_epoch_sum - previous_epochs_trained
+    train_model_at_level(current_level, global_config, model, optimizer_weights=None)
 
-        # load previous trained epochs
-        # num_epoch is the number for each stage need to be trained, we need to find out which stage we are in
-        num_epoch = global_config['pyramid_num_epoch']
-        num_epoch_sum = 0
-        previous_epochs_trained = global_config['previous_epochs_trained']
-        for i in range(len(num_epoch)):
-            num_epoch_sum += num_epoch[i]
-            if num_epoch_sum >= previous_epochs_trained:
-                break
-        current_level = i
-        print(f"Current level is {current_level}")
-        optimizer_weights = state_dict_optim
-        global_config["pyramid_num_epoch"][current_level] = num_epoch_sum - previous_epochs_trained
-        train_model_at_level(current_level, global_config, model, optimizer_weights)
-
-        # if there are more stages to train
-        for i in range(current_level+1, len(pyramid_channels)):
-            train_model_at_level(i, global_config, model, None)
-
-    else:
-        # model.to(device)
-        for current_level in range(len(pyramid_channels)):
-            # current level starts at 1
-            train_model_at_level(current_level, global_config, model, None)
+    # if there are more stages to train
+    for i in range(current_level+1, len(pyramid_channels)):
+        train_model_at_level(i, global_config, model, None)
 
     wandb.finish()
 

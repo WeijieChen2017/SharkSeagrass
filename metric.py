@@ -19,8 +19,8 @@ def rmse(x,y):
     return np.mean(np.sqrt(np.sum(np.square(x-y))))
 
 def nrmse(x,y):
-    # return rmse(x,y)
-    return 1e6
+    # compute the normalized root mean squared error
+    return rmse(x,y) / (np.max(x) - np.min(x))
 
 def mse(x,y):
     return mean_squared_error(x,y)
