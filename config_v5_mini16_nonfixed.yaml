@@ -1,0 +1,69 @@
+description: Train a 3D ViT-VQGAN model
+tag: PETCT_mini16
+random_seed: 426
+volume_size: 64
+pix_dim: 1.5
+num_workers_train_dataloader: 8
+num_workers_val_dataloader: 4
+num_workers_train_cache_dataset: 8
+num_workers_val_cache_dataset: 4
+batch_size_train: 16
+batch_size_val: 8
+cache_ratio_train: 1
+cache_ratio_val: 1
+val_per_epoch: 100
+save_per_epoch: 200
+IS_LOGGER_WANDB: true
+dE_loss_l2: 1.0
+dE_loss_infoNCE: 1.0
+dE_loss_commit: 1.0
+dE_loss_activated_radius: False
+gap_sign: "<-$->"
+data_division: "crop/data_division.json"
+chunk_train:
+  - 0
+  - 1
+chunk_val:
+  - 2
+chunk_test:
+  - 3
+input_modality:
+  - PET_blr
+  - PET_grd
+  - PET_raw
+  - CT
+pyramid_channels: 
+  - 64
+  - 128
+  - 256
+pyramid_codebook_size: 
+  - 32
+  - 64
+  - 128
+pyramid_strides: 
+  - 2
+  - 2
+  - 1
+pyramid_num_res_units: 
+  - 3
+  - 4
+  - 5
+pyramid_num_epoch: 
+  - 1000
+  - 2000
+  - 8000
+pyramid_batch_size: 
+  - 32
+  - 16
+  - 8
+pyramid_learning_rate: 
+  - 0.001
+  - 0.0005
+  - 0.0002
+pyramid_weight_decay: 
+  - 0.0001
+  - 0.00005
+  - 0.00002
+pyramid_freeze_previous_stages: false
+save_folder: ./results/
+state_dict_model_path: model_best_3350_state_dict_2.pth
