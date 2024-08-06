@@ -546,6 +546,7 @@ class ViTVQ3D_dualEncoder(nn.Module):
         # the model_path is the path to the model weights with the same structure .pth file
         # Load the weights from the given path
         checkpoint = torch.load(model_path)
+        print(checkpoint.keys())
         
         for i, sub_model in enumerate(self.sub_models):
             # Load encoder weights
