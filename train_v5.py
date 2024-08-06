@@ -517,11 +517,11 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
     pyramid_learning_rate = global_config['pyramid_learning_rate']
     pyramid_weight_decay = global_config['pyramid_weight_decay']
     pyramid_num_epoch = global_config['pyramid_num_epoch']
-    pyramid_freeze_previous_stages = global_config['pyramid_freeze_previous_stages']
-    VQ_train_gradiernt_clip = global_config['VQ_train_gradiernt_clip']
-    pyramid_codebook_size = global_config['pyramid_codebook_size']
+    # pyramid_freeze_previous_stages = global_config['pyramid_freeze_previous_stages']
+    # VQ_train_gradiernt_clip = global_config['VQ_train_gradiernt_clip']
+    # pyramid_codebook_size = global_config['pyramid_codebook_size']
     val_per_epoch = global_config['val_per_epoch']
-    tag = global_config['tag']
+    # tag = global_config['tag']
     save_per_epoch = global_config['save_per_epoch']
     # wandb_run = global_config['wandb_run']
     logger = global_config['logger']
@@ -831,6 +831,9 @@ def main():
     global_config['pyramid_mini_resolution'] = global_config['volume_size'] // 2**(len(global_config['pyramid_channels'])-1)
     pyramid_channels = global_config['pyramid_channels']
     tag = global_config['tag']
+    save_folder = global_config['save_folder']
+    time_stamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+    global_config["save_folder"] = f"{save_folder}/{time_stamp}/tag/"
     os.makedirs(global_config['save_folder'], exist_ok=True)
 
     # set the random seed

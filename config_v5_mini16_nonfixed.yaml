@@ -1,5 +1,6 @@
 description: Train a 3D ViT-VQGAN model
 tag: PETCT_mini16
+save_folder: "results/dual_Encoder/"
 random_seed: 426
 volume_size: 64
 pix_dim: 1.5
