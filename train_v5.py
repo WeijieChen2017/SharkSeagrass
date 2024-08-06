@@ -1,30 +1,30 @@
 import os
 
-# Define the base cache directory
-base_cache_dir = './cache'
+# # Define the base cache directory
+# base_cache_dir = './cache'
 
-# Define and create necessary subdirectories within the base cache directory
-cache_dirs = {
-    'WANDB_DIR': os.path.join(base_cache_dir, 'wandb'),
-    'WANDB_CACHE_DIR': os.path.join(base_cache_dir, 'wandb_cache'),
-    'WANDB_CONFIG_DIR': os.path.join(base_cache_dir, 'config'),
-    'WANDB_DATA_DIR': os.path.join(base_cache_dir, 'data'),
-    'TRANSFORMERS_CACHE': os.path.join(base_cache_dir, 'transformers'),
-    'MPLCONFIGDIR': os.path.join(base_cache_dir, 'mplconfig')
-}
+# # Define and create necessary subdirectories within the base cache directory
+# cache_dirs = {
+#     'WANDB_DIR': os.path.join(base_cache_dir, 'wandb'),
+#     'WANDB_CACHE_DIR': os.path.join(base_cache_dir, 'wandb_cache'),
+#     'WANDB_CONFIG_DIR': os.path.join(base_cache_dir, 'config'),
+#     'WANDB_DATA_DIR': os.path.join(base_cache_dir, 'data'),
+#     'TRANSFORMERS_CACHE': os.path.join(base_cache_dir, 'transformers'),
+#     'MPLCONFIGDIR': os.path.join(base_cache_dir, 'mplconfig')
+# }
 
-# Create the base cache directory if it doesn't exist
-os.makedirs(base_cache_dir, exist_ok=True)
+# # Create the base cache directory if it doesn't exist
+# os.makedirs(base_cache_dir, exist_ok=True)
 
-# Create the necessary subdirectories and set the environment variables
-for key, path in cache_dirs.items():
-    os.makedirs(path, exist_ok=True)
-    os.environ[key] = path
+# # Create the necessary subdirectories and set the environment variables
+# for key, path in cache_dirs.items():
+#     os.makedirs(path, exist_ok=True)
+#     os.environ[key] = path
 
 # set the environment variable to use the GPU if available
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-import wandb
+# import wandb
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
@@ -43,6 +43,7 @@ import argparse
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
 
 from train_v4_utils import UNet3D_encoder, UNet3D_decoder
 from train_v4_utils import plot_and_save_x_xrec, simple_logger, effective_number_of_classes
@@ -186,244 +187,9 @@ def build_dataloader_train_val_PET_CT(batch_size, global_config):
     
     return train_loader, val_loader
 
-
-
-
-
-
-def train_model_at_level(current_level, global_config, model, optimizer_weights):
-
-    pyramid_batch_size = global_config['pyramid_batch_size']
-    pyramid_learning_rate = global_config['pyramid_learning_rate']
-    pyramid_weight_decay = global_config['pyramid_weight_decay']
-    pyramid_num_epoch = global_config['pyramid_num_epoch']
-    pyramid_freeze_previous_stages = global_config['pyramid_freeze_previous_stages']
-    VQ_train_gradiernt_clip = global_config['VQ_train_gradiernt_clip']
-    pyramid_codebook_size = global_config['pyramid_codebook_size']
-    val_per_epoch = global_config['val_per_epoch']
-    tag = global_config['tag']
-    save_per_epoch = global_config['save_per_epoch']
-    wandb_run = global_config['wandb_run']
-    loss_weights = {
-        "dE_l2": global_config['dE_loss_l2'],
-        "dE_infoNCE": global_config['dE_loss_infoNCE'],
-        "dE_commit": global_config['dE_loss_commit'],
-    }
-    logger = global_config['logger']
-    save_folder = global_config['save_folder']
-
-    best_val_loss = 1e6
-
-    # set the data loaders for the current level
-    train_loader, val_loader = build_dataloader_train_val_PET_CT(pyramid_batch_size[current_level], global_config)
-    # set the optimizer for the current level
-    optimizer = build_optimizer(model, pyramid_learning_rate[current_level], pyramid_weight_decay[current_level])
-
-    if optimizer_weights is not None:
-        optimizer.load_state_dict(optimizer_weights)
-        print("Load optimizer weights")
-
-    
-    num_train_batch = len(train_loader)
-    num_val_batch = len(val_loader)
-    # unfreeze the gradient at the current level for the second encoder
-    model.unfreeze_second_encder(current_level)
-    input_modality = global_config["input_modality"]
-
-    # start the training
-    for idx_epoch in range(pyramid_num_epoch[current_level]):
-        model.train()
-        epoch_loss_train = {
-            "dE_l2": [],
-            "dE_infoNCE": [],
-            "dE_commit": [],
-        }
-
-        for idx_batch, batch in enumerate(train_loader):
-
-            # skip the batch if it is None
-            if batch is None:
-                continue
-            # print("Currently loading the batch named: ", batch["filename"])
-            y = batch["CT"].to(device)
-            x = batch["PET_raw"].to(device)
-            # if there are other modalities, concatenate them at the channel dimension
-            for modality in input_modality:
-                if modality != "PET_raw" and modality != "CT":
-                    x = torch.cat((x, batch[modality].to(device)), dim=1)
-
-            # generate the input data pyramid
-            pyramid_x = generate_input_data_pyramid(x, current_level, global_config)
-            pyramid_y = generate_input_data_pyramid(y, current_level, global_config)
-
-            # foward the pyramid_x to the model
-            xrec, x_indices_list, x_cb_loss_list, x_embed_list = model.foward_to_decoder(pyramid_x, current_level, second_encoder=True)
-            yrec, y_indices_list, y_cb_loss_list, y_embed_list = model.foward_to_decoder(pyramid_y, current_level, second_encoder=False)
-            
-            # initialize the optimizer
-            optimizer.zero_grad()
-            # compute the loss
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            reconL2_loss = F.mse_loss(target_x, xrec)
-            reconL1_loss = F.l1_loss(target_x, xrec)
-            if pyramid_freeze_previous_stages:
-                codebook_loss = cb_loss_list[-1]
-            else:
-                # cb_loss_list is a list of tensor with gradient
-                # Sum the tensors
-                sum_codebook_loss = torch.stack(cb_loss_list).sum(dim=0)
-                # Compute the average
-                codebook_loss = sum_codebook_loss / len(cb_loss_list)
-            # take the weighted sum of the loss
-            total_loss = loss_weights["reconL2"] * reconL2_loss + \
-                            loss_weights["reconL1"] * reconL1_loss + \
-                            loss_weights["codebook"] * codebook_loss
-            # record the loss
-            epoch_loss_train["reconL2"].append(reconL2_loss.item())
-            epoch_loss_train["reconL1"].append(reconL1_loss.item())
-            epoch_loss_train["codebook"].append(codebook_loss.item())
-            epoch_loss_train["total"].append(total_loss.item())
-            # print the loss
-            print(f"<{idx_epoch}> [{idx_batch}/{num_train_batch}] Total loss: {total_loss.item()}")
-            # add gradient clipping
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=VQ_train_gradiernt_clip)
-            total_loss.backward()
-            optimizer.step()
-
-            # record the codebook indices
-            if pyramid_freeze_previous_stages:
-                epoch_codebook_train["indices"].extend(indices_list[-1].cpu().numpy().squeeze().flatten())
-            else:
-                for current_indices in indices_list:
-                    epoch_codebook_train["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
-        
-        for key in epoch_loss_train.keys():
-            epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
-            logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
-            # logger.log(idx_epoch, f"train_{key}_std", epoch_loss_train[key].std())
-        
-        
-        for key in epoch_codebook_train.keys():
-            epoch_codebook_train[key] = np.asanyarray(epoch_codebook_train[key])
-        
-        activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
-        if len(activated_counts) < pyramid_codebook_size[current_level]:
-            activated_counts = np.append(activated_counts, np.zeros(pyramid_codebook_size[current_level] - len(activated_counts)))
-        effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
-        embedding_num = len(activated_counts)
-        logger.log(idx_epoch, "train_effective_num", effective_num)
-        logger.log(idx_epoch, "train_embedding_num", embedding_num)
-        
-
-        # validation
-        if idx_epoch % val_per_epoch == 0:
-            model.eval()
-            epoch_loss_val = {
-                "reconL2": [],
-                "reconL1": [],
-                "codebook": [],
-                "total": [],
-            }
-            epoch_codebook_val = {
-                "indices": [],
-            }
-            with torch.no_grad():
-                for idx_batch, batch in enumerate(val_loader):
-                    x = batch["image"]
-                    # generate the input data pyramid
-                    pyramid_x = generate_input_data_pyramid(x, current_level, global_config)
-                    # target_x is the last element of the pyramid_x, which is to be reconstructed
-                    target_x = pyramid_x[-1]
-                    xrec, indices_list, cb_loss_list = model(pyramid_x, current_level)
-                    # compute the loss
-                    reconL2_loss = F.mse_loss(target_x, xrec)
-                    reconL1_loss = F.l1_loss(target_x, xrec)
-                    if pyramid_freeze_previous_stages:
-                        codebook_loss = cb_loss_list[-1]
-                    else:
-                        # cb_loss_list is a list of tensor with gradient
-                        # Sum the tensors
-                        sum_codebook_loss = torch.stack(cb_loss_list).sum(dim=0)
-                        # Compute the average
-                        codebook_loss = sum_codebook_loss / len(cb_loss_list)
-                    # take the weighted sum of the loss
-                    total_loss = loss_weights["reconL2"] * reconL2_loss + \
-                                    loss_weights["reconL1"] * reconL1_loss + \
-                                    loss_weights["codebook"] * codebook_loss
-                    epoch_loss_val["reconL2"].append(reconL2_loss.item())
-                    epoch_loss_val["reconL1"].append(reconL1_loss.item())
-                    epoch_loss_val["codebook"].append(codebook_loss.item())
-                    epoch_loss_val["total"].append(total_loss.item())
-                    print(f"<{idx_epoch}> [{idx_batch}/{num_val_batch}] Total loss: {total_loss.item()}")
-
-                    if pyramid_freeze_previous_stages:
-                        epoch_codebook_val["indices"].extend(indices_list[-1].cpu().numpy().squeeze().flatten())
-                    else:
-                        for current_indices in indices_list:
-                            epoch_codebook_val["indices"].extend(current_indices.cpu().numpy().squeeze().flatten())
-
-            save_name = f"epoch_{idx_epoch}_batch_{idx_batch}"
-            plot_and_save_x_xrec(target_x, xrec, 
-                                 num_per_direction=3, 
-                                 savename=save_folder+f"{save_name}_{current_level}.png", 
-                                 wandb_name="val_snapshots",
-                                 global_config=global_config)
-            
-            for key in epoch_loss_val.keys():
-                epoch_loss_val[key] = np.asanyarray(epoch_loss_val[key])
-                logger.log(idx_epoch, f"val_{key}_mean", epoch_loss_val[key].mean())
-                # logger.log(idx_epoch, f"val_{key}_std", epoch_loss_val[key].std())
-
-            if epoch_loss_val["total"].mean() < best_val_loss:
-                best_val_loss = epoch_loss_val["total"].mean()
-                model_save_name = save_folder+f"model_best_{idx_epoch}_state_dict_{current_level}.pth"
-                optimizer_save_name = save_folder+f"optimizer_best_{idx_epoch}_state_dict_{current_level}.pth"
-                torch.save(model.state_dict(), model_save_name)
-                torch.save(optimizer.state_dict(), optimizer_save_name)
-                # log the model
-                wandb_run.log_model(path=model_save_name, name="model_best_eval", aliases=tag+f"_{current_level}")
-                wandb_run.log_model(path=optimizer_save_name, name="optimizer_best_eval", aliases=tag+f"_{current_level}")
-                logger.log(idx_epoch, "best_val_loss", best_val_loss)
-
-            for key in epoch_codebook_val.keys():
-                epoch_codebook_val[key] = np.asanyarray(epoch_codebook_val[key])
-            
-            activated_value, activated_counts = np.unique(epoch_codebook_val["indices"], return_counts=True)
-            if len(activated_counts) < pyramid_codebook_size[current_level]:
-                activated_counts = np.append(activated_counts, np.zeros(pyramid_codebook_size[current_level] - len(activated_counts)))
-            effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
-            embedding_num = len(activated_counts)
-            logger.log(idx_epoch, "val_effective_num", effective_num)
-            logger.log(idx_epoch, "val_embedding_num", embedding_num)
-         
-        # save the model every save_per_epoch
-        if idx_epoch % save_per_epoch == 0:
-            # delete previous model
-            for f in glob.glob(save_folder+"latest_*"):
-                os.remove(f)
-            model_save_name = save_folder+f"latest_model_{idx_epoch}_state_dict.pth"
-            optimizer_save_name = save_folder+f"latest_optimizer_{idx_epoch}_state_dict.pth"
-            torch.save(model.state_dict(), model_save_name)
-            torch.save(optimizer.state_dict(), optimizer_save_name)
-            # log the model
-            wandb_run.log_model(path=model_save_name, name=f"model_latest_save", aliases=tag+f"_{current_level}")
-            wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_latest_save", aliases=tag+f"_{current_level}")
-            logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
-
 def generate_model_levels(global_config):
     num_level = len(global_config['pyramid_channels'])
-    model_level = []
+    model_levels = []
     for i in range(num_level):
         encoder = {
             "spatial_dims": 3, "in_channels": len(global_config['input_modality']),
@@ -445,12 +211,12 @@ def generate_model_levels(global_config):
             "num_res_units": global_config['pyramid_num_res_units'][i],
             "hwd": global_config['pyramid_mini_resolution'],
         }
-        model_level.append({
+        model_levels.append({
             "encoder": encoder,
             "decoder": decoder,
             "quantizer": quantizer
         })
-    return model_level
+    return model_levels
 
 def generate_input_data_pyramid(x, levels, global_config):
     pyramid_mini_resolution = global_config['pyramid_mini_resolution']
@@ -468,28 +234,113 @@ def build_optimizer(model, learning_rate, weight_decay):
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     return optimizer
 
+class InfoNCELoss(nn.Module):
+    # InfoNCELoss is a class to compute the InfoNCE loss
+    # Initialize the class with
+    # - codebook: the codebook is a K * D tensor
+    # - similarity_type: the similarity type is either "cosine", "euclidean", or "manhattan"
+    # - temperature: the temperature is a float value
+
+    def __init__(self, 
+                 codebook : torch.FloatTensor,
+                 similarity_type: str = "cosine",
+                 temperature: float = 0.1):
+        self.codebook = codebook
+        self.K, self.D = codebook.shape
+        self.similarity_type = similarity_type
+        self.temperature = temperature
+
+        # Compute the similarity matrix
+        self.similarity_matrix = self.get_similarity_matrix(codebook)
+        self.InfoNCEloss_matrix = self.precompute_all_pairs()
+
+    def compute_InfoNCEloss_list(self, indices_pair_list):
+        losses = [self.precomputed_InfoNCEloss_matrix[i, j] for i, j in indices_pair_list]
+        return torch.tensor(losses).mean()
+
+    def precompute_all_pairs(self):
+        loss_matrix = torch.zeros((self.K, self.K))
+        for i in range(self.K):
+            for j in range(self.K):
+                if i != j:
+                    loss_matrix[i, j] = self.precompute_InfoNCEloss_pair(i, j)
+
+        print(f"The precomputed InfoNCE loss matrix is computed with {self.K} entries of shape {self.K} * {self.K}")
+        return loss_matrix
+
+    def precompute_InfoNCEloss_pair(self, index_i, index_j):
+
+        # Load positive similarity from similarity_matrix
+        pos_sim = self.similarity_matrix[index_i, index_j]
+
+        # Load similarities with the rest of the codebook from similarity_matrix
+        sim_i = self.similarity_matrix[index_i, :] / self.temperature  # Shape: (K,)
+        
+        # Combine similarities
+        logits = torch.cat((torch.tensor([pos_sim]), sim_i.view(-1)), dim=0)  # Shape: (K + 1,)
+
+        # Create labels (the positive pair is at index 0)
+        labels = torch.tensor([0], dtype=torch.long)
+
+        # Compute the InfoNCE loss using cross-entropy
+        loss = F.cross_entropy(logits.unsqueeze(0), labels)
+
+        return loss.item()
+
+    def compute_similarity(self, vector_i, vector_j):
+        # Normalize the vectors
+        vector_i = F.normalize(vector_i, dim=-1)
+        vector_j = F.normalize(vector_j, dim=-1)
+        if self.similarity_type == "cosine":
+            sim_vector_i_j = F.cosine_similarity(vector_i, vector_j, dim=-1)
+        elif self.similarity_type == "euclidean":
+            sim_vector_i_j = -F.pairwise_distance(vector_i, vector_j, p=2)
+        elif self.similarity_type == "manhattan":
+            sim_vector_i_j = -F.pairwise_distance(vector_i, vector_j, p=1)
+        else:
+            raise NotImplementedError
+        return sim_vector_i_j 
+
+    def get_similarity_matrix(self, codebook: torch.FloatTensor) -> torch.FloatTensor:
+        if self.similarity_type == "cosine":
+            similarity_matrix = F.cosine_similarity(codebook.unsqueeze(0), codebook.unsqueeze(1), dim=-1)
+        elif self.similarity_type == "euclidean":
+            similarity_matrix = -F.pairwise_distance(codebook.unsqueeze(0), codebook.unsqueeze(1), p=2)
+        elif self.similarity_type == "manhattan":
+            similarity_matrix = -F.pairwise_distance(codebook.unsqueeze(0), codebook.unsqueeze(1), p=1)
+        else:
+            raise NotImplementedError
+        return similarity_matrix  
+
 class ViTVQ3D_dualEncoder(nn.Module):
-    def __init__(self, model_level: list) -> None:
+    def __init__(self, model_levels: list) -> None:
         super().__init__()
-        self.num_level = len(model_level)
+        self.num_level = len(model_levels)
         self.sub_models = nn.ModuleList()
-        for level_setting in model_level:
+        for level_setting in model_levels:
             # Create a submodule to hold the encoder, decoder, quantizer, etc.
             sub_model = nn.Module() 
             sub_model.encoder = UNet3D_encoder(**level_setting["encoder"])
-            sub_model.second_encoder = UNet3D_encoder(**level_setting["encoder"])
+            sub_model.second_encoder = UNet3D_encoder(**level_setting["second_encoder"])
             sub_model.decoder = UNet3D_decoder(**level_setting["decoder"])
             sub_model.quantizer = lucidrains_VQ(**level_setting["quantizer"])
             sub_model.pre_quant = nn.Linear(level_setting["encoder"]["channels"][-1], level_setting["quantizer"]["dim"])
-            sub_model.second_pre_quant = nn.Linear(level_setting["encoder"]["channels"][-1], level_setting["quantizer"]["dim"])
+            sub_model.second_pre_quant = nn.Linear(level_setting["second_encoder"]["channels"][-1], level_setting["quantizer"]["dim"])
             sub_model.post_quant = nn.Linear(level_setting["quantizer"]["dim"], level_setting["decoder"]["channels"][0])
             
             # Append the submodule to the ModuleList
             self.sub_models.append(sub_model) 
-        
+
         self.init_weights()
         self.freeze_gradient_all()
 
+        # Compute the InfoNCE loss
+        self.codebook_list = [submodel["quantizer"].codebook for submodel in self.sub_models]
+        self.InfoNCE_loss_list = [InfoNCELoss(codebook) for codebook in self.codebook_list]
+
+    def compute_InfoNCE_loss(self, indices_list, level):
+        return self.InfoNCE_loss_list[level].compute_InfoNCEloss_list(indices_list)
+        
     def freeze_gradient_all(self) -> None:
         for level in range(self.num_level):
             self.freeze_gradient_at_level(level)
@@ -530,6 +381,20 @@ class ViTVQ3D_dualEncoder(nn.Module):
                 nn.init.kaiming_normal_(m.weight)
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
+
+    def foward_at_level(self, x: torch.FloatTensor, i_level: int) -> torch.FloatTensor:
+        # print("x shape is ", x.shape)
+        h = self.sub_models[i_level].encoder(x) # Access using dot notation
+        # print("after encoder, h shape is ", h.shape)
+        h = self.sub_models[i_level].pre_quant(h)
+        # print("after pre_quant, h shape is ", h.shape)
+        quant, indices, loss = self.sub_models[i_level].quantizer(h)
+        # print("after quantizer, quant shape is ", quant.shape)
+        g = self.sub_models[i_level].post_quant(quant)
+        # print("after post_quant, g shape is ", g.shape)
+        g = self.sub_models[i_level].decoder(g)
+        # print("after decoder, g shape is ", g.shape)
+        return g, indices, loss
 
     def at_level_forward_to_encoder(self, x: torch.FloatTensor, i_level: int, second_encoder: bool = False) -> torch.FloatTensor:
         if second_encoder:
@@ -605,6 +470,348 @@ class ViTVQ3D_dualEncoder(nn.Module):
                 x_hat = x_hat + output_x
 
         return x_hat, indices_list, loss_list
+    
+def compute_loss_alpha(loss_weights, level):
+    # here for each level, we will compute the loss from the list of indices
+    # loss for different level will be scaled by the level_decay
+    # For example
+    #  - If current_level is 0, the loss coefs will be [a_f, a_i, a_s, a_r] / (a_f + a_i + a_s + a_r)
+    #  - If current_level is 1, the loss coefs will be 
+    #       - level 0: [a_f, a_i, a_s, a_r] / (a_f + a_i + a_s + a_r) * level_decay
+    #       - level 1: [a_f, a_i, a_s, a_r] / (a_f + a_i + a_s + a_r)
+    #       - After normalization between levels
+    #       - level 0: [a_f, a_i, a_s, a_r] / (a_f + a_i + a_s + a_r) * level_decay / (1+level_decay)
+    #       - level 1: [a_f, a_i, a_s, a_r] / (a_f + a_i + a_s + a_r) / (1+level_decay)
+    #  - If current_level is 2, the loss coefs will be
+    #       - level 0: [a_f, a_i, a_s, a_r] / (a_f + a_i + a_s + a_r) * level_decay^2 / (1+level_decay+level_decay^2)
+    #       - level 1: [a_f, a_i, a_s, a_r] / (a_f + a_i + a_s + a_r) * level_decay / (1+level_decay+level_decay^2)
+    #       - level 2: [a_f, a_i, a_s, a_r] / (a_f + a_i + a_s + a_r) / (1+level_decay+level_decay^2)
+
+    a_f = loss_weights["dE_loss_alpha_fea_map"]
+    a_i = loss_weights["dE_loss_alpha_infoNCE"]
+    a_s = loss_weights["dE_loss_alpha_similarity"]
+    a_r = loss_weights["dE_loss_alpha_recon"]
+    a_sum = a_f + a_i + a_s + a_r
+    level_decay = loss_weights["dE_loss_level_decay"]
+
+    loss_alpha = []
+    # level_coef is the sum of 1, level_decay, level_decay^2, level_decay^3, ...
+    level_coef = 1
+    level_sum = 0
+    for i in range(level+1):
+        print(level_coef)
+        level_sum += level_coef
+        level_coef *= level_decay
+
+    for i in range(level+1):
+        current_alpha = np.asarray([a_f, a_i, a_s, a_r]) / a_sum
+        for j in range(level-i):
+            current_alpha *= level_decay
+        loss_alpha.append(current_alpha / level_sum)
+
+    return loss_alpha
+
+def train_model_at_level(current_level, global_config, model, optimizer_weights):
+
+    pyramid_batch_size = global_config['pyramid_batch_size']
+    pyramid_learning_rate = global_config['pyramid_learning_rate']
+    pyramid_weight_decay = global_config['pyramid_weight_decay']
+    pyramid_num_epoch = global_config['pyramid_num_epoch']
+    pyramid_freeze_previous_stages = global_config['pyramid_freeze_previous_stages']
+    VQ_train_gradiernt_clip = global_config['VQ_train_gradiernt_clip']
+    pyramid_codebook_size = global_config['pyramid_codebook_size']
+    val_per_epoch = global_config['val_per_epoch']
+    tag = global_config['tag']
+    save_per_epoch = global_config['save_per_epoch']
+    # wandb_run = global_config['wandb_run']
+    logger = global_config['logger']
+    save_folder = global_config['save_folder']
+
+    # dE_loss_alpha_fea_map: 1.0
+    # dE_loss_alpha_infoNCE: 1.0
+    # dE_loss_alpha_similarity: 0.0
+    # dE_loss_alpha_recon: 1.0
+    # dE_loss_level_decay: 0.5
+    loss_weights = {
+        "dE_loss_alpha_fea_map": global_config['dE_loss_alpha_fea_map'],
+        "dE_loss_alpha_infoNCE": global_config['dE_loss_alpha_infoNCE'],
+        "dE_loss_alpha_similarity": global_config['dE_loss_alpha_similarity'],
+        "dE_loss_alpha_recon": global_config['dE_loss_alpha_recon'],
+        "dE_loss_level_decay": global_config['dE_loss_level_decay'],
+    }
+
+    loss_alpha = compute_loss_alpha(loss_weights, current_level)
+
+    best_val_loss = 1e6
+
+    
+
+    # set the data loaders for the current level
+    train_loader, val_loader = build_dataloader_train_val_PET_CT(pyramid_batch_size[current_level], global_config)
+    # set the optimizer for the current level
+    optimizer = build_optimizer(model, pyramid_learning_rate[current_level], pyramid_weight_decay[current_level])
+
+    if optimizer_weights is not None:
+        optimizer.load_state_dict(optimizer_weights)
+        print("Load optimizer weights")
+
+    
+    num_train_batch = len(train_loader)
+    num_val_batch = len(val_loader)
+    # unfreeze the gradient at the current level for the second encoder
+    model.unfreeze_second_encder(current_level)
+    input_modality = global_config["input_modality"]
+
+    # start the training
+    for idx_epoch in range(pyramid_num_epoch[current_level]):
+        model.train()
+        epoch_loss_train = {
+            "fea_map": [],
+            "infoNCE": [],
+            "similarity": [],
+            "recon": [],
+            "total": [],
+        }
+
+        for idx_batch, batch in enumerate(train_loader):
+
+            # skip the batch if it is None
+            if batch is None:
+                continue
+            # print("Currently loading the batch named: ", batch["filename"])
+            y = batch["CT"].to(device)
+            x = batch["PET_raw"].to(device)
+            # if there are other modalities, concatenate them at the channel dimension
+            for modality in input_modality:
+                if modality != "PET_raw" and modality != "CT":
+                    x = torch.cat((x, batch[modality].to(device)), dim=1)
+
+            # generate the input data pyramid
+            pyramid_x = generate_input_data_pyramid(x, current_level, global_config)
+            pyramid_y = generate_input_data_pyramid(y, current_level, global_config)
+
+            # foward the pyramid_x to the model
+            x_hat, x_fea_map_list, x_embbding_list, x_indices_list, _ = model.foward_to_decoder(pyramid_x, current_level, second_encoder=True)
+            y_hat, y_fea_map_list, y_embbding_list, y_indices_list, _ = model.foward_to_decoder(pyramid_y, current_level, second_encoder=False)
+            
+            # compute loss per level
+            batch_overall_loss = 0
+            batch_fea_map_loss = []
+            batch_infoNCE_loss = []
+            batch_similarity_loss = []
+            batch_recon_loss = []
+            batch_total_loss = []
+            for i_level in range(current_level+1):
+                fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level]) * loss_alpha[i_level][0]
+                indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
+                infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level) * loss_alpha[i_level][1]
+                similarity_loss = F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean() * loss_alpha[i_level][2]
+                recon_loss = F.l1_loss(x_hat, y_hat) * loss_alpha[i_level][3]
+                total_loss = fea_map_loss + infoNCE_loss + similarity_loss + recon_loss
+                batch_overall_loss += total_loss
+                batch_fea_map_loss.append(fea_map_loss.item())
+                batch_infoNCE_loss.append(infoNCE_loss.item())
+                batch_similarity_loss.append(similarity_loss.item())
+                batch_recon_loss.append(recon_loss.item())
+                batch_total_loss.append(total_loss.item())
+            
+            epoch_loss_train["fea_map"].append(batch_fea_map_loss)
+            epoch_loss_train["infoNCE"].append(batch_infoNCE_loss)
+            epoch_loss_train["similarity"].append(batch_similarity_loss)
+            epoch_loss_train["recon"].append(batch_recon_loss)
+            epoch_loss_train["total"].append(batch_total_loss)
+
+            # print the loss
+            current_fea_map_loss = np.asarray(batch_fea_map_loss).sum()
+            current_infoNCE_loss = np.asarray(batch_infoNCE_loss).sum()
+            current_similarity_loss = np.asarray(batch_similarity_loss).sum()
+            current_recon_loss = np.asarray(batch_recon_loss).sum()
+            current_total_loss = np.asarray(batch_total_loss).sum()
+            loss_message = f"<{idx_epoch}> [{idx_batch}/{num_train_batch}] Total loss: {current_total_loss}, " + \
+                            f"Fea_map loss: {current_fea_map_loss}, " + \
+                            f"InfoNCE loss: {current_infoNCE_loss}, " + \
+                            f"Similarity loss: {current_similarity_loss}, " + \
+                            f"Recon loss: {current_recon_loss}"
+            print(loss_message)
+
+            # initialize the optimizer
+            optimizer.zero_grad()
+            # gradient clipping
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            # backpropagation
+            total_loss.backward()
+            # optimizer step
+            optimizer.step()
+
+        
+        for key in epoch_loss_train.keys():
+            current_key_loss_list = []
+            for sub_list in epoch_loss_train[key]:
+                current_key_loss_list.append(np.asarray(sub_list).sum())
+            current_key_loss = np.asarray(current_key_loss_list).mean()
+            logger.log(idx_epoch, f"train_{key}_mean", current_key_loss)
+        
+
+        # for key in epoch_loss_train.keys():
+        #     epoch_loss_train[key] = np.asanyarray(epoch_loss_train[key])
+        #     logger.log(idx_epoch, f"train_{key}_mean", epoch_loss_train[key].mean())
+        #     # logger.log(idx_epoch, f"train_{key}_std", epoch_loss_train[key].std())
+        
+        
+        # for key in epoch_codebook_train.keys():
+        #     epoch_codebook_train[key] = np.asanyarray(epoch_codebook_train[key])
+        
+        # activated_value, activated_counts = np.unique(epoch_codebook_train["indices"], return_counts=True)
+        # if len(activated_counts) < pyramid_codebook_size[current_level]:
+        #     activated_counts = np.append(activated_counts, np.zeros(pyramid_codebook_size[current_level] - len(activated_counts)))
+        # effective_num = effective_number_of_classes(activated_counts / np.sum(activated_counts))
+        # embedding_num = len(activated_counts)
+        # logger.log(idx_epoch, "train_effective_num", effective_num)
+        # logger.log(idx_epoch, "train_embedding_num", embedding_num)
+        
+
+        # validation
+        if idx_epoch % val_per_epoch == 0:
+            model.eval()
+            epoch_loss_val = {
+                "fea_map": [],
+                "infoNCE": [],
+                "similarity": [],
+                "recon": [],
+                "total": [],
+            }
+            with torch.no_grad():
+                for idx_batch, batch in enumerate(val_loader):
+                    if batch is None:
+                        continue
+                    y = batch["CT"].to(device)
+                    x = batch["PET_raw"].to(device)
+                    for modality in input_modality:
+                        if modality != "PET_raw" and modality != "CT":
+                            x = torch.cat((x, batch[modality].to(device)), dim=1)
+                    pyramid_x = generate_input_data_pyramid(x, current_level, global_config)
+                    pyramid_y = generate_input_data_pyramid(y, current_level, global_config)
+                    x_hat, x_fea_map_list, x_embbding_list, x_indices_list, _ = model.foward_to_decoder(pyramid_x, current_level, second_encoder=True)
+                    y_hat, y_fea_map_list, y_embbding_list, y_indices_list, _ = model.foward_to_decoder(pyramid_y, current_level, second_encoder=False)
+                    batch_overall_loss = 0
+                    batch_fea_map_loss = []
+                    batch_infoNCE_loss = []
+                    batch_similarity_loss = []
+                    batch_recon_loss = []
+                    batch_total_loss = []
+                    for i_level in range(current_level+1):
+                        fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level]) * loss_alpha[i_level][0]
+                        indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
+                        infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level) * loss_alpha[i_level][1]
+                        similarity_loss = F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean() * loss_alpha[i_level][2]
+                        recon_loss = F.l1_loss(x_hat, y_hat) * loss_alpha[i_level][3]
+                        total_loss = fea_map_loss + infoNCE_loss + similarity_loss + recon_loss
+                        batch_overall_loss += total_loss
+                        batch_fea_map_loss.append(fea_map_loss.item())
+                        batch_infoNCE_loss.append(infoNCE_loss.item())
+                        batch_similarity_loss.append(similarity_loss.item())
+                        batch_recon_loss.append(recon_loss.item())
+                        batch_total_loss.append(total_loss.item())
+                    epoch_loss_val["fea_map"].append(batch_fea_map_loss)
+                    epoch_loss_val["infoNCE"].append(batch_infoNCE_loss)
+                    epoch_loss_val["similarity"].append(batch_similarity_loss)
+                    epoch_loss_val["recon"].append(batch_recon_loss)
+                    epoch_loss_val["total"].append(batch_total_loss)
+            
+            for key in epoch_loss_val.keys():
+                current_key_loss_list = []
+                for sub_list in epoch_loss_val[key]:
+                    current_key_loss_list.append(np.asarray(sub_list).sum())
+                current_key_loss = np.asarray(current_key_loss_list).mean()
+                logger.log(idx_epoch, f"val_{key}_mean", current_key_loss)
+            
+            # if the current val loss is the best, save the model
+            current_val_loss = np.asarray(epoch_loss_val["total"]).mean()
+            if current_val_loss < best_val_loss:
+                best_val_loss = current_val_loss
+                model_save_name = save_folder+f"best_model_{idx_epoch}_state_dict.pth"
+                optimizer_save_name = save_folder+f"best_optimizer_{idx_epoch}_state_dict.pth"
+                torch.save(model.state_dict(), model_save_name)
+                torch.save(optimizer.state_dict(), optimizer_save_name)
+                # # log the model
+                # wandb_run.log_model(path=model_save_name, name=f"model_best_save", aliases=tag+f"_{current_level}")
+                # wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_best_save", aliases=tag+f"_{current_level}")
+                # logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
+
+            # plot the x_hat using plot_and_save_x_xrec
+            plot_and_save_x_xrec(x, 
+                                 x_hat, 
+                                 num_per_direction=3, 
+                                 savename=save_folder+f"val_{idx_epoch}_x_xrec.png")
+
+        # save the model every save_per_epoch
+        if idx_epoch % save_per_epoch == 0:
+            # delete previous model
+            for f in glob.glob(save_folder+"latest_*"):
+                os.remove(f)
+            model_save_name = save_folder+f"latest_model_{idx_epoch}_state_dict.pth"
+            optimizer_save_name = save_folder+f"latest_optimizer_{idx_epoch}_state_dict.pth"
+            torch.save(model.state_dict(), model_save_name)
+            torch.save(optimizer.state_dict(), optimizer_save_name)
+            # log the model
+            # wandb_run.log_model(path=model_save_name, name=f"model_latest_save", aliases=tag+f"_{current_level}")
+            # wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_latest_save", aliases=tag+f"_{current_level}")
+            # logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
+
+def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None):
+    numpy_x = x[0, 0, :, :, :].cpu().numpy().squeeze()
+    numpy_xrec = xrec[0, 0, :, :, :].cpu().numpy().squeeze()
+    x_clip = np.clip(numpy_x, 0, 1)
+    rec_clip = np.clip(numpy_xrec, 0, 1)
+    fig_width = num_per_direction * 3
+    fig_height = 4
+    fig, axs = plt.subplots(3, fig_width, figsize=(fig_width, fig_height), dpi=100)
+    # for axial
+    for i in range(num_per_direction):
+        img_x = x_clip[x_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
+        img_rec = rec_clip[rec_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
+        axs[0, 3*i].imshow(img_x, cmap="gray")
+        axs[0, 3*i].set_title(f"A x {x_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i].axis("off")
+        axs[1, 3*i].imshow(img_rec, cmap="gray")
+        axs[1, 3*i].set_title(f"A xrec {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i].axis("off")
+        axs[2, 3*i].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i].set_title(f"A diff {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i].axis("off")
+    # for sagittal
+    for i in range(num_per_direction):
+        img_x = x_clip[:, :, x_clip.shape[2]//(num_per_direction+1)*(i+1)]
+        img_rec = rec_clip[:, :, rec_clip.shape[2]//(num_per_direction+1)*(i+1)]
+        axs[0, 3*i+1].imshow(img_x, cmap="gray")
+        axs[0, 3*i+1].set_title(f"S x {x_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i+1].axis("off")
+        axs[1, 3*i+1].imshow(img_rec, cmap="gray")
+        axs[1, 3*i+1].set_title(f"S xrec {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i+1].axis("off")
+        axs[2, 3*i+1].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i+1].set_title(f"S diff {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i+1].axis("off")
+
+    # for coronal
+    for i in range(num_per_direction):
+        img_x = x_clip[:, x_clip.shape[1]//(num_per_direction+1)*(i+1), :]
+        img_rec = rec_clip[:, rec_clip.shape[1]//(num_per_direction+1)*(i+1), :]
+        axs[0, 3*i+2].imshow(img_x, cmap="gray")
+        axs[0, 3*i+2].set_title(f"C x {x_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[0, 3*i+2].axis("off")
+        axs[1, 3*i+2].imshow(img_rec, cmap="gray")
+        axs[1, 3*i+2].set_title(f"C xrec {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[1, 3*i+2].axis("off")
+        axs[2, 3*i+2].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i+2].set_title(f"C diff {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        axs[2, 3*i+2].axis("off")
+
+    plt.tight_layout()
+    plt.savefig(savename)
+    # wandb_run.log({wandb_name: fig})
+    plt.close()
+    print(f"Save the plot to {savename}")
 
 def parse_yaml_arguments():
     parser = argparse.ArgumentParser(description='Train a 3D ViT-VQGAN model.')
@@ -631,11 +838,11 @@ def main():
     np.random.seed(global_config['random_seed'])
     torch.manual_seed(global_config['random_seed'])
 
-    # initialize wandb
-    wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
-    wandb_run = wandb.init(project="CT_ViT_VQGAN", dir=os.getenv("WANDB_DIR", "cache/wandb"), config=global_config)
-    wandb_run.log_code(root=".", name=tag+"train_v5.py")
-    global_config["wandb_run"] = wandb_run
+    # # initialize wandb
+    # wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
+    # wandb_run = wandb.init(project="CT_ViT_VQGAN", dir=os.getenv("WANDB_DIR", "cache/wandb"), config=global_config)
+    # wandb_run.log_code(root=".", name=tag+"train_v5.py")
+    # global_config["wandb_run"] = wandb_run
 
     # set the logger
     current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
@@ -645,7 +852,7 @@ def main():
 
     # set the model
     model_levels = generate_model_levels(global_config)
-    model = ViTVQ3D_dualEncoder(model_level=model_levels).to(device)
+    model = ViTVQ3D_dualEncoder(model_levels=model_levels).to(device)
 
     # # load model from the previous training
     state_dict_model_path = global_config['state_dict_model_path']
@@ -680,7 +887,7 @@ def main():
     for i in range(current_level+1, len(pyramid_channels)):
         train_model_at_level(i, global_config, model, None)
 
-    wandb.finish()
+    # wandb.finish()
 
 if __name__ == "__main__":
     main()
