@@ -239,8 +239,8 @@ class simple_logger():
     def __init__(self, log_file_path, global_config):
         self.log_file_path = log_file_path
         self.log_dict = dict()
-        self.IS_LOGGER_WANDB = global_config["IS_LOGGER_WANDB"]
-        self.wandb_run = global_config["wandb_run"]
+        # self.IS_LOGGER_WANDB = global_config["IS_LOGGER_WANDB"]
+        # self.wandb_run = global_config["wandb_run"]
     
     def log(self, global_epoch, key, msg):
         if key not in self.log_dict.keys():
@@ -256,9 +256,9 @@ class simple_logger():
             f.write(log_str)
         print(log_str)
 
-        # log to wandb if msg is number
-        if self.IS_LOGGER_WANDB and isinstance(msg, (int, float)):
-            self.wandb_run.log({key: msg})
+        # # log to wandb if msg is number
+        # if self.IS_LOGGER_WANDB and isinstance(msg, (int, float)):
+        #     self.wandb_run.log({key: msg})
 
 def collate_fn(batch, pet_valid_th=0.01):
     # batch is a list of list of dictionary
