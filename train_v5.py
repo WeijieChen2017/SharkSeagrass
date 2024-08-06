@@ -537,7 +537,7 @@ class ViTVQ3D_dualEncoder(nn.Module):
         self.freeze_gradient_all()
 
         # Compute the InfoNCE loss
-        self.codebook_list = [submodel["quantizer"].codebook for submodel in self.sub_models]
+        self.codebook_list = [submodel.quantizer.codebook for submodel in self.sub_models]
         self.InfoNCE_loss_list = [InfoNCELoss(codebook) for codebook in self.codebook_list]
 
     def compute_InfoNCE_loss(self, indices_list, level):
