@@ -833,7 +833,7 @@ def main():
     tag = global_config['tag']
     save_folder = global_config['save_folder']
     time_stamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-    global_config["save_folder"] = f"{save_folder}/{time_stamp}/tag/"
+    global_config["save_folder"] = f"{save_folder}/{time_stamp}/{tag}/"
     os.makedirs(global_config['save_folder'], exist_ok=True)
 
     # set the random seed
