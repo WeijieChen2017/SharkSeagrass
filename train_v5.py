@@ -45,8 +45,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
-from train_v4_utils import UNet3D_encoder, UNet3D_decoder
-from train_v4_utils import plot_and_save_x_xrec, simple_logger, effective_number_of_classes
+
+from einops.layers.torch import Rearrange
+from typing import Tuple, Union, Sequence
+
+from monai.networks.blocks.convolutions import Convolution, ResidualUnit
+from monai.networks.layers.factories import Act, Norm
 
 from vector_quantize_pytorch import VectorQuantize as lucidrains_VQ
 
@@ -65,6 +69,196 @@ from monai.transforms import (
 )
 
 
+class UNet3D_encoder(nn.Module):
+    def __init__(
+        self,
+        spatial_dims: int,
+        in_channels: int,
+        channels: Sequence[int],
+        strides: Sequence[int],
+        kernel_size: Union[Sequence[int], int] = 3,
+        up_kernel_size: Union[Sequence[int], int] = 3,
+        num_res_units: int = 0,
+        act: Union[Tuple, str] = Act.PRELU,
+        norm: Union[Tuple, str] = Norm.INSTANCE,
+        dropout: float = 0.0,
+        bias: bool = True,
+        adn_ordering: str = "NDA",
+    ) -> None:
+        super().__init__()
+        
+        self.dimensions = spatial_dims
+        self.in_channels = in_channels
+        self.channels = channels
+        self.strides = strides
+        self.kernel_size = kernel_size
+        self.up_kernel_size = up_kernel_size
+        self.num_res_units = num_res_units
+        self.act = act
+        self.norm = norm
+        self.dropout = dropout
+        self.bias = bias
+        self.adn_ordering = adn_ordering
+
+        # input - down1 ------------- up1 -- output
+        #         |                   |
+        #         down2 ------------- up2
+        #         |                   |
+        #         down3 ------------- up3
+        # 1 -> (32, 64, 128, 256) -> 1
+
+        self.depth = len(self.channels)
+        self.down_blocks = nn.ModuleList()
+
+
+        for i in range(self.depth):
+            self.down_blocks.append(
+                ResidualUnit(3, self.in_channels, self.channels[i], self.strides[i],
+                    kernel_size=self.kernel_size, subunits=self.num_res_units,
+                    act=self.act, norm=self.norm, dropout=self.dropout,
+                    bias=self.bias, adn_ordering=self.adn_ordering)
+            )
+            self.in_channels = self.channels[i]
+
+        # flatten from (B, C, H, W, D) to (B, C, H*W*D), C is the self.channels[2]
+        self.flatten = nn.Sequential(
+            Rearrange('b c h w d -> b (h w d) c'),
+        )
+
+        self.init_weights()
+    
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv3d):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm3d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        for i in range(self.depth):
+            x = self.down_blocks[i](x)
+        
+        x = self.flatten(x)
+
+        return x
+    
+
+class UNet3D_decoder(nn.Module):
+    def __init__(
+        self,
+        spatial_dims: int,
+        out_channels: int,
+        channels: Sequence[int],
+        strides: Sequence[int],
+        kernel_size: Union[Sequence[int], int] = 3,
+        up_kernel_size: Union[Sequence[int], int] = 3,
+        num_res_units: int = 0,
+        hwd: Union[Tuple, str] = 8,
+        act: Union[Tuple, str] = Act.PRELU,
+        norm: Union[Tuple, str] = Norm.INSTANCE,
+        dropout: float = 0.0,
+        bias: bool = True,
+        adn_ordering: str = "NDA",
+    ) -> None:
+
+        super().__init__()
+
+        self.dimensions = spatial_dims
+        self.out_channels = out_channels
+        self.channels = channels
+        self.strides = strides
+        self.kernel_size = kernel_size
+        self.up_kernel_size = up_kernel_size
+        self.num_res_units = num_res_units
+        self.act = act
+        self.hwd = hwd
+        self.norm = norm
+        self.dropout = dropout
+        self.bias = bias
+        self.adn_ordering = adn_ordering
+
+        # input - down1 ------------- up1 -- output
+        #         |                   |
+        #         down2 ------------- up2
+        #         |                   |
+        #         down3 ------------- up3
+        # 1 -> (32, 64, 128, 256) -> 1
+        
+        # take the cubic root of the second element of the tuple
+        self.unflatten = nn.Sequential(
+            Rearrange('b (h w d) c -> b c h w d', h=self.hwd, w=self.hwd, d=self.hwd),
+        )
+
+        self.depth = len(self.channels)
+        self.up = nn.ModuleList()
+        for i in range(self.depth - 1):
+            self.up.append(
+                nn.Sequential(
+                    Convolution(3, self.channels[i], self.channels[i+1], self.strides[i], self.up_kernel_size,
+                        act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, conv_only=False,
+                        is_transposed=True, adn_ordering=self.adn_ordering),
+                    ResidualUnit(3, self.channels[i+1], self.channels[i+1], 1, self.kernel_size, self.num_res_units,
+                        act=self.act, norm=self.norm, dropout=self.dropout, bias=self.bias, last_conv_only=False,
+                        adn_ordering=self.adn_ordering)
+                )
+            )
+        self.out = nn.Conv3d(self.channels[-1], self.out_channels, kernel_size=1, stride=1, padding=0)
+
+        self.init_weights()
+    
+    def init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv3d):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm3d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.unflatten(x)
+        for i in range(self.depth - 1):
+            x = self.up[i](x)
+        x = self.out(x)
+        return x
+
+
+class simple_logger():
+    def __init__(self, log_file_path, global_config):
+        self.log_file_path = log_file_path
+        self.log_dict = dict()
+        self.IS_LOGGER_WANDB = global_config["IS_LOGGER_WANDB"]
+        self.wandb_run = global_config["wandb_run"]
+    
+    def log(self, global_epoch, key, msg):
+        if key not in self.log_dict.keys():
+            self.log_dict[key] = dict()
+        current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+        self.log_dict[key] = {
+            "time": current_time,
+            "global_epoch": global_epoch,
+            "msg": msg
+        }
+        log_str = f"{current_time} Global epoch: {global_epoch}, {key}, {msg}\n"
+        with open(self.log_file_path, "a") as f:
+            f.write(log_str)
+        print(log_str)
+
+        # log to wandb if msg is number
+        if self.IS_LOGGER_WANDB and isinstance(msg, (int, float)):
+            self.wandb_run.log({key: msg})
 
 def collate_fn(batch, pet_valid_th=0.01):
     # batch is a list of list of dictionary
