@@ -533,12 +533,37 @@ class ViTVQ3D_dualEncoder(nn.Module):
             # Append the submodule to the ModuleList
             self.sub_models.append(sub_model) 
 
+
         self.init_weights()
         self.freeze_gradient_all()
 
         # Compute the InfoNCE loss
         self.codebook_list = [submodel.quantizer.codebook for submodel in self.sub_models]
         self.InfoNCE_loss_list = [InfoNCELoss(codebook) for codebook in self.codebook_list]
+
+    def load_weights_for_module(self, model_path):
+        # only load the weights for the encoder, decoder, quantizer, pre_quant, post_quant
+        # the model_path is the path to the model weights with the same structure .pth file
+        # Load the weights from the given path
+        checkpoint = torch.load(model_path)
+        
+        for i, sub_model in enumerate(self.sub_models):
+            # Load encoder weights
+            sub_model.encoder.load_state_dict(checkpoint[f'sub_models.{i}.encoder'])
+            # sub_model.second_encoder.load_state_dict(checkpoint[f'sub_models.{i}.second_encoder'])
+            
+            # Load decoder weights
+            sub_model.decoder.load_state_dict(checkpoint[f'sub_models.{i}.decoder'])
+            
+            # Load quantizer weights
+            sub_model.quantizer.load_state_dict(checkpoint[f'sub_models.{i}.quantizer'])
+            
+            # Load pre_quant and post_quant weights
+            sub_model.pre_quant.load_state_dict(checkpoint[f'sub_models.{i}.pre_quant'])
+            # sub_model.second_pre_quant.load_state_dict(checkpoint[f'sub_models.{i}.second_pre_quant'])
+            sub_model.post_quant.load_state_dict(checkpoint[f'sub_models.{i}.post_quant'])
+            
+        print("Model weights loaded successfully from:", model_path)
 
     def compute_InfoNCE_loss(self, indices_list, level):
         return self.InfoNCE_loss_list[level].compute_InfoNCEloss_list(indices_list)
@@ -1061,18 +1086,9 @@ def main():
 
     # # load model from the previous training
     state_dict_model_path = global_config['state_dict_model_path']
-    print(state_dict_model_path)
-    state_dict_model = torch.load(state_dict_model_path)
-    
-    # print the model state_dict loaded from the checkpoint
-    print("Model state_dict loaded from the checkpoint: ")
-    print(state_dict_model_path)
-    print("The following keys are loaded: ")
-    for key in state_dict_model.keys():
-        print(key)
-    model.load_state_dict(state_dict_model)
-    print("Model state_dict loaded successfully")
-    # model.to(device)
+    print(f"Load model from {state_dict_model_path}")
+    model.load_weights_for_module(state_dict_model_path)
+    model.to(device)
 
     # load previous trained epochs
     # num_epoch is the number for each stage need to be trained, we need to find out which stage we are in
