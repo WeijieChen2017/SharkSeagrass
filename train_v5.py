@@ -386,7 +386,7 @@ def generate_model_levels(global_config):
     model_levels = []
     for i in range(num_level):
         encoder = {
-            "spatial_dims": 3, "in_channels": len(global_config['input_modality']),
+            "spatial_dims": 3, "in_channels": 1,
             "channels": global_config['pyramid_channels'][:i+1],
             "strides": global_config['pyramid_strides'][-(i+1):],
             "num_res_units": global_config['pyramid_num_res_units'][i],
