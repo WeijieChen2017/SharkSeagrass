@@ -32,6 +32,7 @@ chunk_val:
 chunk_test:
   - 3
 input_modality:
+  - PET_blr
   - PET_raw
   - CT
 pyramid_channels: 
