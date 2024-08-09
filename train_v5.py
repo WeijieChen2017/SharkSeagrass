@@ -911,7 +911,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                             f"Fea_map : {current_fea_map_loss:.4f}, " + \
                             f"InfoNCE : {current_infoNCE_loss:.4f}, " + \
                             f"Cos_sim : {current_similarity_loss:.4f}, " + \
-                            f"Recon : {current_recon_loss:.4f}" + \
+                            f"Recon : {current_recon_loss:.4f}, " + \
                             f"Euc_sim : {current_euc_sim_loss:.4f}"
             print(loss_message)
 
