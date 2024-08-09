@@ -758,7 +758,8 @@ def compute_loss_alpha(loss_weights, level):
     a_i = loss_weights["dE_loss_alpha_infoNCE"]
     a_s = loss_weights["dE_loss_alpha_similarity"]
     a_r = loss_weights["dE_loss_alpha_recon"]
-    a_sum = a_f + a_i + a_s + a_r
+    a_e = loss_weights["de_loss_alpha_Eucsim"]
+    a_sum = a_f + a_i + a_s + a_r + a_e
     level_decay = loss_weights["dE_loss_level_decay"]
 
     loss_alpha = []
@@ -771,7 +772,7 @@ def compute_loss_alpha(loss_weights, level):
         level_coef *= level_decay
 
     for i in range(level+1):
-        current_alpha = np.asarray([a_f, a_i, a_s, a_r]) / a_sum
+        current_alpha = np.asarray([a_f, a_i, a_s, a_r, a_e]) / a_sum
         for j in range(level-i):
             current_alpha *= level_decay
         loss_alpha.append(current_alpha / level_sum)
