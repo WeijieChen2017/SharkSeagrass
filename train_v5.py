@@ -702,13 +702,13 @@ class ViTVQ3D_dualEncoder(nn.Module):
                 x_hat = F.interpolate(x_hat, scale_factor=2, mode='trilinear', align_corners=False)
                 x_hat = x_hat + output_x
         
-        # show every output's shape
-        for i in range(len(x_fea_map_list)):
-            print(f"Level {i} feature map shape is {x_fea_map_list[i].shape}")
-            print(f"Level {i} embedding shape is {x_embbding_list[i].shape}")
-            print(f"Level {i} indices shape is {indices_list[i].shape}")
-            print(f"Level {i} loss shape is {loss_list[i].shape}")
-        print(f"Output shape is {x_hat.shape}")
+        # # show every output's shape
+        # for i in range(len(x_fea_map_list)):
+        #     print(f"Level {i} feature map shape is {x_fea_map_list[i].shape}")
+        #     print(f"Level {i} embedding shape is {x_embbding_list[i].shape}")
+        #     print(f"Level {i} indices shape is {indices_list[i].shape}")
+        #     print(f"Level {i} loss shape is {loss_list[i].shape}")
+        # print(f"Output shape is {x_hat.shape}")
 
         return x_hat, x_fea_map_list, x_embbding_list, indices_list, loss_list
 
