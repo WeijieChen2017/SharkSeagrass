@@ -418,6 +418,13 @@ def generate_model_levels(global_config):
             "decoder": decoder,
             "quantizer": quantizer
         })
+
+    # output the model levels in strucutre
+    print("The model levels are: ")
+    for i, level in enumerate(model_levels):
+        print(f"Level {i} is: ")
+        print(level)
+        print("==="*10)
     return model_levels
 
 def generate_input_data_pyramid(x, levels, global_config):
