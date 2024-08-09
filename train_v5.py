@@ -393,7 +393,7 @@ def generate_model_levels(global_config):
         }
         second_encoder = {
             "spatial_dims": 3, "in_channels": len(global_config['input_modality'])-1,
-            "channels": global_config['pyramid_channels'][:i+1] * 2,
+            "channels": global_config['pyramid_channels'][:i+1],
             "strides": global_config['pyramid_strides'][-(i+1):],
             "num_res_units": global_config['pyramid_num_res_units'][i] + 2,
         }
@@ -411,6 +411,10 @@ def generate_model_levels(global_config):
             "num_res_units": global_config['pyramid_num_res_units'][i],
             "hwd": global_config['pyramid_mini_resolution'],
         }
+
+        # double the channels for the second encoder
+        second_encoder["channels"] = [value * 2 for value in second_encoder["channels"]]
+
 
         model_levels.append({
             "encoder": encoder,
