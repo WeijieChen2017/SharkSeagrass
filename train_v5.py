@@ -514,6 +514,25 @@ class InfoNCELoss(nn.Module):
             raise NotImplementedError
         return similarity_matrix  
 
+
+class ViTVQ3D(nn.Module):
+    def __init__(self, model_level: list) -> None:
+        super().__init__()
+        self.num_level = len(model_level)
+        self.sub_models = nn.ModuleList()
+        for level_setting in model_level:
+            # Create a submodule to hold the encoder, decoder, quantizer, etc.
+            sub_model = nn.Module() 
+            sub_model.encoder = UNet3D_encoder(**level_setting["encoder"])
+            sub_model.decoder = UNet3D_decoder(**level_setting["decoder"])
+            sub_model.quantizer = lucidrains_VQ(**level_setting["quantizer"])
+            sub_model.pre_quant = nn.Linear(level_setting["encoder"]["channels"][-1], level_setting["quantizer"]["dim"])
+            sub_model.post_quant = nn.Linear(level_setting["quantizer"]["dim"], level_setting["decoder"]["channels"][0])
+            
+            # Append the submodule to the ModuleList
+            self.sub_models.append(sub_model)
+
+
 class ViTVQ3D_dualEncoder(nn.Module):
     def __init__(self, model_levels: list) -> None:
         super().__init__()
@@ -541,30 +560,30 @@ class ViTVQ3D_dualEncoder(nn.Module):
         self.codebook_list = [submodel.quantizer.codebook for submodel in self.sub_models]
         self.InfoNCE_loss_list = [InfoNCELoss(codebook) for codebook in self.codebook_list]
 
-    def load_weights_for_module(self, model_path):
-        # only load the weights for the encoder, decoder, quantizer, pre_quant, post_quant
-        # the model_path is the path to the model weights with the same structure .pth file
-        # Load the weights from the given path
-        checkpoint = torch.load(model_path)
-        print(checkpoint.keys())
+    # def load_weights_for_module(self, model_path):
+    #     # only load the weights for the encoder, decoder, quantizer, pre_quant, post_quant
+    #     # the model_path is the path to the model weights with the same structure .pth file
+    #     # Load the weights from the given path
+    #     checkpoint = torch.load(model_path)
+    #     print(checkpoint.keys())
         
-        for i, sub_model in enumerate(self.sub_models):
-            # Load encoder weights
-            sub_model.encoder.load_state_dict(checkpoint[f'sub_models.{i}.encoder'])
-            # sub_model.second_encoder.load_state_dict(checkpoint[f'sub_models.{i}.second_encoder'])
+    #     for i, sub_model in enumerate(self.sub_models):
+    #         # Load encoder weights
+    #         sub_model.encoder.load_state_dict(checkpoint[f'sub_models.{i}.encoder'])
+    #         # sub_model.second_encoder.load_state_dict(checkpoint[f'sub_models.{i}.second_encoder'])
             
-            # Load decoder weights
-            sub_model.decoder.load_state_dict(checkpoint[f'sub_models.{i}.decoder'])
+    #         # Load decoder weights
+    #         sub_model.decoder.load_state_dict(checkpoint[f'sub_models.{i}.decoder'])
             
-            # Load quantizer weights
-            sub_model.quantizer.load_state_dict(checkpoint[f'sub_models.{i}.quantizer'])
+    #         # Load quantizer weights
+    #         sub_model.quantizer.load_state_dict(checkpoint[f'sub_models.{i}.quantizer'])
             
-            # Load pre_quant and post_quant weights
-            sub_model.pre_quant.load_state_dict(checkpoint[f'sub_models.{i}.pre_quant'])
-            # sub_model.second_pre_quant.load_state_dict(checkpoint[f'sub_models.{i}.second_pre_quant'])
-            sub_model.post_quant.load_state_dict(checkpoint[f'sub_models.{i}.post_quant'])
+    #         # Load pre_quant and post_quant weights
+    #         sub_model.pre_quant.load_state_dict(checkpoint[f'sub_models.{i}.pre_quant'])
+    #         # sub_model.second_pre_quant.load_state_dict(checkpoint[f'sub_models.{i}.second_pre_quant'])
+    #         sub_model.post_quant.load_state_dict(checkpoint[f'sub_models.{i}.post_quant'])
             
-        print("Model weights loaded successfully from:", model_path)
+    #     print("Model weights loaded successfully from:", model_path)
 
     def compute_InfoNCE_loss(self, indices_list, level):
         return self.InfoNCE_loss_list[level].compute_InfoNCEloss_list(indices_list)
@@ -1083,12 +1102,32 @@ def main():
 
     # set the model
     model_levels = generate_model_levels(global_config)
-    model = ViTVQ3D_dualEncoder(model_levels=model_levels).to(device)
+    model = ViTVQ3D_dualEncoder(model_levels=model_levels)
 
-    # # load model from the previous training
+    # load model from the previous training
     state_dict_model_path = global_config['state_dict_model_path']
+    vitvq3d_model = ViTVQ3D(model_level=model_levels)  # Initialize the original model
+    vitvq3d_checkpoint = torch.load(state_dict_model_path, map_location="cpu") # Load the checkpoint
+    vitvq3d_model.load_state_dict(vitvq3d_checkpoint)  # Load the state dictionary
+
+    # transfer the weights from the original model to the new model
+    # Assuming both models have the same structure in terms of number of levels
+    for level_idx, (dual_sub_model, vit_sub_model) in enumerate(zip(model.sub_models, vitvq3d_model.sub_models)):
+        # Copy the weights for the first encoder, decoder, quantizer, and other components
+        dual_sub_model.encoder.load_state_dict(vit_sub_model.encoder.state_dict())
+        dual_sub_model.decoder.load_state_dict(vit_sub_model.decoder.state_dict())
+        dual_sub_model.quantizer.load_state_dict(vit_sub_model.quantizer.state_dict())
+        dual_sub_model.pre_quant.load_state_dict(vit_sub_model.pre_quant.state_dict())
+        dual_sub_model.post_quant.load_state_dict(vit_sub_model.post_quant.state_dict())
+        
+        # # Optionally, initialize the second encoder with the same weights as the first one
+        # dual_sub_model.second_encoder.load_state_dict(vit_sub_model.encoder.state_dict())
+        # dual_sub_model.second_pre_quant.load_state_dict(vit_sub_model.pre_quant.state_dict())
+
     print(f"Load model from {state_dict_model_path}")
-    model.load_weights_for_module(state_dict_model_path)
+    # model.load_weights_for_module(state_dict_model_path)
+
+    # move the model to the device
     model.to(device)
 
     # load previous trained epochs
