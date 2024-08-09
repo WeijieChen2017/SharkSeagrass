@@ -348,7 +348,7 @@ def build_dataloader_train_val_PET_CT(batch_size, global_config):
     print("The number of train files is: ", num_train_files)
     print("The number of val files is: ", num_val_files)
     print("The number of test files is: ", num_test_files)
-    print(gap_sign*50)
+    print(gap_sign*23)
 
     train_ds = CacheDataset(
         data=train_files,
@@ -457,7 +457,7 @@ class InfoNCELoss(nn.Module):
         self.InfoNCEloss_matrix = self.precompute_all_pairs()
 
     def compute_InfoNCEloss_list(self, indices_pair_list):
-        losses = [self.precomputed_InfoNCEloss_matrix[i, j] for i, j in indices_pair_list]
+        losses = [self.InfoNCEloss_matrix[i, j] for i, j in indices_pair_list]
         return torch.tensor(losses).mean()
 
     def precompute_all_pairs(self):
