@@ -1131,21 +1131,25 @@ def main():
     model.to(device)
 
     # load previous trained epochs
-    # num_epoch is the number for each stage need to be trained, we need to find out which stage we are in
-    num_epoch = global_config['pyramid_num_epoch']
-    num_epoch_sum = 0
-    previous_epochs_trained = global_config['previous_epochs_trained']
-    for i in range(len(num_epoch)):
-        num_epoch_sum += num_epoch[i]
-        if num_epoch_sum >= previous_epochs_trained:
-            break
-    current_level = i
-    print(f"Current level is {current_level}")
-    global_config["pyramid_num_epoch"][current_level] = num_epoch_sum - previous_epochs_trained
-    train_model_at_level(current_level, global_config, model, optimizer_weights=None)
+    # # num_epoch is the number for each stage need to be trained, we need to find out which stage we are in
+    # num_epoch = global_config['pyramid_num_epoch']
+    # num_epoch_sum = 0
+    # previous_epochs_trained = global_config['previous_epochs_trained']
+    # for i in range(len(num_epoch)):
+    #     num_epoch_sum += num_epoch[i]
+    #     if num_epoch_sum >= previous_epochs_trained:
+    #         break
+    # current_level = i
+    # print(f"Current level is {current_level}")
+    # global_config["pyramid_num_epoch"][current_level] = num_epoch_sum - previous_epochs_trained
+    # train_model_at_level(current_level, global_config, model, optimizer_weights=None)
 
     # if there are more stages to train
-    for i in range(current_level+1, len(pyramid_channels)):
+    # for i in range(current_level+1, len(pyramid_channels)):
+    #     train_model_at_level(i, global_config, model, None)
+
+    # start the training
+    for i in range(len(pyramid_channels)):
         train_model_at_level(i, global_config, model, None)
 
     # wandb.finish()
