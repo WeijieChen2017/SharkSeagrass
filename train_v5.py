@@ -1007,7 +1007,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                 # logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
 
             # plot the x_hat using plot_and_save_x_xrec
-            plot_and_save_x_xrec(x, 
+            plot_and_save_x_xrec(pyramid_x[current_level], 
                                  x_hat, 
                                  num_per_direction=3, 
                                  savename=save_folder+f"val_{idx_epoch}_x_xrec.png")
