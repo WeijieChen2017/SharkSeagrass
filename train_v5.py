@@ -894,7 +894,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             current_similarity_loss = np.asarray(batch_similarity_loss).sum()
             current_recon_loss = np.asarray(batch_recon_loss).sum()
             current_total_loss = np.asarray(batch_total_loss).sum()
-            loss_message = f"<{idx_epoch}> [{idx_batch}/{num_train_batch}] Total loss: {current_total_loss}, " + \
+            loss_message = f"<{idx_epoch+1}> [{idx_batch+1}/{num_train_batch}] Total loss: {current_total_loss}, " + \
                             f"Fea_map loss: {current_fea_map_loss:4f}, " + \
                             f"InfoNCE loss: {current_infoNCE_loss:4f}, " + \
                             f"Similarity loss: {current_similarity_loss:4f}, " + \
