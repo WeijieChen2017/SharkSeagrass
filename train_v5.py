@@ -558,10 +558,6 @@ class ViTVQ3D_dualEncoder(nn.Module):
         self.init_weights()
         self.freeze_gradient_all()
 
-        # Compute the InfoNCE loss
-        self.codebook_list = [submodel.quantizer.codebook for submodel in self.sub_models]
-        self.InfoNCE_loss_list = [InfoNCELoss(codebook) for codebook in self.codebook_list]
-
     # def load_weights_for_module(self, model_path):
     #     # only load the weights for the encoder, decoder, quantizer, pre_quant, post_quant
     #     # the model_path is the path to the model weights with the same structure .pth file
@@ -586,6 +582,12 @@ class ViTVQ3D_dualEncoder(nn.Module):
     #         sub_model.post_quant.load_state_dict(checkpoint[f'sub_models.{i}.post_quant'])
             
     #     print("Model weights loaded successfully from:", model_path)
+
+    def pre_compute_InfoNCE_loss(self):
+        # Compute the InfoNCE loss
+        self.codebook_list = [submodel.quantizer.codebook for submodel in self.sub_models]
+        self.InfoNCE_loss_list = [InfoNCELoss(codebook) for codebook in self.codebook_list]
+
 
     def compute_InfoNCE_loss(self, indices_list, level):
         return self.InfoNCE_loss_list[level].compute_InfoNCEloss_list(indices_list)
@@ -1127,6 +1129,7 @@ def main():
         # dual_sub_model.second_pre_quant.load_state_dict(vit_sub_model.pre_quant.state_dict())
 
     print(f"Load model from {state_dict_model_path}")
+    model.pre_compute_InfoNCE_loss()
     # model.load_weights_for_module(state_dict_model_path)
 
     # move the model to the device
