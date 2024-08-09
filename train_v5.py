@@ -672,7 +672,7 @@ class ViTVQ3D_dualEncoder(nn.Module):
 
         for current_level in range(active_level + 1):
             if current_level == 0:
-                x_hat, quant, indices, loss, x_embed = self.at_level_forward_to_decoder
+                x_hat, quant, indices, loss, x_embed = self.at_level_forward_to_decoder(pyramid_x[current_level], current_level, second_encoder)
                 x_fea_map_list.append(x_embed)
                 x_embbding_list.append(quant)
                 indices_list.append(indices)
