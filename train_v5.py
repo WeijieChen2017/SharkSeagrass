@@ -804,6 +804,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
         "dE_loss_alpha_infoNCE": global_config['dE_loss_alpha_infoNCE'],
         "dE_loss_alpha_similarity": global_config['dE_loss_alpha_similarity'],
         "dE_loss_alpha_recon": global_config['dE_loss_alpha_recon'],
+        "de_loss_alpha_Eucsim": global_config['de_loss_alpha_Eucsim'],
         "dE_loss_level_decay": global_config['dE_loss_level_decay'],
     }
 
@@ -837,6 +838,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             "infoNCE": [],
             "similarity": [],
             "recon": [],
+            "euc_sim": [],
             "total": [],
         }
 
@@ -867,6 +869,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             batch_infoNCE_loss = []
             batch_similarity_loss = []
             batch_recon_loss = []
+            batch_euc_sim_loss = []
             batch_total_loss = []
             for i_level in range(current_level+1):
                 fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
@@ -874,21 +877,25 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                 infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
                 similarity_loss = torch.abs(F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean())
                 recon_loss = F.l1_loss(x_hat, y_hat)
+                Eucildean_similarity = F.pairwise_distance(x_embbding_list[i_level], y_embbding_list[i_level], p=2).mean()
                 total_loss = fea_map_loss * loss_alpha[i_level][0] + \
                              infoNCE_loss * loss_alpha[i_level][1] + \
                              similarity_loss * loss_alpha[i_level][2] + \
-                             recon_loss * loss_alpha[i_level][3]
+                             recon_loss * loss_alpha[i_level][3] + \
+                             Eucildean_similarity * loss_alpha[i_level][4]
                 batch_overall_loss += total_loss
                 batch_fea_map_loss.append(fea_map_loss.item())
                 batch_infoNCE_loss.append(infoNCE_loss.item())
                 batch_similarity_loss.append(similarity_loss.item())
                 batch_recon_loss.append(recon_loss.item())
+                batch_euc_sim_loss.append(Eucildean_similarity.item())
                 batch_total_loss.append(total_loss.item())
             
             epoch_loss_train["fea_map"].append(batch_fea_map_loss)
             epoch_loss_train["infoNCE"].append(batch_infoNCE_loss)
             epoch_loss_train["similarity"].append(batch_similarity_loss)
             epoch_loss_train["recon"].append(batch_recon_loss)
+            epoch_loss_train["euc_sim"].append(batch_euc_sim_loss)
             epoch_loss_train["total"].append(batch_total_loss)
 
             # print the loss
@@ -896,13 +903,15 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             current_infoNCE_loss = np.asarray(batch_infoNCE_loss).sum()
             current_similarity_loss = np.asarray(batch_similarity_loss).sum()
             current_recon_loss = np.asarray(batch_recon_loss).sum()
+            current_euc_sim_loss = np.asarray(batch_euc_sim_loss).sum()
             current_total_loss = np.asarray(batch_total_loss).sum()
             loss_message = f"<{idx_epoch+1}> [{idx_batch+1}/{num_train_batch}] " + \
-                            f"Total loss: {current_total_loss:.4f}, " + \
+                            f"Total: {current_total_loss:.4f}, " + \
                             f"Fea_map : {current_fea_map_loss:.4f}, " + \
                             f"InfoNCE : {current_infoNCE_loss:.4f}, " + \
                             f"Cos_sim : {current_similarity_loss:.4f}, " + \
-                            f"Recon : {current_recon_loss:.4f}"
+                            f"Recon : {current_recon_loss:.4f}" + \
+                            f"Euc_sim : {current_euc_sim_loss:.4f}"
             print(loss_message)
 
             # initialize the optimizer
@@ -950,6 +959,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                 "infoNCE": [],
                 "similarity": [],
                 "recon": [],
+                "euc_sim": [],
                 "total": [],
             }
             with torch.no_grad():
@@ -970,27 +980,32 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                     batch_infoNCE_loss = []
                     batch_similarity_loss = []
                     batch_recon_loss = []
+                    batch_euc_sim_loss = []
                     batch_total_loss = []
                     for i_level in range(current_level+1):
                         fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
                         indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
                         infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
                         similarity_loss = torch.abs(F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean())
-                        recon_loss = F.l1_loss(x_hat, y_hat) * loss_alpha[i_level][3]
+                        recon_loss = F.l1_loss(x_hat, y_hat)
+                        Eucildean_similarity = F.pairwise_distance(x_embbding_list[i_level], y_embbding_list[i_level], p=2).mean()
                         total_loss = fea_map_loss * loss_alpha[i_level][0] + \
                                      infoNCE_loss * loss_alpha[i_level][1] + \
                                      similarity_loss * loss_alpha[i_level][2] + \
-                                     recon_loss * loss_alpha[i_level][3]
+                                     recon_loss * loss_alpha[i_level][3] + \
+                                     Eucildean_similarity * loss_alpha[i_level][4]
                         batch_overall_loss += total_loss
                         batch_fea_map_loss.append(fea_map_loss.item())
                         batch_infoNCE_loss.append(infoNCE_loss.item())
                         batch_similarity_loss.append(similarity_loss.item())
                         batch_recon_loss.append(recon_loss.item())
+                        batch_euc_sim_loss.append(Eucildean_similarity.item())
                         batch_total_loss.append(total_loss.item())
                     epoch_loss_val["fea_map"].append(batch_fea_map_loss)
                     epoch_loss_val["infoNCE"].append(batch_infoNCE_loss)
                     epoch_loss_val["similarity"].append(batch_similarity_loss)
                     epoch_loss_val["recon"].append(batch_recon_loss)
+                    epoch_loss_val["euc_sim"].append(batch_euc_sim_loss)
                     epoch_loss_val["total"].append(batch_total_loss)
             
             for key in epoch_loss_val.keys():
