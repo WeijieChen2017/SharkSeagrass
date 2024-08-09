@@ -401,12 +401,6 @@ def collate_fn(batch, pet_valid_th=0.01):
     #     return None
     # # valid_data = {key: torch.stack([sample[key] for sample in valid_samples]) for key in valid_samples[0]}
     
-
-
-    for sample in valid_samples:
-        print(sample)
-    exit()
-
     return valid_samples
 
 class local_logger():
