@@ -22,7 +22,7 @@ import os
 #     os.environ[key] = path
 
 # set the environment variable to use the GPU if available
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 # import wandb
 import torch
@@ -393,9 +393,9 @@ def generate_model_levels(global_config):
         }
         second_encoder = {
             "spatial_dims": 3, "in_channels": len(global_config['input_modality'])-1,
-            "channels": global_config['pyramid_channels'][:i+1],
+            "channels": global_config['pyramid_channels'][:i+1] * 2,
             "strides": global_config['pyramid_strides'][-(i+1):],
-            "num_res_units": global_config['pyramid_num_res_units'][i],
+            "num_res_units": global_config['pyramid_num_res_units'][i] + 2,
         }
         quantizer = {
             "dim": global_config['pyramid_channels'][i]*2, 
@@ -447,7 +447,7 @@ class InfoNCELoss(nn.Module):
                  codebook : torch.FloatTensor,
                  similarity_type: str = "cosine",
                  temperature: float = 0.1,
-                 device: torch.device = torch.device("cuda:0")):
+                 device: torch.device = torch.device("cuda:"+os.environ["CUDA_VISIBLE_DEVICES"])):
         self.codebook = codebook
         self.K, self.D = codebook.shape
         self.similarity_type = similarity_type
@@ -1127,6 +1127,11 @@ def main():
     time_stamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
     global_config["save_folder"] = f"{save_folder}/{time_stamp}/{tag}/"
     os.makedirs(global_config['save_folder'], exist_ok=True)
+
+    # copy the current config file to the save folder
+    copy_command = "cp " + config_file_path + " " + global_config['save_folder']
+    print("Copy the config file to the save folder")
+    os.system(copy_command)
 
     # set the random seed
     random.seed(global_config['random_seed'])
