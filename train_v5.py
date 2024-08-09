@@ -463,7 +463,7 @@ class InfoNCELoss(nn.Module):
         return torch.tensor(losses).mean()
 
     def precompute_all_pairs(self):
-        loss_matrix = torch.zeros((self.K, self.K))
+        loss_matrix = torch.zeros((self.K, self.K), device=self.device)
         for i in range(self.K):
             for j in range(self.K):
                 if i != j:
@@ -478,10 +478,10 @@ class InfoNCELoss(nn.Module):
         pos_sim = self.similarity_matrix[index_i, index_j].to(self.device)
 
         # Load similarities with the rest of the codebook from similarity_matrix
-        sim_i = self.similarity_matrix[index_i, :] / self.temperature  # Shape: (K,)
+        sim_i = self.similarity_matrix[index_i, :].to(self.device) / self.temperature  # Shape: (K,)
         
         # Combine similarities
-        logits = torch.cat((torch.tensor([pos_sim]), sim_i.view(-1)), dim=0)  # Shape: (K + 1,)
+        logits = torch.cat((torch.tensor([pos_sim], device=self.device), sim_i.view(-1)), dim=0)
 
         # Create labels (the positive pair is at index 0)
         labels = torch.tensor([0], dtype=torch.long, device=self.device)
