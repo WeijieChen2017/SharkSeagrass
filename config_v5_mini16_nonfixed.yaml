@@ -18,8 +18,9 @@ save_per_epoch: 200
 IS_LOGGER_WANDB: true
 dE_loss_alpha_fea_map: 1.0
 dE_loss_alpha_infoNCE: 0.0
-dE_loss_alpha_similarity: 1.0
+dE_loss_alpha_similarity: 0.0
 dE_loss_alpha_recon: 0.0
+de_loss_alpha_Eucsim: 0.0
 dE_loss_level_decay: 0.5
 gap_sign: "<-$->"
 data_division: "crop/data_division.json"
