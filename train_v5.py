@@ -447,7 +447,7 @@ class InfoNCELoss(nn.Module):
                  codebook : torch.FloatTensor,
                  similarity_type: str = "cosine",
                  temperature: float = 0.1,
-                 device: torch.device = torch.device("cuda")):
+                 device: torch.device = torch.device("cuda:0")):
         self.codebook = codebook
         self.K, self.D = codebook.shape
         self.similarity_type = similarity_type
@@ -475,7 +475,7 @@ class InfoNCELoss(nn.Module):
     def precompute_InfoNCEloss_pair(self, index_i, index_j):
 
         # Load positive similarity from similarity_matrix
-        pos_sim = self.similarity_matrix[index_i, index_j]
+        pos_sim = self.similarity_matrix[index_i, index_j].to(self.device)
 
         # Load similarities with the rest of the codebook from similarity_matrix
         sim_i = self.similarity_matrix[index_i, :] / self.temperature  # Shape: (K,)
@@ -484,7 +484,7 @@ class InfoNCELoss(nn.Module):
         logits = torch.cat((torch.tensor([pos_sim]), sim_i.view(-1)), dim=0)  # Shape: (K + 1,)
 
         # Create labels (the positive pair is at index 0)
-        labels = torch.tensor([0], dtype=torch.long)
+        labels = torch.tensor([0], dtype=torch.long, device=self.device)
 
         # Compute the InfoNCE loss using cross-entropy
         loss = F.cross_entropy(logits.unsqueeze(0), labels)
