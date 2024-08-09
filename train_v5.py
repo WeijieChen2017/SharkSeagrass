@@ -872,7 +872,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                 fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
                 indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
                 infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
-                similarity_loss = F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean()
+                similarity_loss = torch.abs(F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean())
                 recon_loss = F.l1_loss(x_hat, y_hat)
                 total_loss = fea_map_loss * loss_alpha[i_level][0] + \
                              infoNCE_loss * loss_alpha[i_level][1] + \
@@ -975,7 +975,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                         fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
                         indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
                         infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
-                        similarity_loss = F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean()
+                        similarity_loss = torch.abs(F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean())
                         recon_loss = F.l1_loss(x_hat, y_hat) * loss_alpha[i_level][3]
                         total_loss = fea_map_loss * loss_alpha[i_level][0] + \
                                      infoNCE_loss * loss_alpha[i_level][1] + \
