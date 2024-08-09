@@ -251,7 +251,7 @@ class simple_logger():
             "global_epoch": global_epoch,
             "msg": msg
         }
-        log_str = f"{current_time} Global epoch: {global_epoch}, {key}, {msg}\n"
+        log_str = f"{current_time} Global epoch: {global_epoch}, {key}, {msg}"
         with open(self.log_file_path, "a") as f:
             f.write(log_str)
         print(log_str)
@@ -702,6 +702,14 @@ class ViTVQ3D_dualEncoder(nn.Module):
                 x_hat = F.interpolate(x_hat, scale_factor=2, mode='trilinear', align_corners=False)
                 x_hat = x_hat + output_x
         
+        # show every output's shape
+        for i in range(len(x_fea_map_list)):
+            print(f"Level {i} feature map shape is {x_fea_map_list[i].shape}")
+            print(f"Level {i} embedding shape is {x_embbding_list[i].shape}")
+            print(f"Level {i} indices shape is {indices_list[i].shape}")
+            print(f"Level {i} loss shape is {loss_list[i].shape}")
+        print(f"Output shape is {x_hat.shape}")
+
         return x_hat, x_fea_map_list, x_embbding_list, indices_list, loss_list
 
     def forward(self, pyramid_x: list, active_level: int) -> torch.FloatTensor:
@@ -887,10 +895,10 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             current_recon_loss = np.asarray(batch_recon_loss).sum()
             current_total_loss = np.asarray(batch_total_loss).sum()
             loss_message = f"<{idx_epoch}> [{idx_batch}/{num_train_batch}] Total loss: {current_total_loss}, " + \
-                            f"Fea_map loss: {current_fea_map_loss}, " + \
-                            f"InfoNCE loss: {current_infoNCE_loss}, " + \
-                            f"Similarity loss: {current_similarity_loss}, " + \
-                            f"Recon loss: {current_recon_loss}"
+                            f"Fea_map loss: {current_fea_map_loss:4f}, " + \
+                            f"InfoNCE loss: {current_infoNCE_loss:4f}, " + \
+                            f"Similarity loss: {current_similarity_loss:4f}, " + \
+                            f"Recon loss: {current_recon_loss:4f}"
             print(loss_message)
 
             # initialize the optimizer
@@ -908,7 +916,8 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             for sub_list in epoch_loss_train[key]:
                 current_key_loss_list.append(np.asarray(sub_list).sum())
             current_key_loss = np.asarray(current_key_loss_list).mean()
-            logger.log(idx_epoch, f"train_{key}_mean", current_key_loss)
+            msg = f"{current_key_loss:4f}"
+            logger.log(idx_epoch, f"train_{key}_mean", msg)
         
 
         # for key in epoch_loss_train.keys():
