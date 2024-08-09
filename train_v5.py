@@ -869,12 +869,15 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             batch_recon_loss = []
             batch_total_loss = []
             for i_level in range(current_level+1):
-                fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level]) * loss_alpha[i_level][0]
+                fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
                 indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
-                infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level) * loss_alpha[i_level][1]
-                similarity_loss = F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean() * loss_alpha[i_level][2]
-                recon_loss = F.l1_loss(x_hat, y_hat) * loss_alpha[i_level][3]
-                total_loss = fea_map_loss + infoNCE_loss + similarity_loss + recon_loss
+                infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
+                similarity_loss = F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean()
+                recon_loss = F.l1_loss(x_hat, y_hat)
+                total_loss = fea_map_loss * loss_alpha[i_level][0] + \
+                             infoNCE_loss * loss_alpha[i_level][1] + \
+                             similarity_loss * loss_alpha[i_level][2] + \
+                             recon_loss * loss_alpha[i_level][3]
                 batch_overall_loss += total_loss
                 batch_fea_map_loss.append(fea_map_loss.item())
                 batch_infoNCE_loss.append(infoNCE_loss.item())
@@ -895,10 +898,10 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             current_recon_loss = np.asarray(batch_recon_loss).sum()
             current_total_loss = np.asarray(batch_total_loss).sum()
             loss_message = f"<{idx_epoch+1}> [{idx_batch+1}/{num_train_batch}] Total loss: {current_total_loss}, " + \
-                            f"Fea_map loss: {current_fea_map_loss:4f}, " + \
-                            f"InfoNCE loss: {current_infoNCE_loss:4f}, " + \
-                            f"Similarity loss: {current_similarity_loss:4f}, " + \
-                            f"Recon loss: {current_recon_loss:4f}"
+                            f"Fea_map metric: {current_fea_map_loss:.4f}, " + \
+                            f"InfoNCE metric: {current_infoNCE_loss:.4f}, " + \
+                            f"Similarity metric: {current_similarity_loss:.4f}, " + \
+                            f"Recon metric: {current_recon_loss:.4f}"
             print(loss_message)
 
             # initialize the optimizer
@@ -916,8 +919,8 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             for sub_list in epoch_loss_train[key]:
                 current_key_loss_list.append(np.asarray(sub_list).sum())
             current_key_loss = np.asarray(current_key_loss_list).mean()
-            msg = f"{current_key_loss:4f}"
-            logger.log(idx_epoch, f"train_{key}_mean", msg)
+            # msg = f"{current_key_loss:.4f}"
+            # logger.log(idx_epoch, f"train_{key}_mean", msg)
         
 
         # for key in epoch_loss_train.keys():
@@ -968,12 +971,15 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                     batch_recon_loss = []
                     batch_total_loss = []
                     for i_level in range(current_level+1):
-                        fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level]) * loss_alpha[i_level][0]
+                        fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
                         indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
-                        infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level) * loss_alpha[i_level][1]
-                        similarity_loss = F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean() * loss_alpha[i_level][2]
+                        infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
+                        similarity_loss = F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean()
                         recon_loss = F.l1_loss(x_hat, y_hat) * loss_alpha[i_level][3]
-                        total_loss = fea_map_loss + infoNCE_loss + similarity_loss + recon_loss
+                        total_loss = fea_map_loss * loss_alpha[i_level][0] + \
+                                     infoNCE_loss * loss_alpha[i_level][1] + \
+                                     similarity_loss * loss_alpha[i_level][2] + \
+                                     recon_loss * loss_alpha[i_level][3]
                         batch_overall_loss += total_loss
                         batch_fea_map_loss.append(fea_map_loss.item())
                         batch_infoNCE_loss.append(infoNCE_loss.item())
@@ -991,7 +997,8 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                 for sub_list in epoch_loss_val[key]:
                     current_key_loss_list.append(np.asarray(sub_list).sum())
                 current_key_loss = np.asarray(current_key_loss_list).mean()
-                logger.log(idx_epoch, f"val_{key}_mean", current_key_loss)
+                msg = f"{current_key_loss:.4f}"
+                logger.log(idx_epoch, f"val_{key}_mean", msg)
             
             # if the current val loss is the best, save the model
             current_val_loss = np.asarray(epoch_loss_val["total"]).mean()
