@@ -17,8 +17,8 @@ val_per_epoch: 100
 save_per_epoch: 200
 IS_LOGGER_WANDB: true
 dE_loss_alpha_fea_map: 1.0
-dE_loss_alpha_infoNCE: 1.0
-dE_loss_alpha_similarity: 0.0
+dE_loss_alpha_infoNCE: 0.1
+dE_loss_alpha_similarity: 1.0
 dE_loss_alpha_recon: 1.0
 dE_loss_level_decay: 0.5
 gap_sign: "<-$->"
