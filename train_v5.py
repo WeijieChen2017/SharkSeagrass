@@ -885,8 +885,9 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             batch_total_loss = []
             for i_level in range(current_level+1):
                 fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
-                indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
-                infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
+                # indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
+                # infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
+                infoNCE_loss = torch.tensor(0.0, device=device)
                 similarity_loss = torch.abs(F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean())
                 recon_loss = F.l1_loss(x_hat, y_hat)
                 Eucildean_similarity = F.pairwise_distance(x_embbding_list[i_level], y_embbding_list[i_level], p=2).mean()
@@ -996,8 +997,9 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                     batch_total_loss = []
                     for i_level in range(current_level+1):
                         fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
-                        indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
-                        infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
+                        # indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
+                        # infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
+                        infoNCE_loss = torch.tensor(0.0, device=device)
                         similarity_loss = torch.abs(F.cosine_similarity(x_embbding_list[i_level], y_embbding_list[i_level], dim=-1).mean())
                         recon_loss = F.l1_loss(x_hat, y_hat)
                         Eucildean_similarity = F.pairwise_distance(x_embbding_list[i_level], y_embbding_list[i_level], p=2).mean()
@@ -1186,7 +1188,7 @@ def main():
         # dual_sub_model.second_pre_quant.load_state_dict(vit_sub_model.pre_quant.state_dict())
 
     print(f"Load model from {state_dict_model_path}")
-    model.pre_compute_InfoNCE_loss()
+    # model.pre_compute_InfoNCE_loss()
     # model.load_weights_for_module(state_dict_model_path)
 
     # move the model to the device
