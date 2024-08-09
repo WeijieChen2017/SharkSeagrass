@@ -446,15 +446,17 @@ class InfoNCELoss(nn.Module):
     def __init__(self, 
                  codebook : torch.FloatTensor,
                  similarity_type: str = "cosine",
-                 temperature: float = 0.1):
+                 temperature: float = 0.1,
+                 device: torch.device = torch.device("cuda")):
         self.codebook = codebook
         self.K, self.D = codebook.shape
         self.similarity_type = similarity_type
         self.temperature = temperature
+        self.device = device
 
         # Compute the similarity matrix
-        self.similarity_matrix = self.get_similarity_matrix(codebook)
-        self.InfoNCEloss_matrix = self.precompute_all_pairs()
+        self.similarity_matrix = self.get_similarity_matrix(codebook).to(self.device)
+        self.InfoNCEloss_matrix = self.precompute_all_pairs().to(self.device)
 
     def compute_InfoNCEloss_list(self, indices_pair_list):
         losses = [self.InfoNCEloss_matrix[i, j] for i, j in indices_pair_list]
