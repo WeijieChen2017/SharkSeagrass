@@ -897,11 +897,12 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             current_similarity_loss = np.asarray(batch_similarity_loss).sum()
             current_recon_loss = np.asarray(batch_recon_loss).sum()
             current_total_loss = np.asarray(batch_total_loss).sum()
-            loss_message = f"<{idx_epoch+1}> [{idx_batch+1}/{num_train_batch}] Total loss: {current_total_loss}, " + \
-                            f"Fea_map metric: {current_fea_map_loss:.4f}, " + \
-                            f"InfoNCE metric: {current_infoNCE_loss:.4f}, " + \
-                            f"Similarity metric: {current_similarity_loss:.4f}, " + \
-                            f"Recon metric: {current_recon_loss:.4f}"
+            loss_message = f"<{idx_epoch+1}> [{idx_batch+1}/{num_train_batch}] " + \
+                            f"Total loss: {current_total_loss:.4f}, " + \
+                            f"Fea_map : {current_fea_map_loss:.4f}, " + \
+                            f"InfoNCE : {current_infoNCE_loss:.4f}, " + \
+                            f"Cos_sim : {current_similarity_loss:.4f}, " + \
+                            f"Recon : {current_recon_loss:.4f}"
             print(loss_message)
 
             # initialize the optimizer
