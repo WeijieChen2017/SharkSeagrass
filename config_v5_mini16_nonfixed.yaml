@@ -10,6 +10,7 @@ num_workers_train_cache_dataset: 8
 num_workers_val_cache_dataset: 4
 batch_size_train: 16
 batch_size_val: 8
+batches_from_each_nii: 4
 cache_ratio_train: 1
 cache_ratio_val: 1
 val_per_epoch: 100
