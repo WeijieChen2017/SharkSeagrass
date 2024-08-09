@@ -460,8 +460,15 @@ class InfoNCELoss(nn.Module):
 
     def compute_InfoNCEloss_list(self, indices_pair_list):
         losses = [self.InfoNCEloss_matrix[i, j] for i, j in indices_pair_list]
-        print(f"Losses are {losses}")
-        return torch.tensor(losses).mean()
+        # print(f"Losses are {losses}")
+        # return torch.tensor(losses).mean()
+        # Convert MetaTensors to regular tensors and flatten them if necessary
+        losses = [loss.flatten() if isinstance(loss, torch.Tensor) else torch.tensor(loss) for loss in losses]
+
+        # Concatenate all loss tensors to compute the overall mean
+        losses = torch.cat(losses).mean()
+        return losses
+
 
     def precompute_all_pairs(self):
         loss_matrix = torch.zeros((self.K, self.K), device=self.device)
