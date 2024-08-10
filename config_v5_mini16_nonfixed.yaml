@@ -19,8 +19,8 @@ IS_LOGGER_WANDB: true
 dE_loss_alpha_fea_map: 1.0
 dE_loss_alpha_infoNCE: 0.0
 dE_loss_alpha_similarity: 0.0
-dE_loss_alpha_recon: 0.0
-de_loss_alpha_Eucsim: 0.0
+dE_loss_alpha_recon: 1.0
+de_loss_alpha_Eucsim: 1.0
 dE_loss_level_decay: 0.5
 gap_sign: "<-$->"
 data_division: "crop/data_division.json"
@@ -32,7 +32,7 @@ chunk_val:
 chunk_test:
   - 3
 input_modality:
-  - PET_raw
+  - PET_blr
   - CT
 pyramid_channels: 
   - 64
@@ -51,7 +51,7 @@ pyramid_num_res_units:
   - 4
   - 5
 pyramid_num_epoch: 
-  - 5000
+  - 10000
   - 10000
   - 25000
 pyramid_batch_size: 
