@@ -265,9 +265,10 @@ def collate_fn(batch, pet_valid_th=0.01):
     idx = len(batch)
     jdx = len(batch[0])
     
-    modalities = batch[0][0].keys()
-    print("The modalities are: ", modalities)
-    print(batch[0])
+    # modalities = batch[0][0].keys()
+    # print("The modalities are: ", modalities)
+    # print(batch[0])
+    modalities = ["PET_raw", "CT"]
     valid_samples = {
         modal : [] for modal in modalities
     }
