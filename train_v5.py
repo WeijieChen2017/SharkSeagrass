@@ -1,6 +1,6 @@
 import os
 
-main_modality = "PET_raw"
+# "PET_blr" = "PET_raw"
 
 # # Define the base cache directory
 # base_cache_dir = './cache'
@@ -270,20 +270,20 @@ def collate_fn(batch, pet_valid_th=0.01):
     # modalities = batch[0][0].keys()
     # print("The modalities are: ", modalities)
     # print(batch[0])
-    modalities = [main_modality, "CT"]
+    modalities = ["PET_blr", "CT"]
     valid_samples = {
         modal : [] for modal in modalities
     }
     # here we need to filter out the samples with PET_raw mean value less than pet_valid_th
     for i in range(idx):
         for j in range(jdx):
-            if batch[i][j][main_modality].mean() > pet_valid_th:
+            if batch[i][j]["PET_blr"].mean() > pet_valid_th:
                 for modal in modalities:
                     valid_samples[modal].append(batch[i][j][modal])
     
     # here we need to stack the valid samples
     # if the valid samples is empty, return the original batch
-    if len(valid_samples[main_modality]) == 0:
+    if len(valid_samples["PET_blr"]) == 0:
         return batch
     else:
         for modal in modalities:
@@ -871,10 +871,10 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                 continue
             # print("Currently loading the batch named: ", batch["filename"])
             y = batch["CT"].to(device)
-            x = batch[main_modality].to(device)
+            x = batch["PET_blr"].to(device)
             # if there are other modalities, concatenate them at the channel dimension
             for modality in input_modality:
-                if modality != main_modality and modality != "CT":
+                if modality != "PET_blr" and modality != "CT":
                     x = torch.cat((x, batch[modality].to(device)), dim=1)
 
             # generate the input data pyramid
@@ -991,9 +991,9 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                     if batch is None:
                         continue
                     y = batch["CT"].to(device)
-                    x = batch[main_modality].to(device)
+                    x = batch["PET_blr"].to(device)
                     for modality in input_modality:
-                        if modality != main_modality and modality != "CT":
+                        if modality != "PET_blr" and modality != "CT":
                             x = torch.cat((x, batch[modality].to(device)), dim=1)
                     pyramid_x = generate_input_data_pyramid(x, current_level, global_config)
                     pyramid_y = generate_input_data_pyramid(y, current_level, global_config)
