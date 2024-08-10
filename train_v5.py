@@ -888,7 +888,8 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             batch_euc_sim_loss = []
             batch_total_loss = []
             for i_level in range(current_level+1):
-                fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
+                fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_embbding_list[i_level])
+                # fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
                 # indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
                 # infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
                 infoNCE_loss = torch.tensor(0.0, device=device)
@@ -1000,7 +1001,8 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
                     batch_euc_sim_loss = []
                     batch_total_loss = []
                     for i_level in range(current_level+1):
-                        fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
+                        fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_embbding_list[i_level])
+                        # fea_map_loss = F.mse_loss(x_fea_map_list[i_level], y_fea_map_list[i_level])
                         # indice_pair_list = [(x_indices_list[i_level][i], y_indices_list[i_level][i]) for i in range(len(x_indices_list[i_level]))]
                         # infoNCE_loss = model.compute_InfoNCE_loss(indice_pair_list, i_level)
                         infoNCE_loss = torch.tensor(0.0, device=device)
@@ -1050,6 +1052,7 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             # plot the x_hat using plot_and_save_x_xrec
             plot_and_save_x_xrec(pyramid_x[current_level], 
                                  x_hat, 
+                                 pyramid_y[current_level],
                                  num_per_direction=3, 
                                  savename=save_folder+f"val_{idx_epoch}_x_xrec.png")
 
@@ -1067,11 +1070,13 @@ def train_model_at_level(current_level, global_config, model, optimizer_weights)
             # wandb_run.log_model(path=optimizer_save_name, name=f"optimizer_latest_save", aliases=tag+f"_{current_level}")
             # logger.log(idx_epoch, "model_saved", f"model_{idx_epoch}_state_dict.pth")
 
-def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None):
+def plot_and_save_x_xrec(x, xrec, gt, num_per_direction=1, savename=None):
     numpy_x = x[0, 0, :, :, :].cpu().numpy().squeeze()
     numpy_xrec = xrec[0, 0, :, :, :].cpu().numpy().squeeze()
+    numpy_gt = gt[0, 0, :, :, :].cpu().numpy().squeeze()
     x_clip = np.clip(numpy_x, 0, 1)
     rec_clip = np.clip(numpy_xrec, 0, 1)
+    gt_clip = np.clip(numpy_gt, 0, 1)
     fig_width = num_per_direction * 3
     fig_height = 4
     fig, axs = plt.subplots(3, fig_width, figsize=(fig_width, fig_height), dpi=100)
@@ -1079,41 +1084,47 @@ def plot_and_save_x_xrec(x, xrec, num_per_direction=1, savename=None):
     for i in range(num_per_direction):
         img_x = x_clip[x_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
         img_rec = rec_clip[rec_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
+        img_gt = gt_clip[gt_clip.shape[0]//(num_per_direction+1)*(i+1), :, :]
         axs[0, 3*i].imshow(img_x, cmap="gray")
         axs[0, 3*i].set_title(f"A x {x_clip.shape[0]//(num_per_direction+1)*(i+1)}")
         axs[0, 3*i].axis("off")
         axs[1, 3*i].imshow(img_rec, cmap="gray")
         axs[1, 3*i].set_title(f"A xrec {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
         axs[1, 3*i].axis("off")
-        axs[2, 3*i].imshow(img_x - img_rec, cmap="bwr")
-        axs[2, 3*i].set_title(f"A diff {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
+        # axs[2, 3*i].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i].imshow(img_gt, cmap="gray")
+        axs[2, 3*i].set_title(f"A ct_gt {rec_clip.shape[0]//(num_per_direction+1)*(i+1)}")
         axs[2, 3*i].axis("off")
     # for sagittal
     for i in range(num_per_direction):
         img_x = x_clip[:, :, x_clip.shape[2]//(num_per_direction+1)*(i+1)]
         img_rec = rec_clip[:, :, rec_clip.shape[2]//(num_per_direction+1)*(i+1)]
+        img_gt = gt_clip[:, :, gt_clip.shape[2]//(num_per_direction+1)*(i+1)]
         axs[0, 3*i+1].imshow(img_x, cmap="gray")
         axs[0, 3*i+1].set_title(f"S x {x_clip.shape[2]//(num_per_direction+1)*(i+1)}")
         axs[0, 3*i+1].axis("off")
         axs[1, 3*i+1].imshow(img_rec, cmap="gray")
         axs[1, 3*i+1].set_title(f"S xrec {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
         axs[1, 3*i+1].axis("off")
-        axs[2, 3*i+1].imshow(img_x - img_rec, cmap="bwr")
-        axs[2, 3*i+1].set_title(f"S diff {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
+        # axs[2, 3*i+1].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i+1].imshow(img_gt, cmap="gray")
+        axs[2, 3*i+1].set_title(f"S ct_gt {rec_clip.shape[2]//(num_per_direction+1)*(i+1)}")
         axs[2, 3*i+1].axis("off")
 
     # for coronal
     for i in range(num_per_direction):
         img_x = x_clip[:, x_clip.shape[1]//(num_per_direction+1)*(i+1), :]
         img_rec = rec_clip[:, rec_clip.shape[1]//(num_per_direction+1)*(i+1), :]
+        img_gt = gt_clip[:, gt_clip.shape[1]//(num_per_direction+1)*(i+1), :]
         axs[0, 3*i+2].imshow(img_x, cmap="gray")
         axs[0, 3*i+2].set_title(f"C x {x_clip.shape[1]//(num_per_direction+1)*(i+1)}")
         axs[0, 3*i+2].axis("off")
         axs[1, 3*i+2].imshow(img_rec, cmap="gray")
         axs[1, 3*i+2].set_title(f"C xrec {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
         axs[1, 3*i+2].axis("off")
-        axs[2, 3*i+2].imshow(img_x - img_rec, cmap="bwr")
-        axs[2, 3*i+2].set_title(f"C diff {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
+        # axs[2, 3*i+2].imshow(img_x - img_rec, cmap="bwr")
+        axs[2, 3*i+2].imshow(img_gt, cmap="gray")
+        axs[2, 3*i+2].set_title(f"C ct_gt {rec_clip.shape[1]//(num_per_direction+1)*(i+1)}")
         axs[2, 3*i+2].axis("off")
 
     plt.tight_layout()
@@ -1163,7 +1174,8 @@ def main():
 
     # set the logger
     current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-    log_file_path = f"train_log_{current_time}.json"
+    # log_file_path = f"train_log_{current_time}.json"
+    log_file_path = global_config['save_folder'] + f"train_log_{current_time}.json"
     logger = simple_logger(log_file_path, global_config)
     global_config["logger"] = logger
 
