@@ -691,6 +691,8 @@ for idx_tag, name_tag in enumerate(tag_list):
     PET_file = nib.load(PET_path)
     CT_res_data = CT_res_file.get_fdata()
     PET_data = PET_file.get_fdata()
+    recon_CTr_data = np.zeros_like(CT_res_data)
+    recon_PET_data = np.zeros_like(PET_data)
 
     # describe the images
     print("CTr shape: ", CT_res_data.shape, "PET shape: ", PET_data.shape)
@@ -707,8 +709,8 @@ for idx_tag, name_tag in enumerate(tag_list):
     CT_res_data = (CT_res_data + 1024) / 5000
     CT_res_data = (CT_res_data - 0.5) * 2
 
-    PET_data = np.clip(PET_data, 0, 140000)
-    PET_data = PET_data / 4000
+    PET_data = np.clip(PET_data, 0, 150000)
+    PET_data = PET_data / 150000
     PET_data = (PET_data - 0.5) * 2
 
     # convert the img to be channel first, from 400, 400, 3 to 3, 400, 400
@@ -721,8 +723,6 @@ for idx_tag, name_tag in enumerate(tag_list):
     PET_l1_loss_list = []
     CTr_ind_cnt_list = []
     PET_ind_cnt_list = []
-    recon_CTr_data = np.zeros_like(CT_res_data)
-    recon_PET_data = np.zeros_like(PET_data)
 
     for idz in range(len_z):
         print(f"Processing {name_tag}:[{idx_tag}]/[{len(tag_list)}] z=[{idz}]/[{len_z-1}]")
@@ -781,7 +781,7 @@ for idx_tag, name_tag in enumerate(tag_list):
         CTr_recon = (CTr_recon + 1) / 2
         PET_recon = (PET_recon + 1) / 2
         CTr_recon = CTr_recon * 5000 - 1024
-        PET_recon = PET_recon * 4000
+        PET_recon = PET_recon * 150000
         recon_CTr_data[:, :, idx_list[1]] = CTr_recon
         recon_PET_data[:, :, idx_list[1]] = PET_recon
 
