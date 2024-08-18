@@ -687,15 +687,21 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.savefig(savename)
     plt.close()
 
-def two_segment_scale(x, MIN, MID, MAX, MIQ):
-    if x <= MID:
-        # Scale from 0 to MIQ in the first segment
-        y = (x - MIN) / (MID - MIN) * MIQ
-    else:
-        # Scale from MIQ to 1 in the second segment
-        y = MIQ + (x - MID) / (MAX - MID) * (1 - MIQ)
+def two_segment_scale(arr, MIN, MID, MAX, MIQ):
+    # Create an empty array to hold the scaled results
+    scaled_arr = np.zeros_like(arr, dtype=np.float32)
+
+    # First segment: where arr <= MID
+    mask1 = arr <= MID
+    scaled_arr[mask1] = (arr[mask1] - MIN) / (MID - MIN) * MIQ
+
+    # Second segment: where arr > MID
+    mask2 = arr > MID
+    scaled_arr[mask2] = MIQ + (arr[mask2] - MID) / (MAX - MID) * (1 - MIQ)
     
-    return y
+    return scaled_arr
+
+
 
 import nibabel as nib
 import numpy as np
