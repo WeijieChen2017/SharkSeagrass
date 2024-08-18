@@ -626,6 +626,7 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.subplot(4, 3, 4)
     img = np.rot90(CTr_img[1, :, :])
     plt.hist(img.flatten(), bins=100)
+    plt.xlim(-1, 1)
     plt.title('CTr')
     plt.yscale('log')
 
@@ -634,6 +635,7 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     # clip img from -1 to 1
     img_rCTr = np.clip(img_rCTr, -1, 1)
     plt.hist(img_rCTr.flatten(), bins=100)
+    plt.xlim(-1, 1)
     n_unique_CTr = torch.unique(ind_CTr).shape[0]
     plt.title(f"CTr_recon via {n_unique_CTr} embedding")
     plt.yscale('log')
@@ -641,12 +643,14 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.subplot(4, 3, 6)
     img = img_rCTr - np.rot90(CTr_img[1, :, :])
     plt.hist(img.flatten(), bins=100)
+    plt.xlim(-1, 1)
     plt.title('diff_CTr')
     plt.yscale('log')
 
     plt.subplot(4, 3, 10)
     img = np.rot90(PET_img[1, :, :])
     plt.hist(img.flatten(), bins=100)
+    plt.xlim(-1, 1)
     plt.title('PET')
     plt.yscale('log')
 
@@ -655,6 +659,7 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     # clip img from -1 to 1
     img_rPET = np.clip(img_rPET, -1, 1)
     plt.hist(img_rPET.flatten(), bins=100)
+    plt.xlim(-1, 1)
     n_unique_PET = torch.unique(ind_PET).shape[0]
     plt.title(f"PET_recon via {n_unique_PET} embedding")
     plt.yscale('log')
@@ -662,6 +667,7 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.subplot(4, 3, 12)
     img = img_rPET - np.rot90(PET_img[1, :, :])
     plt.hist(img.flatten(), bins=100)
+    plt.xlim(-1, 1)
     plt.title('diff_PET')
     plt.yscale('log')
 
