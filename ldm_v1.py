@@ -582,15 +582,15 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     fig = plt.figure(figsize=(12, 16), dpi=100)
 
     plt.subplot(4, 3, 1)
-    # img = np.rot90(CTr_img[1, :, :])
-    img = CTr_img[1, :, :]
+    img = np.rot90(CTr_img[1, :, :])
+    # img = CTr_img[1, :, :]
     plt.imshow(img, cmap='gray')
     plt.title('CTr')
     plt.axis('off')
 
     plt.subplot(4, 3, 2)
-    # img_rCTr = np.rot90(return_CTr[0, 1, :, :])
-    img_rCTr = return_CTr[0, 1, :, :]
+    img_rCTr = np.rot90(return_CTr[0, 1, :, :])
+    # img_rCTr = return_CTr[0, 1, :, :]
     # clip img from -1 to 1
     img_rCTr = np.clip(img_rCTr, -1, 1)
     plt.imshow(img_rCTr, cmap='gray')
@@ -599,22 +599,22 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.axis('off')
 
     plt.subplot(4, 3, 3)
-    # img = img_rCTr - np.rot90(CTr_img[1, :, :])
-    img = img_rCTr - CTr_img[1, :, :]
+    img = img_rCTr - np.rot90(CTr_img[1, :, :])
+    # img = img_rCTr - CTr_img[1, :, :]
     plt.imshow(img, cmap='bwr')
     plt.title('diff_CTr')
     plt.axis('off')
 
     plt.subplot(4, 3, 7)
-    # img = np.rot90(PET_img[1, :, :])
-    img = PET_img[1, :, :]
+    img = np.rot90(PET_img[1, :, :])
+    # img = PET_img[1, :, :]
     plt.imshow(img, cmap='gray')
     plt.title('PET')
     plt.axis('off')
 
     plt.subplot(4, 3, 8)
-    # img_rPET = np.rot90(return_PET[0, 1, :, :])
-    img_rPET = return_PET[0, 1, :, :]
+    img_rPET = np.rot90(return_PET[0, 1, :, :])
+    # img_rPET = return_PET[0, 1, :, :]
     # clip img from -1 to 1
     img_rPET = np.clip(img_rPET, -1, 1)
     plt.imshow(img_rPET, cmap='gray')
@@ -623,23 +623,23 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.axis('off')
 
     plt.subplot(4, 3, 9)
-    # img = img_rPET - np.rot90(PET_img[1, :, :])
-    img = img_rPET - PET_img[1, :, :]
+    img = img_rPET - np.rot90(PET_img[1, :, :])
+    # img = img_rPET - PET_img[1, :, :]
     plt.imshow(img, cmap='bwr')
     plt.title('diff_PET')
     plt.axis('off')
 
     plt.subplot(4, 3, 4)
-    # img = np.rot90(CTr_img[1, :, :])
-    img = CTr_img[1, :, :]
+    img = np.rot90(CTr_img[1, :, :])
+    # img = CTr_img[1, :, :]
     plt.hist(img.flatten(), bins=100)
     plt.xlim(-1, 1)
     plt.title('CTr')
     plt.yscale('log')
 
     plt.subplot(4, 3, 5)
-    # img_rCTr = np.rot90(return_CTr[0, 1, :, :])
-    img_rCTr = return_CTr[0, 1, :, :]
+    img_rCTr = np.rot90(return_CTr[0, 1, :, :])
+    # img_rCTr = return_CTr[0, 1, :, :]
     # clip img from -1 to 1
     img_rCTr = np.clip(img_rCTr, -1, 1)
     plt.hist(img_rCTr.flatten(), bins=100)
@@ -649,24 +649,24 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.yscale('log')
 
     plt.subplot(4, 3, 6)
-    # img = img_rCTr - np.rot90(CTr_img[1, :, :])
-    img = img_rCTr - CTr_img[1, :, :]
+    img = img_rCTr - np.rot90(CTr_img[1, :, :])
+    # img = img_rCTr - CTr_img[1, :, :]
     plt.hist(img.flatten(), bins=100)
     plt.xlim(-1, 1)
     plt.title('diff_CTr')
     plt.yscale('log')
 
     plt.subplot(4, 3, 10)
-    # img = np.rot90(PET_img[1, :, :])
-    img = PET_img[1, :, :]
+    img = np.rot90(PET_img[1, :, :])
+    # img = PET_img[1, :, :]
     plt.hist(img.flatten(), bins=100)
     plt.xlim(-1, 1)
     plt.title('PET')
     plt.yscale('log')
 
     plt.subplot(4, 3, 11)
-    # img_rPET = np.rot90(return_PET[0, 1, :, :])
-    img_rPET = return_PET[0, 1, :, :]
+    img_rPET = np.rot90(return_PET[0, 1, :, :])
+    # img_rPET = return_PET[0, 1, :, :]
     # clip img from -1 to 1
     img_rPET = np.clip(img_rPET, -1, 1)
     plt.hist(img_rPET.flatten(), bins=100)
@@ -676,8 +676,8 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.yscale('log')
 
     plt.subplot(4, 3, 12)
-    # img = img_rPET - np.rot90(PET_img[1, :, :])
-    img = img_rPET - PET_img[1, :, :]
+    img = img_rPET - np.rot90(PET_img[1, :, :])
+    # img = img_rPET - PET_img[1, :, :]
     plt.hist(img.flatten(), bins=100)
     plt.xlim(-1, 1)
     plt.title('diff_PET')
@@ -700,6 +700,20 @@ def two_segment_scale(arr, MIN, MID, MAX, MIQ):
     scaled_arr[mask2] = MIQ + (arr[mask2] - MID) / (MAX - MID) * (1 - MIQ)
     
     return scaled_arr
+
+def reverse_two_segment_scale(arr, MIN, MID, MAX, MIQ):
+    # Create an empty array to hold the reverse scaled results
+    reverse_scaled_arr = np.zeros_like(arr, dtype=np.float32)
+
+    # First segment: where arr <= MIQ
+    mask1 = arr <= MIQ
+    reverse_scaled_arr[mask1] = arr[mask1] * (MID - MIN) / MIQ + MIN
+
+    # Second segment: where arr > MIQ
+    mask2 = arr > MIQ
+    reverse_scaled_arr[mask2] = MID + (arr[mask2] - MIQ) * (MAX - MID) / (1 - MIQ)
+    
+    return reverse_scaled_arr
 
 
 import nibabel as nib
@@ -817,8 +831,6 @@ for idx_tag, name_tag in enumerate(tag_list):
         # convert the img to be channel last, from 3, 400, 400 to 400, 400, 3
         CTr_recon = return_CTr[0, 1, :, :]
         PET_recon = return_PET[0, 1, :, :]
-        CTr_recon = np.moveaxis(CTr_recon, 0, -1)
-        PET_recon = np.moveaxis(PET_recon, 0, -1)
 
         # convert the img back to the value range
         CTr_recon = np.clip(CTr_recon, -1, 1)
@@ -826,14 +838,14 @@ for idx_tag, name_tag in enumerate(tag_list):
         CTr_recon = (CTr_recon + 1) / 2
         PET_recon = (PET_recon + 1) / 2
         CTr_recon = CTr_recon * RANGE_CT + MIN_CT
-        PET_recon = PET_recon * MAX_PET
+        PET_recon = reverse_two_segment_scale(PET_recon, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
         # upsampling CT from 256, 256 to 512, 512
         recon_CTr_data[:, :, idx_list[1]] = zoom(CTr_recon, [512/256, 512/256], order=2)
         recon_PET_data[:, :, idx_list[1]] = PET_recon
 
         # compute the l1 loss
-        CTr_l1_loss = np.mean(np.abs(CTr_img - CTr_recon))
-        PET_l1_loss = np.mean(np.abs(PET_img - PET_recon))
+        CTr_l1_loss = np.mean(np.abs(CTr_img[1, :, :] - CTr_recon))
+        PET_l1_loss = np.mean(np.abs(PET_img[1, :, :] - PET_recon))
         CTr_l1_loss_list.append(CTr_l1_loss)
         PET_l1_loss_list.append(PET_l1_loss)
 
@@ -859,8 +871,8 @@ for idx_tag, name_tag in enumerate(tag_list):
     np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_l1_loss.npy", PET_l1_loss_list)
     np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_ind_cnt.npy", CTr_ind_cnt_list)
     np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_ind_cnt.npy", PET_ind_cnt_list)
-    print(f"Average CTr l1 loss: {np.mean(CTr_l1_loss_list)}, Average PET l1 loss: {np.mean(PET_l1_loss_list)}")
-    print(f"Average CTr unique index count: {np.mean(CTr_ind_cnt_list)}, Average PET unique index count: {np.mean(PET_ind_cnt_list)}")
+    print(f"Average CTr l1 loss: {np.mean(CTr_l1_loss_list):.4f}, Average PET l1 loss: {np.mean(PET_l1_loss_list):.4f}")
+    print(f"Average CTr unique index count: {np.mean(CTr_ind_cnt_list):.4f}, Average PET unique index count: {np.mean(PET_ind_cnt_list):.4f}")
 
 
 
