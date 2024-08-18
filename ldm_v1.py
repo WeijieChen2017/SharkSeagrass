@@ -735,8 +735,6 @@ for idx_cut in range(n_cut):
     # show number of unique numbers in ind_CTr and ind_PET
     print(torch.unique(ind_CTr).shape, torch.unique(ind_PET).shape)
 
-    save_name_1 = "VQ_recon_at_" + str(idz) + ".png"
-    save_name_2 = "VQ_recon_hist_at_" + str(idz) + ".png"
-    plot_images(save_name_1, save_name_2, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET)
+    save_name = "VQ_recon_at_" + str(idz) + ".png"
+    plot_images(save_name, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET)
 
-    
