@@ -702,7 +702,6 @@ def two_segment_scale(arr, MIN, MID, MAX, MIQ):
     return scaled_arr
 
 
-
 import nibabel as nib
 import numpy as np
 import matplotlib.pyplot as plt
