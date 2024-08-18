@@ -773,7 +773,7 @@ for idx_tag, name_tag in enumerate(tag_list):
         PET_ind_cnt_list.append(torch.unique(ind_PET).shape)
 
         # save the index using 3 digit number
-        save_name = f"vq_f4_{name_tag}_z{idz:03d}.png"
+        save_name = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_z{idz:03d}.png"
         plot_images(save_name, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET)
 
         # convert the img to be channel last, from 3, 400, 400 to 400, 400, 3
