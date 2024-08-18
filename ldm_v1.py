@@ -570,24 +570,7 @@ keys = list(sd.keys())
 for k in keys:
     print(k)
 
-
-import nibabel as nib
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.ndimage import zoom
-
-CT_res_path = "/Ammongus/synCT_PET_James/ori/E4094_CT_400.nii.gz"
-PET_path = "/Ammongus/synCT_PET_James/ori/E4094_PET_re.nii.gz"
-
-CT_res_data = nib.load(CT_res_path).get_fdata()
-PET_data = nib.load(PET_path).get_fdata()
-
-# describe the images
-print("CTr shape: ", CT_res_data.shape, "PET shape: ", PET_data.shape)
-print("CTr mean: ", np.mean(CT_res_data), "PET mean: ", np.mean(PET_data))
-print("CTr std: ", np.std(CT_res_data), "PET std: ", np.std(PET_data))
-print("CTr min: ", np.min(CT_res_data), "PET min: ", np.min(PET_data))
-print("CTr max: ", np.max(CT_res_data), "PET max: ", np.max(PET_data))
+print("<" * 50)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The current device is", device)
@@ -605,7 +588,7 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.axis('off')
 
     plt.subplot(4, 3, 2)
-    img_rCTr = np.rot90(return_CTr[0, 1, :, :].detach().cpu().numpy())
+    img_rCTr = np.rot90(return_CTr[0, 1, :, :])
     # clip img from -1 to 1
     img_rCTr = np.clip(img_rCTr, -1, 1)
     plt.imshow(img_rCTr, cmap='gray')
@@ -626,7 +609,7 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.axis('off')
 
     plt.subplot(4, 3, 8)
-    img_rPET = np.rot90(return_PET[0, 1, :, :].detach().cpu().numpy())
+    img_rPET = np.rot90(return_PET[0, 1, :, :])
     # clip img from -1 to 1
     img_rPET = np.clip(img_rPET, -1, 1)
     plt.imshow(img_rPET, cmap='gray')
@@ -647,7 +630,7 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.yscale('log')
 
     plt.subplot(4, 3, 5)
-    img_rCTr = np.rot90(return_CTr[0, 1, :, :].detach().cpu().numpy())
+    img_rCTr = np.rot90(return_CTr[0, 1, :, :])
     # clip img from -1 to 1
     img_rCTr = np.clip(img_rCTr, -1, 1)
     plt.hist(img_rCTr.flatten(), bins=100)
@@ -668,7 +651,7 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.yscale('log')
 
     plt.subplot(4, 3, 11)
-    img_rPET = np.rot90(return_PET[0, 1, :, :].detach().cpu().numpy())
+    img_rPET = np.rot90(return_PET[0, 1, :, :])
     # clip img from -1 to 1
     img_rPET = np.clip(img_rPET, -1, 1)
     plt.hist(img_rPET.flatten(), bins=100)
@@ -686,62 +669,152 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
     plt.savefig(savename)
     plt.close()
 
+import nibabel as nib
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import zoom
+
+tag_list = ["E4055", "E4058", "E4061",          "E4066",
+            "E4068", "E4069", "E4073", "E4074", "E4077",
+            "E4078", "E4079",          "E4081", "E4084",
+                     "E4091", "E4092", "E4094"]
 
 n_cut = 8
-zoom_factors = [256/400, 256/400, 1]
+zoom_factors = [256/512, 256/512, 1]
 
-for idx_cut in range(n_cut):
-    idz = PET_data.shape[2]//(n_cut+1) * (idx_cut+1)
-    CTr_img = CT_res_data[:,:,idz-1:idz+2]
-    PETr_img = PET_data[:,:,idz-1:idz+2]
+for idx_tag, name_tag in enumerate(tag_list):
 
-    # resize the img to be 256, 256
-    CTr_img = zoom(CTr_img, zoom_factors, order=3)
-    PETr_img = zoom(PETr_img, zoom_factors, order=3)
+    CT_res_path = f"/Ammongus/synCT_PET_James/ori/{name_tag}_CT.nii.gz"
+    PET_path = f"/Ammongus/synCT_PET_James/ori/{name_tag}_PET.nii.gz"
 
-    # for CTr, clip from -1024 to 3976, and norm to -1 to 1
-    CTr_img = np.clip(CTr_img, -1024, 3976)
-    CTr_img = (CTr_img + 1024) / 5000
-    CTr_img = (CTr_img - 0.5) * 2
+    CT_res_file = nib.load(CT_res_path)
+    PET_file = nib.load(PET_path)
+    CT_res_data = CT_res_file.get_fdata()
+    PET_data = PET_file.get_fdata()
 
-    # for PET, clip from0 to 140000 and norm to -1 to 1
-    PET_img = np.clip(PETr_img, 0, 140000)
-    PET_img = PET_img / 140000
-    PET_img = (PET_img - 0.5) * 2
+    # describe the images
+    print("CTr shape: ", CT_res_data.shape, "PET shape: ", PET_data.shape)
+    print("CTr mean: ", np.mean(CT_res_data), "PET mean: ", np.mean(PET_data))
+    print("CTr std: ", np.std(CT_res_data), "PET std: ", np.std(PET_data))
+    print("CTr min: ", np.min(CT_res_data), "PET min: ", np.min(PET_data))
+    print("CTr max: ", np.max(CT_res_data), "PET max: ", np.max(PET_data))
+
+    # resize the CT from 512, 512 to 256, 256
+    CT_res_data = zoom(CT_res_data, zoom_factors, order=3)
+
+    # normalize the CT and PET data
+    CT_res_data = np.clip(CT_res_data, -1024, 3976)
+    CT_res_data = (CT_res_data + 1024) / 5000
+    CT_res_data = (CT_res_data - 0.5) * 2
+
+    PET_data = np.clip(PET_data, 0, 140000)
+    PET_data = PET_data / 4000
+    PET_data = (PET_data - 0.5) * 2
 
     # convert the img to be channel first, from 400, 400, 3 to 3, 400, 400
-    CTr_img = np.moveaxis(CTr_img, -1, 0)
-    PET_img = np.moveaxis(PET_img, -1, 0)
-    print(CTr_img.shape, PET_img.shape)
+    CT_res_data = np.moveaxis(CT_res_data, -1, 0)
+    PET_data = np.moveaxis(PET_data, -1, 0)
+    print(CT_res_data.shape, PET_data.shape)
 
-    # add one dim into img to be a batch
-    batch_CTr = np.expand_dims(CTr_img, axis=0)
-    batch_PET = np.expand_dims(PET_img, axis=0)
-    print(batch_CTr.shape, batch_PET.shape)
-    # convert them into a torch tensor
-    batch_CTr = torch.from_numpy(batch_CTr)
-    batch_PET = torch.from_numpy(batch_PET)
-    print(batch_CTr.size(), batch_PET.size())
-    # convert batch to float
-    batch_CTr = batch_CTr.float()
-    batch_PET = batch_PET.float()
-    print(batch_CTr.dtype, batch_PET.dtype)
+    len_z = PET_data.shape[2]
+    CTr_l1_loss_list = []
+    PET_l1_loss_list = []
+    CTr_ind_cnt_list = []
+    PET_ind_cnt_list = []
+    recon_CTr_data = np.zeros_like(CT_res_data)
+    recon_PET_data = np.zeros_like(PET_data)
 
-    batch_CTr = batch_CTr.to(device)
-    batch_PET = batch_PET.to(device)
-    print("Moving batch to device")
+    for idz in range(len_z):
+        print(f"Processing {name_tag}:[{idx_tag}]/[{len(tag_list)}] z=[{idz}]/[{len_z-1}]")
 
-    # clean GPU memory
-    return_CTr, _, ind_CTr = model(batch_CTr, return_pred_indices=True)
-    # clean GPU memory
-    return_PET, _, ind_PET = model(batch_PET, return_pred_indices=True)
-    # show return_CTr shape and return_PET shape
-    print(return_CTr.shape, return_PET.shape)
-    # show ind_CTr shape and ind_PET shape
-    print(ind_CTr.shape, ind_PET.shape)
-    # show number of unique numbers in ind_CTr and ind_PET
-    print(torch.unique(ind_CTr).shape, torch.unique(ind_PET).shape)
+        if idz == 0:
+            idx_list = [0, 0, 1]
+        elif idz == len_z - 1:
+            idx_list = [len_z-2, len_z-1, len_z-1]
+        else:
+            idx_list = [idz-1, idz, idz+1]
 
-    save_name = "VQ_recon_at_" + str(idz) + ".png"
-    plot_images(save_name, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET)
+        CTr_img = CT_res_data[idx_list, :, :]
+        PET_img = PET_data[idx_list, :, :]
+
+        # add one dim into img to be a batch
+        batch_CTr = np.expand_dims(CTr_img, axis=0)
+        batch_PET = np.expand_dims(PET_img, axis=0)
+        
+        # convert them into a torch tensor
+        batch_CTr = torch.from_numpy(batch_CTr)
+        batch_PET = torch.from_numpy(batch_PET)
+
+        # convert batch to float
+        batch_CTr = batch_CTr.float()
+        batch_PET = batch_PET.float()
+
+        # send batch to device
+        batch_CTr = batch_CTr.to(device)
+        batch_PET = batch_PET.to(device)
+
+        # evaluation
+        return_CTr, _, ind_CTr = model(batch_CTr, return_pred_indices=True)
+        return_PET, _, ind_PET = model(batch_PET, return_pred_indices=True)
+
+        # detach the tensor and convert to numpy
+        return_CTr = return_CTr.detach().cpu().numpy()
+        return_PET = return_PET.detach().cpu().numpy()
+
+        # compute unique index count
+        CTr_ind_cnt_list.append(torch.unique(ind_CTr).shape)
+        PET_ind_cnt_list.append(torch.unique(ind_PET).shape)
+
+        # save the index using 3 digit number
+        save_name = f"vq_f4_{name_tag}_z{idz:03d}.png"
+        plot_images(save_name, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET)
+
+        # convert the img to be channel last, from 3, 400, 400 to 400, 400, 3
+        CTr_recon = return_CTr[0, 1, :, :]
+        PET_recon = return_PET[0, 1, :, :]
+        CTr_recon = np.moveaxis(CTr_recon, 0, -1)
+        PET_recon = np.moveaxis(PET_recon, 0, -1)
+
+        # convert the img back to the value range
+        CTr_recon = np.clip(CTr_recon, -1, 1)
+        PET_recon = np.clip(PET_recon, -1, 1)
+        CTr_recon = (CTr_recon + 1) / 2
+        PET_recon = (PET_recon + 1) / 2
+        CTr_recon = CTr_recon * 5000 - 1024
+        PET_recon = PET_recon * 4000
+        recon_CTr_data[:, :, idx_list[1]] = CTr_recon
+        recon_PET_data[:, :, idx_list[1]] = PET_recon
+
+        # compute the l1 loss
+        CTr_l1_loss = np.mean(np.abs(CTr_img - CTr_recon))
+        PET_l1_loss = np.mean(np.abs(PET_img - PET_recon))
+        CTr_l1_loss_list.append(CTr_l1_loss)
+        PET_l1_loss_list.append(PET_l1_loss)
+
+    # save the recon data
+    CTr_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_recon.nii.gz"
+    recon_CTr_nii = nib.Nifti1Image(recon_CTr_data, CT_res_file.affine, CT_res_file.header)
+    nib.save(recon_CTr_nii, CTr_save_path)
+    print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon CTr data saved at {CTr_save_path}")
+
+    PET_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_recon.nii.gz"
+    recon_PET_nii = nib.Nifti1Image(recon_PET_data, PET_file.affine, PET_file.header)
+    nib.save(recon_PET_nii, PET_save_path)
+    print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon PET data saved at {PET_save_path}")
+
+    # save the l1 loss and unique index count
+    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_l1_loss.npy", CTr_l1_loss_list)
+    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_l1_loss.npy", PET_l1_loss_list)
+    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_ind_cnt.npy", CTr_ind_cnt_list)
+    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_ind_cnt.npy", PET_ind_cnt_list)
+    print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---CTr l1 loss saved at /Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_l1_loss.npy")
+    print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---PET l1 loss saved at /Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_l1_loss.npy")
+    print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---CTr unique index count saved at /Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_ind_cnt.npy")
+    print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---PET unique index count saved at /Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_ind_cnt.npy")
+
+
+
+
+
+
 
