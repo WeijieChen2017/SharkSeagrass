@@ -752,11 +752,11 @@ for idx_tag, name_tag in enumerate(tag_list):
     len_z = ori_PET_data.shape[2]
 
     # describe the images
-    print("CTr shape: ", CT_res_data.shape, "PET shape: ", PET_data.shape)
-    print("CTr mean: ", np.mean(CT_res_data), "PET mean: ", np.mean(PET_data))
-    print("CTr std: ", np.std(CT_res_data), "PET std: ", np.std(PET_data))
-    print("CTr min: ", np.min(CT_res_data), "PET min: ", np.min(PET_data))
-    print("CTr max: ", np.max(CT_res_data), "PET max: ", np.max(PET_data))
+    print("CTr shape: ", ori_CT_res_data.shape, "PET shape: ", ori_PET_data.shape)
+    print("CTr mean: ", np.mean(ori_CT_res_data), "PET mean: ", np.mean(ori_PET_data))
+    print("CTr std: ", np.std(ori_CT_res_data), "PET std: ", np.std(ori_PET_data))
+    print("CTr min: ", np.min(ori_CT_res_data), "PET min: ", np.min(ori_PET_data))
+    print("CTr max: ", np.max(ori_CT_res_data), "PET max: ", np.max(ori_PET_data))
 
     # resize the CT from 512, 512 to 256, 256
     CT_res_data = zoom(ori_CT_res_data, zoom_factors, order=3)
