@@ -679,6 +679,13 @@ tag_list = ["E4055", "E4058", "E4061",          "E4066",
             "E4078", "E4079",          "E4081", "E4084",
                      "E4091", "E4092", "E4094"]
 
+MAX_PET = 5000
+MAX_CT = 3976
+MIN_CT = -1024
+MIN_PET = 0
+RANGE_CT = MAX_CT - MIN_CT
+RANGE_PET = MAX_PET - MIN_PET
+
 n_cut = 8
 zoom_factors = [256/512, 256/512, 1]
 
@@ -705,12 +712,12 @@ for idx_tag, name_tag in enumerate(tag_list):
     CT_res_data = zoom(CT_res_data, zoom_factors, order=3)
 
     # normalize the CT and PET data
-    CT_res_data = np.clip(CT_res_data, -1024, 3976)
-    CT_res_data = (CT_res_data + 1024) / 5000
+    CT_res_data = np.clip(CT_res_data, MIN_CT, MAX_CT)
+    CT_res_data = (CT_res_data - MIN_CT) / RANGE_CT
     CT_res_data = (CT_res_data - 0.5) * 2
 
-    PET_data = np.clip(PET_data, 0, 150000)
-    PET_data = PET_data / 150000
+    PET_data = np.clip(PET_data, 0, MAX_PET)
+    PET_data = PET_data / MAX_PET
     PET_data = (PET_data - 0.5) * 2
 
     # convert the img to be channel first, from 400, 400, 3 to 3, 400, 400
@@ -780,9 +787,10 @@ for idx_tag, name_tag in enumerate(tag_list):
         PET_recon = np.clip(PET_recon, -1, 1)
         CTr_recon = (CTr_recon + 1) / 2
         PET_recon = (PET_recon + 1) / 2
-        CTr_recon = CTr_recon * 5000 - 1024
-        PET_recon = PET_recon * 150000
-        recon_CTr_data[:, :, idx_list[1]] = CTr_recon
+        CTr_recon = CTr_recon * RANGE_CT + MIN_CT
+        PET_recon = PET_recon * MAX_PET
+        # upsampling CT from 256, 256 to 512, 512
+        recon_CTr_data[:, :, idx_list[1]] = zoom(CTr_recon, [512/256, 512/256, 1], order=3)
         recon_PET_data[:, :, idx_list[1]] = PET_recon
 
         # compute the l1 loss
