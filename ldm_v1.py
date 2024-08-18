@@ -79,7 +79,7 @@ class ResnetBlock(nn.Module):
       return x+h
   
 
-  class Upsample(nn.Module):
+class Upsample(nn.Module):
     def __init__(self, in_channels, with_conv):
         super().__init__()
         self.with_conv = with_conv
