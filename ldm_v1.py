@@ -790,7 +790,7 @@ for idx_tag, name_tag in enumerate(tag_list):
         CTr_recon = CTr_recon * RANGE_CT + MIN_CT
         PET_recon = PET_recon * MAX_PET
         # upsampling CT from 256, 256 to 512, 512
-        recon_CTr_data[:, :, idx_list[1]] = zoom(CTr_recon, [512/256, 512/256, 1], order=3)
+        recon_CTr_data[:, :, idx_list[1]] = zoom(CTr_recon, [512/256, 512/256], order=2)
         recon_PET_data[:, :, idx_list[1]] = PET_recon
 
         # compute the l1 loss
