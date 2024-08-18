@@ -569,3 +569,174 @@ keys = list(sd.keys())
 
 for k in keys:
     print(k)
+
+
+import nibabel as nib
+import numpy as np
+import matplotlib.pyplot as plt
+
+CT_res_path = "/Ammongus/synCT_PET_James/ori/E4094_CT_400.nii.gz"
+PET_path = "/Ammongus/synCT_PET_James/ori/E4094_PET_re.nii.gz"
+
+CT_res_data = nib.load(CT_res_path).get_fdata()
+PET_data = nib.load(PET_path).get_fdata()
+
+# describe the images
+print("CTr shape: ", CT_res_data.shape, "PET shape: ", PET_data.shape)
+print("CTr mean: ", np.mean(CT_res_data), "PET mean: ", np.mean(PET_data))
+print("CTr std: ", np.std(CT_res_data), "PET std: ", np.std(PET_data))
+print("CTr min: ", np.min(CT_res_data), "PET min: ", np.min(PET_data))
+print("CTr max: ", np.max(CT_res_data), "PET max: ", np.max(PET_data))
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("The current device is", device)
+model.to(device)
+
+def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET):
+
+    # 1st plot for recon
+    fig = plt.figure(figsize=(12, 16), dpi=100)
+
+    plt.subplot(4, 3, 1)
+    img = np.rot90(CTr_img[1, :, :])
+    plt.imshow(img, cmap='gray')
+    plt.title('CTr')
+    plt.axis('off')
+
+    plt.subplot(4, 3, 2)
+    img_rCTr = np.rot90(return_CTr[0, 1, :, :].detach().cpu().numpy())
+    # clip img from -1 to 1
+    img_rCTr = np.clip(img_rCTr, -1, 1)
+    plt.imshow(img_rCTr, cmap='gray')
+    n_unique_CTr = torch.unique(ind_CTr).shape[0]
+    plt.title(f"CTr_recon via {n_unique_CTr} embedding")
+    plt.axis('off')
+
+    plt.subplot(4, 3, 3)
+    img = img_rCTr - np.rot90(CTr_img[1, :, :])
+    plt.imshow(img, cmap='bwr')
+    plt.title('diff_CTr')
+    plt.axis('off')
+
+    plt.subplot(4, 3, 7)
+    img = np.rot90(PET_img[1, :, :])
+    plt.imshow(img, cmap='gray')
+    plt.title('PET')
+    plt.axis('off')
+
+    plt.subplot(4, 3, 8)
+    img_rPET = np.rot90(return_PET[0, 1, :, :].detach().cpu().numpy())
+    # clip img from -1 to 1
+    img_rPET = np.clip(img_rPET, -1, 1)
+    plt.imshow(img_rPET, cmap='gray')
+    n_unique_PET = torch.unique(ind_PET).shape[0]
+    plt.title(f"PET_recon via {n_unique_PET} embedding")
+    plt.axis('off')
+
+    plt.subplot(4, 3, 9)
+    img = img_rPET - np.rot90(PET_img[1, :, :])
+    plt.imshow(img, cmap='bwr')
+    plt.title('diff_PET')
+    plt.axis('off')
+
+    plt.subplot(4, 3, 4)
+    img = np.rot90(CTr_img[1, :, :])
+    plt.hist(img.flatten(), bins=100)
+    plt.title('CTr')
+    plt.yscale('log')
+
+    plt.subplot(4, 3, 5)
+    img_rCTr = np.rot90(return_CTr[0, 1, :, :].detach().cpu().numpy())
+    # clip img from -1 to 1
+    img_rCTr = np.clip(img_rCTr, -1, 1)
+    plt.hist(img_rCTr.flatten(), bins=100)
+    n_unique_CTr = torch.unique(ind_CTr).shape[0]
+    plt.title(f"CTr_recon via {n_unique_CTr} embedding")
+    plt.yscale('log')
+
+    plt.subplot(4, 3, 6)
+    img = img_rCTr - np.rot90(CTr_img[1, :, :])
+    plt.hist(img.flatten(), bins=100)
+    plt.title('diff_CTr')
+    plt.yscale('log')
+
+    plt.subplot(4, 3, 10)
+    img = np.rot90(PET_img[1, :, :])
+    plt.hist(img.flatten(), bins=100)
+    plt.title('PET')
+    plt.yscale('log')
+
+    plt.subplot(4, 3, 11)
+    img_rPET = np.rot90(return_PET[0, 1, :, :].detach().cpu().numpy())
+    # clip img from -1 to 1
+    img_rPET = np.clip(img_rPET, -1, 1)
+    plt.hist(img_rPET.flatten(), bins=100)
+    n_unique_PET = torch.unique(ind_PET).shape[0]
+    plt.title(f"PET_recon via {n_unique_PET} embedding")
+    plt.yscale('log')
+
+    plt.subplot(4, 3, 12)
+    img = img_rPET - np.rot90(PET_img[1, :, :])
+    plt.hist(img.flatten(), bins=100)
+    plt.title('diff_PET')
+    plt.yscale('log')
+
+    plt.tight_layout()
+    plt.savefig(savename)
+    plt.close()
+
+
+n_cut = 8
+
+for idx_cut in range(n_cut):
+    idz = PET_data.shape[2]//(n_cut+1) * (idx_cut+1)
+    CTr_img = CT_res_data[:,:,idz-1:idz+2]
+    PETr_img = PET_data[:,:,idz-1:idz+2]
+    # for CTr, clip from -1024 to 3976, and norm to -1 to 1
+    CTr_img = np.clip(CTr_img, -1024, 3976)
+    CTr_img = (CTr_img + 1024) / 5000
+    CTr_img = (CTr_img - 0.5) * 2
+
+    # for PET, clip from0 to 140000 and norm to -1 to 1
+    PET_img = np.clip(PETr_img, 0, 140000)
+    PET_img = PET_img / 140000
+    PET_img = (PET_img - 0.5) * 2
+
+    # convert the img to be channel first, from 400, 400, 3 to 3, 400, 400
+    CTr_img = np.moveaxis(CTr_img, -1, 0)
+    PET_img = np.moveaxis(PET_img, -1, 0)
+    print(CTr_img.shape, PET_img.shape)
+
+    # add one dim into img to be a batch
+    batch_CTr = np.expand_dims(CTr_img, axis=0)
+    batch_PET = np.expand_dims(PET_img, axis=0)
+    print(batch_CTr.shape, batch_PET.shape)
+    # convert them into a torch tensor
+    batch_CTr = torch.from_numpy(batch_CTr)
+    batch_PET = torch.from_numpy(batch_PET)
+    print(batch_CTr.size(), batch_PET.size())
+    # convert batch to float
+    batch_CTr = batch_CTr.float()
+    batch_PET = batch_PET.float()
+    print(batch_CTr.dtype, batch_PET.dtype)
+
+    batch_CTr = batch_CTr.to(device)
+    batch_PET = batch_PET.to(device)
+    print("Moving batch to device")
+
+    # clean GPU memory
+    return_CTr, _, ind_CTr = model(batch_CTr, return_pred_indices=True)
+    # clean GPU memory
+    return_PET, _, ind_PET = model(batch_PET, return_pred_indices=True)
+    # show return_CTr shape and return_PET shape
+    print(return_CTr.shape, return_PET.shape)
+    # show ind_CTr shape and ind_PET shape
+    print(ind_CTr.shape, ind_PET.shape)
+    # show number of unique numbers in ind_CTr and ind_PET
+    print(torch.unique(ind_CTr).shape, torch.unique(ind_PET).shape)
+
+    save_name_1 = "VQ_recon_at_" + str(idz) + ".png"
+    save_name_2 = "VQ_recon_hist_at_" + str(idz) + ".png"
+    plot_images(save_name_1, save_name_2, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET)
+
+    
