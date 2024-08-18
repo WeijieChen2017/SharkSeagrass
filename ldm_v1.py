@@ -574,6 +574,7 @@ for k in keys:
 import nibabel as nib
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.ndimage import zoom
 
 CT_res_path = "/Ammongus/synCT_PET_James/ori/E4094_CT_400.nii.gz"
 PET_path = "/Ammongus/synCT_PET_James/ori/E4094_PET_re.nii.gz"
@@ -687,11 +688,17 @@ def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind
 
 
 n_cut = 8
+zoom_factors = [256/400, 256/400, 1]
 
 for idx_cut in range(n_cut):
     idz = PET_data.shape[2]//(n_cut+1) * (idx_cut+1)
     CTr_img = CT_res_data[:,:,idz-1:idz+2]
     PETr_img = PET_data[:,:,idz-1:idz+2]
+
+    # resize the img to be 256, 256
+    CTr_img = zoom(CTr_img, zoom_factors, order=3)
+    PETr_img = zoom(PETr_img, zoom_factors, order=3)
+
     # for CTr, clip from -1024 to 3976, and norm to -1 to 1
     CTr_img = np.clip(CTr_img, -1024, 3976)
     CTr_img = (CTr_img + 1024) / 5000
