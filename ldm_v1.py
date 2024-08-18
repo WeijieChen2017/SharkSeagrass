@@ -745,11 +745,11 @@ for idx_tag, name_tag in enumerate(tag_list):
 
     CT_res_file = nib.load(CT_res_path)
     PET_file = nib.load(PET_path)
-    CT_res_data = CT_res_file.get_fdata()
-    PET_data = PET_file.get_fdata()
-    recon_CTr_data = np.zeros_like(CT_res_data)
-    recon_PET_data = np.zeros_like(PET_data)
-    len_z = PET_data.shape[2]
+    ori_CT_res_data = CT_res_file.get_fdata()
+    ori_PET_data = PET_file.get_fdata()
+    recon_CTr_data = np.zeros_like(ori_CT_res_data)
+    recon_PET_data = np.zeros_like(ori_PET_data)
+    len_z = ori_PET_data.shape[2]
 
     # describe the images
     print("CTr shape: ", CT_res_data.shape, "PET shape: ", PET_data.shape)
@@ -759,7 +759,7 @@ for idx_tag, name_tag in enumerate(tag_list):
     print("CTr max: ", np.max(CT_res_data), "PET max: ", np.max(PET_data))
 
     # resize the CT from 512, 512 to 256, 256
-    CT_res_data = zoom(CT_res_data, zoom_factors, order=3)
+    CT_res_data = zoom(ori_CT_res_data, zoom_factors, order=3)
 
     # normalize the CT and PET data
     CT_res_data = np.clip(CT_res_data, MIN_CT, MAX_CT)
@@ -770,7 +770,7 @@ for idx_tag, name_tag in enumerate(tag_list):
     # PET_data = PET_data / MAX_PET
     # PET_data = (PET_data - 0.5) * 2
     # scale the PET data, MIN_PET to MID_PET -> 0 to MIQ_PET, MID_PET to MAX_PET -> MIQ_PET to 1
-    PET_data = two_segment_scale(PET_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
+    PET_data = two_segment_scale(ori_PET_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
     PET_data = (PET_data - 0.5) * 2
 
     # convert the img to be channel first, from 400, 400, 3 to 3, 400, 400
@@ -857,6 +857,17 @@ for idx_tag, name_tag in enumerate(tag_list):
 
     PET_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_recon.nii.gz"
     recon_PET_nii = nib.Nifti1Image(recon_PET_data, PET_file.affine, PET_file.header)
+    nib.save(recon_PET_nii, PET_save_path)
+    print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon PET data saved at {PET_save_path}")
+
+    # save the diff
+    CTr_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_diff.nii.gz"
+    recon_CTr_nii = nib.Nifti1Image(recon_CTr_data - ori_CT_res_data, CT_res_file.affine, CT_res_file.header)
+    nib.save(recon_CTr_nii, CTr_save_path)
+    print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon CTr data saved at {CTr_save_path}")
+
+    PET_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_diff.nii.gz"
+    recon_PET_nii = nib.Nifti1Image(recon_PET_data - ori_PET_data, PET_file.affine, PET_file.header)
     nib.save(recon_PET_nii, PET_save_path)
     print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon PET data saved at {PET_save_path}")
 
