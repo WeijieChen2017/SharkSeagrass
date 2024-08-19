@@ -563,7 +563,6 @@ model = VQModel(ddconfig=dd_config,
 )
 
 # load ckpt_path and show all keys
-ckpt_path = "model.ckpt"
 sd = torch.load(ckpt_path, map_location="cpu")["state_dict"]
 keys = list(sd.keys())
 
