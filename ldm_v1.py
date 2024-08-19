@@ -535,13 +535,13 @@ class VQModel(pl.LightningModule):
 
 import yaml
 
-config_yaml_path = "models/first_stage_models/vq-f4/config.yaml"
+config_yaml_path = "models/first_stage_models/vq-f8/config.yaml"
 with open(config_yaml_path, 'r') as file:
     config = yaml.safe_load(file)
 
 print(config)
 
-ckpt_path = "model.ckpt"
+ckpt_path = "vq_f8.ckpt"
 
 dd_config = config['model']['params']['ddconfig']
 loss_config = config['model']['params']['lossconfig']
@@ -843,9 +843,15 @@ for idx_tag, name_tag in enumerate(tag_list):
         recon_CTr_data[:, :, idx_list[1]] = zoom(CTr_recon, [512/256, 512/256], order=2)
         recon_PET_data[:, :, idx_list[1]] = PET_recon
 
+        # clip the ref img to be in the range
+        CTr_ref = CTr_img[1, :, :]
+        PET_ref = PET_img[1, :, :]
+        CTr_ref = np.clip(CTr_ref, MIN_CT, MAX_CT)
+        PET_ref = np.clip(PET_ref, MIN_PET, MAX_PET)
+
         # compute the l1 loss
-        CTr_l1_loss = np.mean(np.abs(CTr_img[1, :, :] - CTr_recon))
-        PET_l1_loss = np.mean(np.abs(PET_img[1, :, :] - PET_recon))
+        CTr_l1_loss = np.mean(np.abs(CTr_ref - CTr_recon))
+        PET_l1_loss = np.mean(np.abs(PET_ref - PET_recon))
         CTr_l1_loss_list.append(CTr_l1_loss)
         PET_l1_loss_list.append(PET_l1_loss)
 
@@ -861,11 +867,13 @@ for idx_tag, name_tag in enumerate(tag_list):
     print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon PET data saved at {PET_save_path}")
 
     # save the diff
+    ori_CT_res_data = np.clip(ori_CT_res_data, MIN_CT, MAX_CT)
     CTr_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_diff.nii.gz"
     recon_CTr_nii = nib.Nifti1Image(recon_CTr_data - ori_CT_res_data, CT_res_file.affine, CT_res_file.header)
     nib.save(recon_CTr_nii, CTr_save_path)
     print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon CTr data saved at {CTr_save_path}")
 
+    ori_PET_data = np.clip(ori_PET_data, MIN_PET, MAX_PET)
     PET_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_diff.nii.gz"
     recon_PET_nii = nib.Nifti1Image(recon_PET_data - ori_PET_data, PET_file.affine, PET_file.header)
     nib.save(recon_PET_nii, PET_save_path)
