@@ -779,8 +779,8 @@ for idx_tag, name_tag in enumerate(tag_list):
 
     CTr_l1_loss_list = []
     PET_l1_loss_list = []
-    CTr_ind_cnt_list = []
-    PET_ind_cnt_list = []
+    CTr_ind_list = []
+    PET_ind_list = []
 
     for idz in range(len_z):
         print(f"Processing {name_tag}:[{idx_tag}]/[{len(tag_list)}] z=[{idz}]/[{len_z-1}]")
@@ -820,8 +820,8 @@ for idx_tag, name_tag in enumerate(tag_list):
         return_PET = return_PET.detach().cpu().numpy()
 
         # compute unique index count
-        CTr_ind_cnt_list.append(torch.unique(ind_CTr).shape)
-        PET_ind_cnt_list.append(torch.unique(ind_PET).shape)
+        CTr_ind_list.append(ind_CTr.detach().cpu().numpy())
+        PET_ind_list.append(ind_PET.detach().cpu().numpy())
 
         # save the index using 3 digit number
         save_name = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_z{idz:03d}.png"
@@ -887,10 +887,10 @@ for idx_tag, name_tag in enumerate(tag_list):
     # save the l1 loss and unique index count
     np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_l1_loss.npy", CTr_l1_loss_list)
     np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_l1_loss.npy", PET_l1_loss_list)
-    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_ind_cnt.npy", CTr_ind_cnt_list)
-    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_ind_cnt.npy", PET_ind_cnt_list)
+    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_ind.npy", CTr_ind_list)
+    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_ind.npy", PET_ind_list)
     print(f"Average CTr l1 loss: {np.mean(CTr_l1_loss_list):.4f}, Average PET l1 loss: {np.mean(PET_l1_loss_list):.4f}")
-    print(f"Average CTr unique index count: {np.mean(CTr_ind_cnt_list):.4f}, Average PET unique index count: {np.mean(PET_ind_cnt_list):.4f}")
+    # print(f"Average CTr unique index count: {np.mean(CTr_ind_cnt_list):.4f}, Average PET unique index count: {np.mean(PET_ind_cnt_list):.4f}")
 
 
 
