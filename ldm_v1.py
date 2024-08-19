@@ -881,8 +881,8 @@ for idx_tag, name_tag in enumerate(tag_list):
     # convert list to numpy array
     CTr_l1_loss_list = np.array(CTr_l1_loss_list)
     PET_l1_loss_list = np.array(PET_l1_loss_list)
-    CTr_ind_cnt_list = np.array(CTr_ind_cnt_list)
-    PET_ind_cnt_list = np.array(PET_ind_cnt_list)
+    CTr_ind_list = np.array(CTr_ind_list)
+    PET_ind_list = np.array(PET_ind_list)
 
     # save the l1 loss and unique index count
     np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_l1_loss.npy", CTr_l1_loss_list)
