@@ -24,8 +24,3 @@ for tag in tag_list:
 
     print(CT_cmd)
     print(PET_cmd)
-
-    os.system(CT_cmd)
-    os.system(PET_cmd)
-
-    print("<===============================================>")
