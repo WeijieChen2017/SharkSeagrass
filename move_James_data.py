@@ -132,7 +132,7 @@ import numpy as np
 
 for tag in tag_list:
     CT_path = f"./B100/CTACIVV/CTACIVV_{tag[1:]}.nii.gz"
-    PET_path = f"./B100/PET_TOFNAC/PET_TOFNAC_{tag}.nii.gz"
+    PET_path = f"./B100/TOFNAC/PET_TOFNAC_{tag}.nii.gz"
     CT_file = nib.load(CT_path)
     PET_file = nib.load(PET_path)
     CT_data = CT_file.get_fdata()
