@@ -747,8 +747,8 @@ for idx_tag, name_tag in enumerate(tag_list):
     CT_res_path = f"./B100/npy/CTACIVV_{name_tag}.npy"
     PET_path = f"./B100/npy/PET_TOFNAC_{name_tag}.npy"
 
-    CT_res_data = np.load(CT_res_path, allow_pickle=True).item()
-    PET_data = np.load(PET_path, allow_pickle=True).item()
+    CT_res_data = np.load(CT_res_path)
+    PET_data = np.load(PET_path)
     len_z = CT_res_data.shape[0]
 
     recon_CTr_data = np.zeros(CT_res_data.shape, dtype=np.float32)
