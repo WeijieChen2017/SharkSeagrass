@@ -537,7 +537,7 @@ VQ_NAME = "f4"
 
 import yaml
 
-config_yaml_path = f"models/first_stage_models/vq-{VQ_NAME}/config.yaml"
+config_yaml_path = f"ldm_models/first_stage_models/vq-{VQ_NAME}/config.yaml"
 with open(config_yaml_path, 'r') as file:
     config = yaml.safe_load(file)
 
