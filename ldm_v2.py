@@ -543,7 +543,7 @@ with open(config_yaml_path, 'r') as file:
 
 print(config)
 
-ckpt_path = "vq-{VQ_NAME}.ckpt"
+ckpt_path = f"vq_{VQ_NAME}.ckpt"
 
 dd_config = config['model']['params']['ddconfig']
 loss_config = config['model']['params']['lossconfig']
