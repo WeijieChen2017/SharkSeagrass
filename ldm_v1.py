@@ -531,17 +531,19 @@ class VQModel(pl.LightningModule):
         return x
 
 
+VQ_NAME = "f8"
+
 # load the configuration yaml files
 
 import yaml
 
-config_yaml_path = "models/first_stage_models/vq-f8/config.yaml"
+config_yaml_path = f"models/first_stage_models/vq-{VQ_NAME}/config.yaml"
 with open(config_yaml_path, 'r') as file:
     config = yaml.safe_load(file)
 
 print(config)
 
-ckpt_path = "vq_f8.ckpt"
+ckpt_path = "vq_{VQ_NAME}.ckpt"
 
 dd_config = config['model']['params']['ddconfig']
 loss_config = config['model']['params']['lossconfig']
@@ -824,7 +826,7 @@ for idx_tag, name_tag in enumerate(tag_list):
         PET_ind_list.append(ind_PET.detach().cpu().numpy())
 
         # save the index using 3 digit number
-        save_name = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_z{idz:03d}.png"
+        save_name = f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_z{idz:03d}.png"
         plot_images(save_name, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET)
 
         # convert the img to be channel last, from 3, 400, 400 to 400, 400, 3
@@ -855,25 +857,25 @@ for idx_tag, name_tag in enumerate(tag_list):
         PET_l1_loss_list.append(PET_l1_loss)
 
     # save the recon data
-    CTr_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_recon.nii.gz"
+    CTr_save_path = f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_CTr_recon.nii.gz"
     recon_CTr_nii = nib.Nifti1Image(recon_CTr_data, CT_res_file.affine, CT_res_file.header)
     nib.save(recon_CTr_nii, CTr_save_path)
     print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon CTr data saved at {CTr_save_path}")
 
-    PET_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_recon.nii.gz"
+    PET_save_path = f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_PET_recon.nii.gz"
     recon_PET_nii = nib.Nifti1Image(recon_PET_data, PET_file.affine, PET_file.header)
     nib.save(recon_PET_nii, PET_save_path)
     print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon PET data saved at {PET_save_path}")
 
     # save the diff
     ori_CT_res_data = np.clip(ori_CT_res_data, MIN_CT, MAX_CT)
-    CTr_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_diff.nii.gz"
+    CTr_save_path = f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_CTr_diff.nii.gz"
     recon_CTr_nii = nib.Nifti1Image(recon_CTr_data - ori_CT_res_data, CT_res_file.affine, CT_res_file.header)
     nib.save(recon_CTr_nii, CTr_save_path)
     print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon CTr data saved at {CTr_save_path}")
 
     ori_PET_data = np.clip(ori_PET_data, MIN_PET, MAX_PET)
-    PET_save_path = f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_diff.nii.gz"
+    PET_save_path = f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_PET_diff.nii.gz"
     recon_PET_nii = nib.Nifti1Image(recon_PET_data - ori_PET_data, PET_file.affine, PET_file.header)
     nib.save(recon_PET_nii, PET_save_path)
     print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon PET data saved at {PET_save_path}")
@@ -885,10 +887,10 @@ for idx_tag, name_tag in enumerate(tag_list):
     PET_ind_list = np.array(PET_ind_list)
 
     # save the l1 loss and unique index count
-    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_l1_loss.npy", CTr_l1_loss_list)
-    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_l1_loss.npy", PET_l1_loss_list)
-    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_CTr_ind.npy", CTr_ind_list)
-    np.save(f"/Ammongus/synCT_PET_James/vq_f4_{name_tag}_PET_ind.npy", PET_ind_list)
+    np.save(f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_CTr_l1_loss.npy", CTr_l1_loss_list)
+    np.save(f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_PET_l1_loss.npy", PET_l1_loss_list)
+    np.save(f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy", CTr_ind_list)
+    np.save(f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_PET_ind.npy", PET_ind_list)
     print(f"Average CTr l1 loss: {np.mean(CTr_l1_loss_list):.4f}, Average PET l1 loss: {np.mean(PET_l1_loss_list):.4f}")
     # print(f"Average CTr unique index count: {np.mean(CTr_ind_cnt_list):.4f}, Average PET unique index count: {np.mean(PET_ind_cnt_list):.4f}")
 
