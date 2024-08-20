@@ -714,7 +714,7 @@ def reverse_two_segment_scale(arr, MIN, MID, MAX, MIQ):
     mask2 = arr > MIQ
     reverse_scaled_arr[mask2] = MID + (arr[mask2] - MIQ) * (MAX - MID) / (1 - MIQ)
     
-    return reverse_scaled_arr)
+    return reverse_scaled_arr
 
 import nibabel as nib
 import numpy as np
