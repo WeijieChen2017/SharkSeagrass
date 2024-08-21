@@ -42,14 +42,14 @@ class FullyConnected(nn.Module):
 
 tag_list = [
     "E4055", "E4058", "E4061",          "E4066",
-    # "E4068", "E4069", "E4073", "E4074", "E4077",
-    # "E4078", "E4079",          "E4081", "E4084",
-    #          "E4091", "E4092", "E4094", "E4096",
-    #          "E4098", "E4099",          "E4103",
-    # "E4105", "E4106", "E4114", "E4115", "E4118",
-    # "E4120", "E4124", "E4125", "E4128", "E4129",
-    # "E4130", "E4131", "E4134", "E4137", "E4138",
-    # "E4139",
+    "E4068", "E4069", "E4073", "E4074", "E4077",
+    "E4078", "E4079",          "E4081", "E4084",
+             "E4091", "E4092", "E4094", "E4096",
+             "E4098", "E4099",          "E4103",
+    "E4105", "E4106", "E4114", "E4115", "E4118",
+    "E4120", "E4124", "E4125", "E4128", "E4129",
+    "E4130", "E4131", "E4134", "E4137", "E4138",
+    "E4139",
 ]
 
 import os
@@ -59,7 +59,7 @@ import random
 import numpy as np
 
 # basic setting
-VQ_NAME = "f8"
+VQ_NAME = "f4"
 VQ_FACTOR = 4
 root_folder = f"./B100/vq_{VQ_NAME}_FCN"
 new_folders = [
@@ -92,14 +92,14 @@ with open(root_folder+f"/test_tags.json", "w") as f:
     json.dump(test_tags, f)
 
 # load the data
-train_PET_list = [f"./B100/npy/PET_TOFNAC_{name_tag}.npy" for name_tag in train_tags]
-train_CTr_list = [f"./B100/npy/CTACIVV_{name_tag}.npy" for name_tag in train_tags]
+train_PET_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in train_tags]
+train_CTr_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in train_tags]
 
-val_PET_list = [f"./B100/npy/PET_TOFNAC_{name_tag}.npy" for name_tag in val_tags]
-val_CTr_list = [f"./B100/npy/CTACIVV_{name_tag}.npy" for name_tag in val_tags]
+val_PET_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in val_tags]
+val_CTr_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in val_tags]
 
-test_PET_list = [f"./B100/npy/PET_TOFNAC_{name_tag}.npy" for name_tag in test_tags]
-test_CTr_list = [f"./B100/npy/CTACIVV_{name_tag}.npy" for name_tag in test_tags]
+test_PET_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in test_tags]
+test_CTr_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in test_tags]
 
 train_dataset = []
 val_dataset = []
@@ -127,8 +127,15 @@ model_state_dict = torch.load(f'vq_{VQ_NAME}.ckpt')['state_dict']
 vq_weights = model_state_dict['quantize.embedding.weight']
 print("VQ weights shape:", vq_weights.shape)
 
+# training setting
+num_epoch = 1000
+batch_size = 16
+best_eval_loss = float("inf")
+n_embed_dim = 4
+n_output_epoch = 100
+
 # build the model
-input_dim = (400) * (400)
+input_dim = (400 // VQ_FACTOR) * (400 // VQ_FACTOR) * n_embed_dim
 hidden_dims = [input_dim // 2, input_dim // 2]
 output_dim = input_dim
 
@@ -138,16 +145,12 @@ model_params = {
     "output_dim" : output_dim
 }
 
-# training setting
-num_epoch = 1000
-batch_size = 16
-best_eval_loss = float("inf")
-n_embed_dim = 3
-n_output_epoch = 100
+model_embed = FullyConnected(**model_params).to("cuda")
+optimizer = optim.Adam(model_embed.parameters(), lr=0.001)
 
-model_embed = [ FullyConnected(**model_params).to("cuda") for _ in range(n_embed_dim) ]
-# optimizer = optim.Adam(model.parameters(), lr=0.001)
-optimizer = [ optim.Adam(model.parameters(), lr=0.001) for model in model_embed ]
+# model_embed = [ FullyConnected(**model_params).to("cuda") for _ in range(n_embed_dim) ]
+# # optimizer = optim.Adam(model.parameters(), lr=0.001)
+# optimizer = [ optim.Adam(model.parameters(), lr=0.001) for model in model_embed ]
 # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.09)
 criterion = nn.MSELoss()
 
@@ -156,9 +159,7 @@ criterion = nn.MSELoss()
 for epoch in range(num_epoch):
 
     # train
-    for model in model_embed:
-        model.train()
-    
+    model.train()
     train_loss = 0.0
     random.shuffle(train_dataset)
     cnt_batch = 0
@@ -188,19 +189,16 @@ for epoch in range(num_epoch):
                 input_embed = vq_weights[input_batch]  # Shape: (batch_size, 160000, 3)
                 output_embed = vq_weights[output_batch]  # Shape: (batch_size, 160000, 3)
 
-                for i in range(n_embed_dim):
-                    input_embed_i = input_embed[:, :, i]
-                    output_embed_i = output_embed[:, :, i]
-                    input_embed_i = torch.tensor(input_embed_i).float().to("cuda")
-                    output_embed_i = torch.tensor(output_embed_i).float().to("cuda")
+                # flatten the input and output embeddings
+                input_embed = input_embed.reshape(batch_size, -1)
+                output_embed = output_embed.reshape(batch_size, -1)
 
-                    optimizer[i].zero_grad()
-                    pred_embed_i = model_embed[i](input_embed_i)
-                    loss = criterion(pred_embed_i, output_embed_i)
-                    loss.backward()
-                    optimizer[i].step()
-
-                    train_loss += loss.item()
+                optimizer.zero_grad()
+                pred_embed = model_embed(input_embed)
+                loss = criterion(pred_embed, output_embed)
+                loss.backward()
+                optimizer.step()
+                train_loss += loss.item()
 
     train_loss = train_loss / cnt_batch / batch_size / len(train_tags) / n_embed_dim
     if epoch % n_output_epoch == 0:
@@ -230,16 +228,12 @@ for epoch in range(num_epoch):
                 input_embed = vq_weights[input_batch]
                 output_embed = vq_weights[output_batch]
 
-                for i in range(n_embed_dim):
-                    input_embed_i = input_embed[:, :, i]
-                    output_embed_i = output_embed[:, :, i]
-                    input_embed_i = torch.tensor(input_embed_i).float().to("cuda")
-                    output_embed_i = torch.tensor(output_embed_i).float().to("cuda")
+                input_embed = input_embed.reshape(batch_size, -1)
+                output_embed = output_embed.reshape(batch_size, -1)
 
-                    with torch.no_grad():
-                        pred_embed_i = model_embed[i](input_embed_i)
-                        loss = criterion(pred_embed_i, output_embed_i)
-
+                with torch.no_grad():
+                    pred_embed = model_embed(input_embed)
+                    loss = criterion(pred_embed, output_embed)
                     eval_loss += loss.item()
 
     eval_loss = eval_loss / cnt_batch / batch_size / len(val_tags) / n_embed_dim
