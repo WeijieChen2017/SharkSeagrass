@@ -128,7 +128,7 @@ vq_weights = model_state_dict['quantize.embedding.weight']
 print("VQ weights shape:", vq_weights.shape)
 
 # build the model
-input_dim = (400 // VQ_FACTOR) * (400 // VQ_FACTOR) * VQ_FACTOR
+input_dim = (400) * (400) * VQ_FACTOR
 hidden_dims = [input_dim // 2, input_dim // 2]
 output_dim = input_dim
 
@@ -157,17 +157,19 @@ for epoch in range(num_epoch):
     model.train()
     train_loss = 0.0
     random.shuffle(train_dataset)
+    cnt_batch = 
     for train_dict in train_dataset:
         input_full = train_dict["PET_data"]
         output_full = train_dict["CTr_data"]
         # print("Input shape:", input_full.shape, output_full.shape)
         # (730, 400, 400) (730, 400, 400)
-        train_loss = 0.0
-
+        
         for i in range(0, len(input_full), batch_size):
             if i + batch_size > len(input_full):
                 break
             else:
+                cnt_batch += batch_size
+
                 input_batch = input_full[i:i+batch_size, :, :]
                 output_batch = output_full[i:i+batch_size, :, :]
 
@@ -178,10 +180,14 @@ for epoch in range(num_epoch):
                 # (16, 160000) (16, 160000)
 
                 # the second dim is the index pointing to the VQ codebook
-                input_embed = torch.index_select(vq_weights, 0, torch.tensor(input_batch).long().to("cuda"))
-                output_embed = torch.index_select(vq_weights, 0, torch.tensor(output_batch).long().to("cuda"))
-                print("Embed shape:", input_embed.shape, output_embed.shape)
-                exit()
+                # Flatten the input and output indices (will be batch_size * 160000 indices)
+                input_embed = vq_weights[input_batch]  # Shape: (batch_size, 160000, 3)
+                output_embed = vq_weights[output_batch]  # Shape: (batch_size, 160000, 3)
+
+                # flatten the input and output embeddings
+                input_embed = input_embed.reshape(batch_size, -1)
+                output_embed = output_embed.reshape(batch_size, -1)
+
                 input_embed = torch.tensor(input_batch).float().to("cuda")
                 output_embed = torch.tensor(output_batch).float().to("cuda")
 
@@ -193,31 +199,35 @@ for epoch in range(num_epoch):
 
                 train_loss += loss.item()
 
-    train_loss = train_loss / n_batch / batch_size / len(train_tags)
+    train_loss = train_loss / cnt_batch / batch_size / len(train_tags)
     if epoch % n_output_epoch == 0:
         print(f"Epoch: [{epoch}]/[{num_epoch}], Loss: {train_loss:.6e}", end=" <> ")
 
     # eval
     model.eval()
     eval_loss = 0.0
-    for tag in val_tags:
-        input_full = dataset[tag]["PET"]
-        output_full = dataset[tag]["CTr"]
-        random.shuffle(input_full)
-        random.shuffle(output_full)
-        n_batch = len(input_full) // batch_size
-
-
+    random.shuffle(val_dataset)
+    cnt_batch = 0
+    for val_dict in val_dataset:
+        input_full = val_dict["PET_data"]
+        output_full = val_dict["CTr_data"]
         for i in range(0, len(input_full), batch_size):
             if i + batch_size > len(input_full):
                 break
             else:
+                cnt_batch += batch_size
+
                 input_batch = input_full[i:i+batch_size, :, :]
                 output_batch = output_full[i:i+batch_size, :, :]
 
-                # flatten batch at 3rd dim
                 input_batch = input_batch.reshape(batch_size, -1)
                 output_batch = output_batch.reshape(batch_size, -1)
+
+                input_embed = vq_weights[input_batch]
+                output_embed = vq_weights[output_batch]
+
+                input_embed = input_embed.reshape(batch_size, -1)
+                output_embed = output_embed.reshape(batch_size, -1)
 
                 input_embed = torch.tensor(input_batch).float().to("cuda")
                 output_embed = torch.tensor(output_batch).float().to("cuda")
@@ -227,7 +237,7 @@ for epoch in range(num_epoch):
                     loss = criterion(pred_embed, output_embed)
                     eval_loss += loss.item()
 
-    eval_loss = eval_loss / n_batch / batch_size / len(val_tags)
+    eval_loss = eval_loss / cnt_batch / batch_size / len(val_tags)
     if epoch % n_output_epoch == 0:
         print(f"Eval Loss: {eval_loss:.6e}")
 
