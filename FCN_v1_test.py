@@ -129,7 +129,7 @@ model_params = {
 }
 
 model_embed = FullyConnected(**model_params).to("cuda")
-state_dict_path = root_folder+f"best_model_at_all_h{hidden_dims}.pth"
+state_dict_path = "best_model_at_all_h{hidden_dims}.pth"
 model_embed.load_state_dict(torch.load(state_dict_path))
 
 # testing

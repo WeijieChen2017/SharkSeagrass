@@ -236,3 +236,20 @@ for epoch in range(num_epoch):
         best_epoch = epoch
         torch.save(model_embed.state_dict(), root_folder+f"best_model_at_all_h{hidden_dims}.pth")
         print(f"Saved best model at epoch {best_epoch} with eval loss {eval_loss:.6e}")
+
+
+# root@8d6d1514c91c:/Ammongus# python FCN_v1.py
+# Train: 28, Val: 4, Test: 4
+# VQ weights shape: torch.Size([8192, 3])
+# Epoch: [0]/[1000], Loss: 2.529957e-02 <> Eval Loss: 2.153108e-04
+# Saved best model at epoch 0 with eval loss 2.153108e-04
+# Saved best model at epoch 1 with eval loss 2.118703e-04
+# Saved best model at epoch 2 with eval loss 2.070804e-04
+# Saved best model at epoch 3 with eval loss 2.025713e-04
+# Saved best model at epoch 4 with eval loss 1.998487e-04
+# Saved best model at epoch 5 with eval loss 1.990087e-04
+# Saved best model at epoch 6 with eval loss 1.989833e-04
+# Saved best model at epoch 7 with eval loss 1.987451e-04
+# Saved best model at epoch 15 with eval loss 1.987383e-04
+# Saved best model at epoch 17 with eval loss 1.986972e-04
+# Saved best model at epoch 22 with eval loss 1.986872e-04
