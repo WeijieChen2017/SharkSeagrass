@@ -73,7 +73,7 @@ random.seed(42)
 random.shuffle(tag_list)
 
 train_tags = tag_list[:int(0.8*len(tag_list))]
-val_tags = tag_list[int(0.8*len(tag_list)):0.9*len(tag_list)]
+val_tags = tag_list[int(0.8*len(tag_list)):int(0.9*len(tag_list))]
 test_tags = tag_list[int(0.9*len(tag_list)):]
 
 log_filename = f"./B100/vq_{VQ_NAME}_FCN/log.txt"
