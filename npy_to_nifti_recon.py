@@ -14,8 +14,6 @@ import os
 import numpy as np
 import nibabel as nib
 
-VQ_NAME = "f8"
-
 for tag in tag_list:
     print()
     CT_nifti_path = f"./B100/nifti/CTACIVV_{tag}.nii.gz"
@@ -24,6 +22,9 @@ for tag in tag_list:
     PET_nifti_file = nib.load(PET_nifti_path)
     print(f"Loaded nifti files {CT_nifti_path} and {PET_nifti_path}")
     for VQ_NAME in ["f4", "f8"]:
+        save_folder = f"./B100/vq_{VQ_NAME}_recon_nifti"
+        if not os.path.exists(save_folder):
+            os.makedirs(save_folder)
         CT_npy_path = f"./B100/vq_{VQ_NAME}_recon/vq_{VQ_NAME}_{tag}_CTr_recon.npy"
         PET_npy_path = f"./B100/vq_{VQ_NAME}_recon/vq_{VQ_NAME}_{tag}_PET_recon.npy"
         CT_npy = np.load(CT_npy_path)
@@ -38,8 +39,8 @@ for tag in tag_list:
         print(f"CT_npy_data.shape: {CT_npy_data.shape}, PET_npy_data.shape: {PET_npy_data.shape}")
         CT_npy_nifti = nib.Nifti1Image(CT_npy_data, CT_nifti_file.affine, CT_nifti_file.header)
         PET_npy_nifti = nib.Nifti1Image(PET_npy_data, PET_nifti_file.affine, PET_nifti_file.header)
-        CT_npy_nifti_path = f"./B100/vq_{VQ_NAME}_recon_nifti/vq_{VQ_NAME}_{tag}_CTr_recon.nii.gz"
-        PET_npy_nifti_path = f"./B100/vq_{VQ_NAME}_recon_nifti/vq_{VQ_NAME}_{tag}_PET_recon.nii.gz"
+        CT_npy_nifti_path = f"{save_folder}/vq_{VQ_NAME}_{tag}_CTr_recon.nii.gz"
+        PET_npy_nifti_path = f"{save_folder}/vq_{VQ_NAME}_{tag}_PET_recon.nii.gz"
         nib.save(CT_npy_nifti, CT_npy_nifti_path)
         nib.save(PET_npy_nifti, PET_npy_nifti_path)
         print(f"Saved nifti files {CT_npy_nifti_path} and {PET_npy_nifti_path}")
