@@ -42,7 +42,7 @@ class FullyConnected(nn.Module):
 
 tag_list = [
     "E4055", "E4058", "E4061",          "E4066",
-    "E4068", "E4069", "E4073", "E4074", "E4077",
+    # "E4068", "E4069", "E4073", "E4074", "E4077",
     # "E4078", "E4079",          "E4081", "E4084",
     #          "E4091", "E4092", "E4094", "E4096",
     #          "E4098", "E4099",          "E4103",
@@ -59,7 +59,7 @@ import random
 import numpy as np
 
 # basic setting
-VQ_NAME = "f4"
+VQ_NAME = "f8"
 VQ_FACTOR = 4
 root_folder = f"./B100/vq_{VQ_NAME}_FCN"
 new_folders = [
