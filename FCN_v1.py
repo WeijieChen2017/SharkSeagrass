@@ -173,7 +173,7 @@ for epoch in range(num_epoch):
             if i + batch_size > len(input_full):
                 break
             else:
-                cnt_batch += batch_size
+                cnt_batch += 1
 
                 input_batch = input_full[i:i+batch_size, :]
                 output_batch = output_full[i:i+batch_size, :]
@@ -210,7 +210,7 @@ for epoch in range(num_epoch):
             if i + batch_size > len(input_full):
                 break
             else:
-                cnt_batch += batch_size
+                cnt_batch += 1
 
                 input_batch = input_full[i:i+batch_size, :]
                 output_batch = output_full[i:i+batch_size, :]
