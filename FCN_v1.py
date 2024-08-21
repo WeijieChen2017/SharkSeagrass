@@ -234,5 +234,5 @@ for epoch in range(num_epoch):
     if eval_loss < best_eval_loss:
         best_eval_loss = eval_loss
         best_epoch = epoch
-        torch.save(model_embed.state_dict(), f"best_model_at_all_h{hidden_dims}.pth")
+        torch.save(model_embed.state_dict(), root_folder+f"best_model_at_all_h{hidden_dims}.pth")
         print(f"Saved best model at epoch {best_epoch} with eval loss {eval_loss:.6e}")
