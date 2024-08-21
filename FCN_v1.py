@@ -157,7 +157,7 @@ for epoch in range(num_epoch):
     model.train()
     train_loss = 0.0
     random.shuffle(train_dataset)
-    cnt_batch = 
+    cnt_batch = 0
     for train_dict in train_dataset:
         input_full = train_dict["PET_data"]
         output_full = train_dict["CTr_data"]
