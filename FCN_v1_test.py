@@ -157,7 +157,8 @@ for test_dict in test_dataset:
             test_loss += loss.item()
         
         pred_embed = pred_embed.reshape(input_dim // n_embed_dim, n_embed_dim)
-        # pred_embed = np.squeeze(pred_embed.detach().cpu().numpy())(10000, 3)
+        pred_embed = np.squeeze(pred_embed.detach().cpu().numpy())
+        # pred_embed = np.squeeze(pred_embed.detach().cpu().numpy()) (10000, 3)
 
         correct_indices = input_full[i] # Shape: (10000,)
         pred_nearest_neighbor = np.argmin(np.linalg.norm(pred_embed[:, np.newaxis, :] - vq_weights_cpu, axis=-1), axis=1)
