@@ -158,7 +158,8 @@ for test_dict in test_dataset:
         pred_embed = np.squeeze(pred_embed.detach().cpu().numpy()) # (1, 10000)
 
         correct_indices = input_full[i] # Shape: (10000,)
-        pred_indices = pred_embed.reshape(input_embed // n_embed_dim, n_embed_dim) # Shape: (10000, 3)
+        print("Pred embed shape:", pred_embed.shape)
+        pred_indices = np.reshape(pred_embed, (1, 10000, n_embed_dim)) # Shape: (1, 10000, n_embed_dim)
         pred_indices = np.argmin(np.linalg.norm(vq_weights - pred_indices, axis=2), axis=1) # Shape: (10000,)
         pred_full[i] = pred_indices
         # count how many indices are mismatched
