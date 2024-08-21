@@ -43,13 +43,13 @@ class FullyConnected(nn.Module):
 tag_list = [
     "E4055", "E4058", "E4061",          "E4066",
     "E4068", "E4069", "E4073", "E4074", "E4077",
-    "E4078", "E4079",          "E4081", "E4084",
-             "E4091", "E4092", "E4094", "E4096",
-             "E4098", "E4099",          "E4103",
-    "E4105", "E4106", "E4114", "E4115", "E4118",
-    "E4120", "E4124", "E4125", "E4128", "E4129",
-    "E4130", "E4131", "E4134", "E4137", "E4138",
-    "E4139",
+    # "E4078", "E4079",          "E4081", "E4084",
+    #          "E4091", "E4092", "E4094", "E4096",
+    #          "E4098", "E4099",          "E4103",
+    # "E4105", "E4106", "E4114", "E4115", "E4118",
+    # "E4120", "E4124", "E4125", "E4128", "E4129",
+    # "E4130", "E4131", "E4134", "E4137", "E4138",
+    # "E4139",
 ]
 
 import os
@@ -120,8 +120,7 @@ for PET_path, CTr_path in zip(test_PET_list, test_CTr_list):
     CTr = np.load(CTr_path)
     test_dataset.append({"PET_data": PET, "CTr_data": CTr})
 
-print(len(train_dataset), len(val_dataset), len(test_dataset))
-
+print(f"Train: {len(train_dataset)}, Val: {len(val_dataset)}, Test: {len(test_dataset)}")
 
 # load the VQ codebook
 model_state_dict = torch.load(f'vq_{VQ_NAME}.ckpt')['state_dict']
@@ -147,9 +146,9 @@ criterion = nn.MSELoss()
 
 # training setting
 num_epoch = 1000
-batch_size = 64
+batch_size = 16
 best_eval_loss = float("inf")
-n_embed_dim = 4
+n_embed_dim = 3
 n_output_epoch = 100
 
 for epoch in range(num_epoch):
@@ -161,8 +160,8 @@ for epoch in range(num_epoch):
     for train_dict in train_dataset:
         input_full = train_dict["PET_data"]
         output_full = train_dict["CTr_data"]
-        print("Input shape:", input_full.shape, output_full.shape)
-        exit()
+        # print("Input shape:", input_full.shape, output_full.shape)
+        # (730, 400, 400) (730, 400, 400)
         train_loss = 0.0
 
         for i in range(0, len(input_full), batch_size):
@@ -176,7 +175,13 @@ for epoch in range(num_epoch):
                 input_batch = input_batch.reshape(batch_size, -1)
                 output_batch = output_batch.reshape(batch_size, -1)
                 # print("Index i:", i, input_batch.shape, output_batch.shape)
+                # (16, 160000) (16, 160000)
 
+                # the second dim is the index pointing to the VQ codebook
+                input_embed = torch.index_select(vq_weights, 0, torch.tensor(input_batch).long().to("cuda"))
+                output_embed = torch.index_select(vq_weights, 0, torch.tensor(output_batch).long().to("cuda"))
+                print("Embed shape:", input_embed.shape, output_embed.shape)
+                exit()
                 input_embed = torch.tensor(input_batch).float().to("cuda")
                 output_embed = torch.tensor(output_batch).float().to("cuda")
 
