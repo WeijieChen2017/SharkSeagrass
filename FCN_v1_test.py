@@ -59,8 +59,8 @@ import random
 import numpy as np
 
 # basic setting
-VQ_NAME = "f4"
-VQ_FACTOR = 4
+VQ_NAME = "f8"
+VQ_FACTOR = 8
 root_folder = f"./B100/vq_{VQ_NAME}_FCN"
 
 # import tags from the json file
