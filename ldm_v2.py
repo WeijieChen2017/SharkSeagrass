@@ -534,7 +534,7 @@ class VQModel(pl.LightningModule):
 VQ_NAME = "f8"
 
 # load the configuration yaml files
-
+import os
 import yaml
 
 config_yaml_path = f"ldm_models/first_stage_models/vq-{VQ_NAME}/config.yaml"
