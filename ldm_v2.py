@@ -531,7 +531,7 @@ class VQModel(pl.LightningModule):
         return x
 
 
-VQ_NAME = "f4"
+VQ_NAME = "f8"
 
 # load the configuration yaml files
 
@@ -742,6 +742,17 @@ MIN_PET = 0
 RANGE_CT = MAX_CT - MIN_CT
 RANGE_PET = MAX_PET - MIN_PET
 
+new_folders = [
+    f"./B100/vq_{VQ_NAME}_recon",
+    f"./B100/vq_{VQ_NAME}_loss",
+    f"./B100/vq_{VQ_NAME}_png",
+    f"./B100/vq_{VQ_NAME}_ind",
+]
+
+for new_folder in new_folders:
+    if not os.path.exists(new_folder):
+        os.makedirs(new_folder)
+
 for idx_tag, name_tag in enumerate(tag_list):
 
     CT_res_path = f"./B100/npy/CTACIVV_{name_tag}.npy"
@@ -809,7 +820,7 @@ for idx_tag, name_tag in enumerate(tag_list):
 
         # save the index using 3 digit number
         if idz % 50 == 0:
-            save_name = f"./B100/vq_{VQ_NAME}_{name_tag}_z{idz:03d}.png"
+            save_name = f"./B100/vq_{VQ_NAME}_png/vq_{VQ_NAME}_{name_tag}_z{idz:03d}.png"
             plot_images(save_name, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET)
 
         # convert the img to be channel last, from 3, 400, 400 to 400, 400, 3
@@ -863,12 +874,12 @@ for idx_tag, name_tag in enumerate(tag_list):
     PET_recon_data = np.array(recon_PET_data)
 
     # save the l1 loss and unique index count
-    np.save(f"./B100/vq_{VQ_NAME}_{name_tag}_CTr_l1_loss.npy", CTr_l1_loss_list)
-    np.save(f"./B100/vq_{VQ_NAME}_{name_tag}_PET_l1_loss.npy", PET_l1_loss_list)
-    np.save(f"./B100/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy", CTr_ind_list)
-    np.save(f"./B100/vq_{VQ_NAME}_{name_tag}_PET_ind.npy", PET_ind_list)
-    np.save(f"./B100/vq_{VQ_NAME}_{name_tag}_CTr_recon.npy", CTr_recon_data)
-    np.save(f"./B100/vq_{VQ_NAME}_{name_tag}_PET_recon.npy", PET_recon_data)
+    np.save(f"./B100/vq_{VQ_NAME}_loss/vq_{VQ_NAME}_{name_tag}_CTr_l1_loss.npy", CTr_l1_loss_list)
+    np.save(f"./B100/vq_{VQ_NAME}_loss/vq_{VQ_NAME}_{name_tag}_PET_l1_loss.npy", PET_l1_loss_list)
+    np.save(f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy", CTr_ind_list)
+    np.save(f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_PET_ind.npy", PET_ind_list)
+    np.save(f"./B100/vq_{VQ_NAME}_recon/vq_{VQ_NAME}_{name_tag}_CTr_recon.npy", CTr_recon_data)
+    np.save(f"./B100/vq_{VQ_NAME}_recon/vq_{VQ_NAME}_{name_tag}_PET_recon.npy", PET_recon_data)
     print(f"Average CTr l1 loss: {np.mean(CTr_l1_loss_list):.4f}, Average PET l1 loss: {np.mean(PET_l1_loss_list):.4f}")
     # print(f"Average CTr unique index count: {np.mean(CTr_ind_cnt_list):.4f}, Average PET unique index count: {np.mean(PET_ind_cnt_list):.4f}")
 
