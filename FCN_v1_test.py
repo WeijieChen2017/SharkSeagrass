@@ -79,14 +79,14 @@ test_tags = json.load(open(root_folder+f"/test_tags.json", "r"))
 # train_PET_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in train_tags]
 # train_CTr_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in train_tags]
 
-# val_PET_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in val_tags]
-# val_CTr_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in val_tags]
+val_PET_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in val_tags]
+val_CTr_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in val_tags]
 
 test_PET_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in test_tags]
 test_CTr_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in test_tags]
 
 # train_dataset = []
-# val_dataset = []
+val_dataset = []
 test_dataset = []
 
 # for PET_path, CTr_path in zip(train_PET_list, train_CTr_list):
@@ -94,17 +94,19 @@ test_dataset = []
 #     CTr = np.load(CTr_path)
 #     train_dataset.append({"PET_data": PET, "CTr_data": CTr})
 
-# for PET_path, CTr_path in zip(val_PET_list, val_CTr_list):
-#     PET = np.load(PET_path)
-#     CTr = np.load(CTr_path)
-#     val_dataset.append({"PET_data": PET, "CTr_data": CTr})
-
-for PET_path, CTr_path in zip(test_PET_list, test_CTr_list):
+for PET_path, CTr_path in zip(val_PET_list, val_CTr_list):
     PET = np.load(PET_path)
     CTr = np.load(CTr_path)
-    test_dataset.append({"PET_data": PET, "CTr_data": CTr, "PET_path": PET_path, "CTr_path": CTr_path})
+    val_dataset.append({"PET_data": PET, "CTr_data": CTr})
+
+# for PET_path, CTr_path in zip(test_PET_list, test_CTr_list):
+#     PET = np.load(PET_path)
+#     CTr = np.load(CTr_path)
+#     test_dataset.append({"PET_data": PET, "CTr_data": CTr, "PET_path": PET_path, "CTr_path": CTr_path})
 
 # print(f"Train: {len(train_dataset)}, Val: {len(val_dataset)}, Test: {len(test_dataset)}")
+
+test_dataset = val_dataset
 
 print(f"The testing dataset has {len(test_dataset)} samples.")
 for tag in test_tags:
