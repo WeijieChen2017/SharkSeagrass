@@ -179,9 +179,9 @@ for epoch in range(num_epoch):
                 output_batch = output_full[i:i+batch_size, :]
 
                 # the second dim is the index pointing to the VQ codebook
-                # Flatten the input and output indices (will be batch_size * 160000 indices)
-                input_embed = vq_weights[input_batch]  # Shape: (batch_size, 160000, 3)
-                output_embed = vq_weights[output_batch]  # Shape: (batch_size, 160000, 3)
+                # Flatten the input and output indices (will be batch_size * 10000 indices)
+                input_embed = vq_weights[input_batch]  # Shape: (batch_size, 10000, 3)
+                output_embed = vq_weights[output_batch]  # Shape: (batch_size, 10000, 3)
 
                 # flatten the input and output embeddings
                 input_embed = input_embed.reshape(batch_size, -1)
