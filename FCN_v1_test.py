@@ -112,7 +112,8 @@ for tag in test_tags:
 
 # load the VQ codebook
 model_state_dict = torch.load(f'vq_{VQ_NAME}.ckpt')['state_dict']
-vq_weights = model_state_dict['quantize.embedding.weight'].cpu().numpy()
+vq_weights = model_state_dict['quantize.embedding.weight']
+vq_weights_cpu = vq_weights.cpu().detach().numpy()
 n_embed_dim = vq_weights.shape[1]
 print("VQ weights shape:", vq_weights.shape)
 criterion = nn.MSELoss()
@@ -160,7 +161,7 @@ for test_dict in test_dataset:
         correct_indices = input_full[i] # Shape: (10000,)
         pred_indices = np.reshape(pred_embed, (1, 10000, n_embed_dim)) # Shape: (1, 10000, n_embed_dim)
         print("Pred embed shape:", pred_embed.shape)
-        pred_indices = np.argmin(np.linalg.norm(vq_weights - pred_indices, axis=2), axis=1) # Shape: (10000,)
+        pred_indices = np.argmin(np.linalg.norm(vq_weights_cpu - pred_indices, axis=2), axis=1) # Shape: (10000,)
         pred_full[i] = pred_indices
         # count how many indices are mismatched
         mismatch_count = np.sum(correct_indices != pred_indices)
