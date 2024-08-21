@@ -92,14 +92,14 @@ with open(root_folder+f"/test_tags.json", "w") as f:
     json.dump(test_tags, f)
 
 # load the data
-train_PET_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in train_tags]
-train_CTr_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in train_tags]
+train_PET_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in train_tags]
+train_CTr_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in train_tags]
 
-val_PET_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in val_tags]
-val_CTr_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in val_tags]
+val_PET_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in val_tags]
+val_CTr_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in val_tags]
 
-test_PET_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in test_tags]
-test_CTr_list = [f"./B100/vq_{VQ_NAME}/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in test_tags]
+test_PET_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_PET_ind.npy" for name_tag in test_tags]
+test_CTr_list = [f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy" for name_tag in test_tags]
 
 train_dataset = []
 val_dataset = []
