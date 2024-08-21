@@ -194,7 +194,7 @@ for epoch in range(num_epoch):
                 optimizer.step()
                 train_loss += loss.item()
 
-    train_loss = train_loss / cnt_batch / batch_size / len(train_tags) / n_embed_dim
+    train_loss = train_loss / cnt_batch / batch_size
     if epoch % n_output_epoch == 0:
         print(f"Epoch: [{epoch}]/[{num_epoch}], Loss: {train_loss:.6e}", end=" <> ")
 
@@ -226,7 +226,7 @@ for epoch in range(num_epoch):
                     loss = criterion(pred_embed, output_embed)
                     eval_loss += loss.item()
 
-    eval_loss = eval_loss / cnt_batch / batch_size / len(val_tags) / n_embed_dim
+    eval_loss = eval_loss / cnt_batch / batch_size
     if epoch % n_output_epoch == 0:
         print(f"Eval Loss: {eval_loss:.6e}")
 
