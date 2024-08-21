@@ -61,7 +61,7 @@ import numpy as np
 # basic setting
 VQ_NAME = "f4"
 VQ_FACTOR = 4
-root_folder = f"./B100/vq_{VQ_NAME}_FCN",
+root_folder = f"./B100/vq_{VQ_NAME}_FCN"
 new_folders = [
     root_folder,
 ]
