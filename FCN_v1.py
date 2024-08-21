@@ -128,7 +128,7 @@ vq_weights = model_state_dict['quantize.embedding.weight']
 print("VQ weights shape:", vq_weights.shape)
 
 # build the model
-input_dim = (400) * (400) * VQ_FACTOR
+input_dim = (400) * (400)
 hidden_dims = [input_dim // 2, input_dim // 2]
 output_dim = input_dim
 
@@ -138,12 +138,6 @@ model_params = {
     "output_dim" : output_dim
 }
 
-model = FullyConnected(**model_params).to("cuda")
-# optimizer = optim.Adam(model.parameters(), lr=0.001)
-optimizer = optim.AdamW(model.parameters(), lr=0.001)
-# optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.09)
-criterion = nn.MSELoss()
-
 # training setting
 num_epoch = 1000
 batch_size = 16
@@ -151,10 +145,20 @@ best_eval_loss = float("inf")
 n_embed_dim = 3
 n_output_epoch = 100
 
+model_embed = [ FullyConnected(**model_params).to("cuda") for _ in range(n_embed_dim) ]
+# optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = [ optim.Adam(model.parameters(), lr=0.001) for model in model_embed ]
+# optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.09)
+criterion = nn.MSELoss()
+
+
+
 for epoch in range(num_epoch):
 
     # train
-    model.train()
+    for model in model_embed:
+        model.train()
+    
     train_loss = 0.0
     random.shuffle(train_dataset)
     cnt_batch = 0
@@ -184,27 +188,27 @@ for epoch in range(num_epoch):
                 input_embed = vq_weights[input_batch]  # Shape: (batch_size, 160000, 3)
                 output_embed = vq_weights[output_batch]  # Shape: (batch_size, 160000, 3)
 
-                # flatten the input and output embeddings
-                input_embed = input_embed.reshape(batch_size, -1)
-                output_embed = output_embed.reshape(batch_size, -1)
+                for i in range(n_embed_dim):
+                    input_embed_i = input_embed[:, :, i]
+                    output_embed_i = output_embed[:, :, i]
+                    input_embed_i = torch.tensor(input_embed_i).float().to("cuda")
+                    output_embed_i = torch.tensor(output_embed_i).float().to("cuda")
 
-                input_embed = torch.tensor(input_batch).float().to("cuda")
-                output_embed = torch.tensor(output_batch).float().to("cuda")
+                    optimizer[i].zero_grad()
+                    pred_embed_i = model_embed[i](input_embed_i)
+                    loss = criterion(pred_embed_i, output_embed_i)
+                    loss.backward()
+                    optimizer[i].step()
 
-                optimizer.zero_grad()
-                pred_embed = model(input_embed)
-                loss = criterion(pred_embed, output_embed)
-                loss.backward()
-                optimizer.step()
+                    train_loss += loss.item()
 
-                train_loss += loss.item()
-
-    train_loss = train_loss / cnt_batch / batch_size / len(train_tags)
+    train_loss = train_loss / cnt_batch / batch_size / len(train_tags) / n_embed_dim
     if epoch % n_output_epoch == 0:
         print(f"Epoch: [{epoch}]/[{num_epoch}], Loss: {train_loss:.6e}", end=" <> ")
 
     # eval
-    model.eval()
+    for model in model_embed:
+        model.eval()
     eval_loss = 0.0
     random.shuffle(val_dataset)
     cnt_batch = 0
@@ -226,18 +230,19 @@ for epoch in range(num_epoch):
                 input_embed = vq_weights[input_batch]
                 output_embed = vq_weights[output_batch]
 
-                input_embed = input_embed.reshape(batch_size, -1)
-                output_embed = output_embed.reshape(batch_size, -1)
+                for i in range(n_embed_dim):
+                    input_embed_i = input_embed[:, :, i]
+                    output_embed_i = output_embed[:, :, i]
+                    input_embed_i = torch.tensor(input_embed_i).float().to("cuda")
+                    output_embed_i = torch.tensor(output_embed_i).float().to("cuda")
 
-                input_embed = torch.tensor(input_batch).float().to("cuda")
-                output_embed = torch.tensor(output_batch).float().to("cuda")
+                    with torch.no_grad():
+                        pred_embed_i = model_embed[i](input_embed_i)
+                        loss = criterion(pred_embed_i, output_embed_i)
 
-                with torch.no_grad():
-                    pred_embed = model(input_embed)
-                    loss = criterion(pred_embed, output_embed)
                     eval_loss += loss.item()
 
-    eval_loss = eval_loss / cnt_batch / batch_size / len(val_tags)
+    eval_loss = eval_loss / cnt_batch / batch_size / len(val_tags) / n_embed_dim
     if epoch % n_output_epoch == 0:
         print(f"Eval Loss: {eval_loss:.6e}")
 
