@@ -72,21 +72,30 @@ for tag in tag_list:
     # normalize CT data
     output_CT = np.clip(new_CT_data, MIN_CT, MAX_CT)
     output_CT = (output_CT - MIN_CT) / RANGE_CT
-    output_CT = (output_CT - 0.5) * 2
+    # output_CT = (output_CT - 0.5) * 2
 
     # normalize PET data
     output_PET = np.clip(PET_data, MIN_PET, MAX_PET)
     output_PET = two_segment_scale(output_PET, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
-    output_PET = (output_PET - 0.5) * 2
+    # output_PET = (output_PET - 0.5) * 2
 
     # move the z axis to the first axis
-    output_CT = np.moveaxis(output_CT, -1, 0)
-    output_PET = np.moveaxis(output_PET, -1, 0)
+    # output_CT = np.moveaxis(output_CT, -1, 0)
+    # output_PET = np.moveaxis(output_PET, -1, 0)
     print(f"Output CT shape: {output_CT.shape}, Output PET shape: {output_PET.shape}")
 
-    # save the data
-    output_CT_path = f"./B100/npy/CTACIVV_{tag}.npy"
-    output_PET_path = f"./B100/npy/PET_TOFNAC_{tag}.npy"
-    np.save(output_CT_path, output_CT)
-    np.save(output_PET_path, output_PET)
+    # save the npy data
+    # output_CT_path = f"./B100/npy/CTACIVV_{tag}.npy"
+    # output_PET_path = f"./B100/npy/PET_TOFNAC_{tag}.npy"
+    # np.save(output_CT_path, output_CT)
+    # np.save(output_PET_path, output_PET)
+    # print(f"Saved to {output_CT_path} and {output_PET_path}")
+
+    # save the nifti data
+    output_CT_nii = nib.Nifti1Image(output_CT, PET_file.affine, PET_file.header)
+    output_PET_nii = nib.Nifti1Image(output_PET, PET_file.affine, PET_file.header)
+    output_CT_path = f"./B100/nifti/CTACIVV_{tag}.nii.gz"
+    output_PET_path = f"./B100/nifti/PET_TOFNAC_{tag}.nii.gz"
+    nib.save(output_CT_nii, output_CT_path)
+    nib.save(output_PET_nii, output_PET_path)
     print(f"Saved to {output_CT_path} and {output_PET_path}")
