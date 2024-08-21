@@ -167,7 +167,7 @@ for epoch in range(num_epoch):
         input_full = train_dict["PET_data"]
         output_full = train_dict["CTr_data"]
         print("Input shape:", input_full.shape, output_full.shape)
-        # (730, 400, 400) (730, 400, 400)
+        # (730, 10000) (730, 10000)
         
         for i in range(0, len(input_full), batch_size):
             if i + batch_size > len(input_full):
@@ -175,14 +175,8 @@ for epoch in range(num_epoch):
             else:
                 cnt_batch += batch_size
 
-                input_batch = input_full[i:i+batch_size, :, :]
-                output_batch = output_full[i:i+batch_size, :, :]
-
-                # flatten batch at 3rd dim
-                input_batch = input_batch.reshape(batch_size, -1)
-                output_batch = output_batch.reshape(batch_size, -1)
-                # print("Index i:", i, input_batch.shape, output_batch.shape)
-                # (16, 160000) (16, 160000)
+                input_batch = input_full[i:i+batch_size, :]
+                output_batch = output_full[i:i+batch_size, :]
 
                 # the second dim is the index pointing to the VQ codebook
                 # Flatten the input and output indices (will be batch_size * 160000 indices)
@@ -218,11 +212,8 @@ for epoch in range(num_epoch):
             else:
                 cnt_batch += batch_size
 
-                input_batch = input_full[i:i+batch_size, :, :]
-                output_batch = output_full[i:i+batch_size, :, :]
-
-                input_batch = input_batch.reshape(batch_size, -1)
-                output_batch = output_batch.reshape(batch_size, -1)
+                input_batch = input_full[i:i+batch_size, :]
+                output_batch = output_full[i:i+batch_size, :]
 
                 input_embed = vq_weights[input_batch]
                 output_embed = vq_weights[output_batch]
