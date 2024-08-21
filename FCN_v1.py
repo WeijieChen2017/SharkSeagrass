@@ -253,3 +253,28 @@ for epoch in range(num_epoch):
 # Saved best model at epoch 15 with eval loss 1.987383e-04
 # Saved best model at epoch 17 with eval loss 1.986972e-04
 # Saved best model at epoch 22 with eval loss 1.986872e-04
+
+# root@8d6d1514c91c:/Ammongus# python FCN_v1.py
+# Train: 28, Val: 4, Test: 4
+# VQ weights shape: torch.Size([16384, 4])
+# Epoch: [0]/[1000], Loss: 3.951259e-02 <> Eval Loss: 3.196350e-02
+# Saved best model at epoch 0 with eval loss 3.196350e-02
+# Saved best model at epoch 1 with eval loss 3.184582e-02
+# Saved best model at epoch 2 with eval loss 3.174868e-02
+# Saved best model at epoch 3 with eval loss 3.169935e-02
+# Saved best model at epoch 4 with eval loss 3.165783e-02
+# Saved best model at epoch 5 with eval loss 3.164733e-02
+# Saved best model at epoch 7 with eval loss 3.161644e-02
+# Saved best model at epoch 17 with eval loss 3.160526e-02
+# Saved best model at epoch 22 with eval loss 3.159697e-02
+# Epoch: [100]/[1000], Loss: 3.178717e-02 <> Eval Loss: 3.164929e-02
+# Epoch: [200]/[1000], Loss: 3.178704e-02 <> Eval Loss: 3.163473e-02
+# Saved best model at epoch 221 with eval loss 3.159608e-02
+# Epoch: [300]/[1000], Loss: 3.179592e-02 <> Eval Loss: 3.167580e-02
+# Epoch: [400]/[1000], Loss: 3.178612e-02 <> Eval Loss: 3.159991e-02
+# Epoch: [500]/[1000], Loss: 3.179197e-02 <> Eval Loss: 3.168222e-02
+# Epoch: [600]/[1000], Loss: 3.179231e-02 <> Eval Loss: 3.163999e-02
+# Epoch: [700]/[1000], Loss: 3.179504e-02 <> Eval Loss: 3.166699e-02
+# Saved best model at epoch 701 with eval loss 3.159226e-02
+# Epoch: [800]/[1000], Loss: 3.179378e-02 <> Eval Loss: 3.168760e-02
+# Epoch: [900]/[1000], Loss: 3.180203e-02 <> Eval Loss: 3.164448e-02

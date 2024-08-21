@@ -113,7 +113,7 @@ for tag in test_tags:
     print(tag)
 
 # load the VQ codebook
-model_state_dict = torch.load(f'vq_{VQ_NAME}.ckpt')['state_dict']
+model_state_dict = torch.load(root_folder+f'vq_{VQ_NAME}.ckpt')['state_dict']
 vq_weights = model_state_dict['quantize.embedding.weight']
 vq_weights_cpu = vq_weights.cpu().detach().numpy()
 n_embed_dim = vq_weights.shape[1]
