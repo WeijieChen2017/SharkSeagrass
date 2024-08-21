@@ -165,6 +165,7 @@ for test_dict in test_dataset:
         # count how many indices are mismatched
         mismatch_count = np.sum(correct_indices != pred_indices)
         embedding_mismatch_count += mismatch_count
+        print(f"Index z = {i}, embedding Mismatch Count: {mismatch_count} loss: {loss.item()}")
 
     test_loss = test_loss / len(test_dataset) / len_z / n_embed_dim
     print(f"Test Loss: {test_loss:.6e}")
