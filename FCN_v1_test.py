@@ -156,12 +156,11 @@ for test_dict in test_dataset:
             loss = criterion(pred_embed, output_embed)
             test_loss += loss.item()
         
-        pred_embed = np.squeeze(pred_embed.detach().cpu().numpy()) # (1, 10000)
+        pred_embed = pred_embed.reshape(input_dim // n_embed_dim, n_embed_dim)
+        # pred_embed = np.squeeze(pred_embed.detach().cpu().numpy())(10000, 3)
 
         correct_indices = input_full[i] # Shape: (10000,)
-        pred_indices = np.reshape(pred_embed, (10000, n_embed_dim)) # Shape: (1, 10000, n_embed_dim)
-        print("Pred embed shape:", pred_embed.shape)
-        pred_nearest_neighbor = np.argmin(np.linalg.norm(pred_indices[:, np.newaxis, :] - vq_weights_cpu, axis=-1), axis=1)
+        pred_nearest_neighbor = np.argmin(np.linalg.norm(pred_embed[:, np.newaxis, :] - vq_weights_cpu, axis=-1), axis=1)
         # pred_indices = np.argmin(np.linalg.norm(vq_weights_cpu - pred_indices, axis=2), axis=1) # Shape: (10000,)
         pred_full[i] = pred_nearest_neighbor
         # count how many indices are mismatched
