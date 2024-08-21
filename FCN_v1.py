@@ -131,7 +131,7 @@ print("VQ weights shape:", vq_weights.shape)
 num_epoch = 1000
 batch_size = 16
 best_eval_loss = float("inf")
-n_embed_dim = 4
+n_embed_dim = vq_weights.shape[1]
 n_output_epoch = 100
 
 # build the model
@@ -159,7 +159,7 @@ criterion = nn.MSELoss()
 for epoch in range(num_epoch):
 
     # train
-    model.train()
+    model_embed.train()
     train_loss = 0.0
     random.shuffle(train_dataset)
     cnt_batch = 0
@@ -205,8 +205,7 @@ for epoch in range(num_epoch):
         print(f"Epoch: [{epoch}]/[{num_epoch}], Loss: {train_loss:.6e}", end=" <> ")
 
     # eval
-    for model in model_embed:
-        model.eval()
+    model_embed.eval()
     eval_loss = 0.0
     random.shuffle(val_dataset)
     cnt_batch = 0
