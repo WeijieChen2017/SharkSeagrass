@@ -32,3 +32,24 @@ for pet_file in os.listdir(pet_path):
             shutil.move(os.path.join(ctac_path, ctac_file), os.path.join(labelsTr, f"{case_id}.nii.gz"))
         else:
             print(f"Warning: No corresponding CTACIVV file found for {pet_file}")
+
+# cp UWHEALTHROOTCA.crt /usr/local/share/ca-certificates/
+# update-ca-certificates
+# ls /etc/ssl/certs | grep UWHEALTHROOTCA.pem
+
+
+# export nnUNet_raw_data_base="/SharkSeagrass/nnUnet/nnUNet_raw"
+# export RESULTS_FOLDER="/SharkSeagrass/nnUnet/nnUNet_results"
+# source ~/.bashrc
+
+# export nnUNet_raw="/SharkSeagrass/nnUnet/nnUNet_raw"
+# export nnUNet_preprocessed="/SharkSeagrass/nnUnet/nnUNet_preprocessed"
+# export nnUNet_results="/SharkSeagrass/nnUnet/nnUNet_results"
+
+# source ~/.bashrc
+
+# echo nnUNet_raw
+# echo nnUNet_preprocessed
+# echo nnUNet_results
+
+# nnUNet_plan_and_preprocess -t 001 --verify_dataset_integrity
