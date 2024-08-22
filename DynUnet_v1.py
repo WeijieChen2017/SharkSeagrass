@@ -5,7 +5,7 @@ import torch
 import matplotlib.pyplot as plt
 
 from monai.networks.nets import DynUNet
-from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, RandSpatialCropSamplesd, RandFlipd, RandRotated
+from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, RandSpatialCropd, RandFlipd, RandRotated
 from monai.data import CacheDataset, DataLoader
 
 
@@ -21,7 +21,7 @@ plot_per_epoch = 50
 root_folder = "./B100/dynunet_v1"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
-
+print("The root folder is: ", root_folder)
 
 
 model = DynUNet(
@@ -47,10 +47,13 @@ train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality),
-        RandSpatialCropSamplesd(keys=input_modality,
-                                roi_size=(img_size, img_size, in_channels),
-                                # num_samples=num_samples,
-                                random_size=False, random_center=True),
+        RandSpatialCropd(keys=input_modality,
+                         roi_size=(in_channels, img_size, img_size),
+                         random_center=True, random_size=False),
+        # RandSpatialCropSamplesd(keys=input_modality,
+        #                         roi_size=(img_size, img_size, in_channels),
+        #                         num_samples=num_samples,
+        #                         random_size=False, random_center=True),
         RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
         RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
         RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
@@ -62,10 +65,13 @@ val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality),
-        RandSpatialCropSamplesd(keys=input_modality,
-                                roi_size=(img_size, img_size, in_channels),
-                                # num_samples=num_samples,
-                                random_size=False, random_center=True),
+        RandSpatialCropd(keys=input_modality,
+                         roi_size=(in_channels, img_size, img_size),
+                         random_center=True, random_size=False),
+        # RandSpatialCropSamplesd(keys=input_modality,
+        #                         roi_size=(img_size, img_size, in_channels),
+        #                         num_samples=num_samples,
+        #                         random_size=False, random_center=True),
     ]
 )
 
