@@ -138,6 +138,10 @@ for idx_epoch in range(num_epoch):
     for idx_batch, batch_data in enumerate(train_loader):
         inputs = batch_data["PET"].to(device)
         labels = batch_data["CT"].to(device)
+        # [16, 1, 5, 400, 400]
+        # remove the second dimension
+        inputs = inputs.squeeze(1)
+        labels = labels.squeeze(1)
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = loss_function(outputs, labels)
@@ -153,6 +157,8 @@ for idx_epoch in range(num_epoch):
             for idx_batch, batch_data in enumerate(val_loader):
                 inputs = batch_data["PET"].to(device)
                 labels = batch_data["CT"].to(device)
+                inputs = inputs.squeeze(1)
+                labels = labels.squeeze(1)
                 outputs = model(inputs)
                 loss = loss_function(outputs, labels)
                 val_loss += loss.item()
