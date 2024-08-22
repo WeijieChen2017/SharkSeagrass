@@ -38,8 +38,9 @@ for vq_tag in vq_list:
         CTr_ind_path = f"./B100/vq_{vq_tag}_ind/vq_{vq_tag}_{case_tag}_CTr_ind.npy"
         PET_indices = np.load(PET_ind_path)
         CTr_indices = np.load(CTr_ind_path)
-        PET_indices_list.append(PET_indices.mean())
-        CTr_indices_list.append(CTr_indices.mean())
+        # count how many indices are used
+        PET_indices_list.append(np.unique(PET_indices).shape[0])
+        CTr_indices_list.append(np.unique(CTr_indices).shape[0])
 
     PET_loss_list = np.array(PET_loss_list)
     CTr_loss_list = np.array(CTr_loss_list)
