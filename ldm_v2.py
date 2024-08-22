@@ -531,7 +531,7 @@ class VQModel(pl.LightningModule):
         return x
 
 
-VQ_NAME = "f16"
+VQ_NAME = "f4-noattn"
 
 # load the configuration yaml files
 import os
