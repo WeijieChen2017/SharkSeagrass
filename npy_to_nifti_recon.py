@@ -21,7 +21,7 @@ for tag in tag_list:
     CT_nifti_file = nib.load(CT_nifti_path)
     PET_nifti_file = nib.load(PET_nifti_path)
     print(f"Loaded nifti files {CT_nifti_path} and {PET_nifti_path}")
-    for VQ_NAME in ["f16"]:
+    for VQ_NAME in ["f4-noattn", "f8-n256"]:
         save_folder = f"./B100/vq_{VQ_NAME}_recon_nifti"
         if not os.path.exists(save_folder):
             os.makedirs(save_folder)
