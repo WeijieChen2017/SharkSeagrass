@@ -125,3 +125,4 @@ for vq_tag in vq_list:
     plt.axis("equal")
     plt.savefig(f"{save_folder}/vq_{vq_tag}_indices_correration.png")
     plt.close()
+    print(f"Saved correlation plot {save_folder}/vq_{vq_tag}_indices_correration.png")
