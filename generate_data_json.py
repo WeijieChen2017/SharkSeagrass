@@ -40,7 +40,7 @@ test_pair_list = [
 
 import json
 
-with open("B100_0822.json", "w") as f:
+with open("./B100/B100_0822.json", "w") as f:
     json.dump({"train": train_pair_list,
                "val": val_pair_list,
                "test": test_pair_list
