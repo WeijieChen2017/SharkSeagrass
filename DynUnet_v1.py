@@ -28,9 +28,9 @@ model = DynUNet(
     spatial_dims=2,
     in_channels=5,
     out_channels=1,
-    kernel_size=(3, 3, 3),
-    strides=(2, 2, 2),
-    upsample_kernel_size=(2, 2, 2),
+    kernel_size=(3, 3, 3, 3),
+    strides=(2, 2, 2, 1),
+    upsample_kernel_size=(2, 2, 1),
     filters=(32, 64, 128, 256),
     dropout=0.1,
     norm_name=('INSTANCE', {'affine': True}), 
@@ -135,6 +135,7 @@ for idx_epoch in range(num_epoch):
 
     # train the model
     model.train()
+    train_loss = 0
     for idx_batch, batch_data in enumerate(train_loader):
         inputs = batch_data["PET"].to(device)
         labels = batch_data["CT"].to(device)
@@ -149,6 +150,9 @@ for idx_epoch in range(num_epoch):
         loss.backward()
         optimizer.step()
         print(f"Epoch {idx_epoch}, batch {idx_batch}, loss: {loss.item():.4f}")
+        train_loss += loss.item()
+    train_loss /= len(train_loader)
+    print(f"Epoch {idx_epoch}, train_loss: {train_loss:.4f}")
 
     # evaluate the model
     if idx_epoch % eval_per_epoch == 0:
