@@ -29,7 +29,7 @@ save_per_epoch = 10
 eval_per_epoch = 1
 plot_per_epoch = 1
 CT_NORM = 5000
-root_folder = "./B100/dynunet2d_v1"
+root_folder = "./B100/dynunet2d_v2"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
@@ -185,7 +185,7 @@ val_loader = DataLoader(val_ds,
 
 test_loader = DataLoader(test_ds,
                         batch_size=batch_size,
-                        shuffle=False,
+                        shuffle=True,
                         num_workers=4,
 )
 
@@ -217,6 +217,190 @@ n_train_batches = len(train_loader)
 n_val_batches = len(val_loader)
 n_test_batches = len(test_loader)
 
+
+def plot_results(inputs, labels, outputs, idx_epoch):
+    # plot the results
+
+    plt.figure(figsize=(10, 5), dpi=300)
+
+    # first three and hist
+    plt.subplot(4, 6, 1)
+    img_PET = np.rot90(inputs[0, in_channels // 2, :, :].cpu().numpy())
+    plt.imshow(img_PET, cmap="gray")
+    # plt.title("input PET")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 2)
+    img_CT = np.rot90(labels[0, 0, :, :].cpu().numpy())
+    plt.imshow(img_CT, cmap="gray")
+    # plt.title("label CT")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 3)
+    img_pred = np.rot90(outputs[0, 0, :, :].cpu().numpy())
+    plt.imshow(img_pred, cmap="gray")
+    # plt.title("output CT")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 7)
+    img_PET = np.clip(img_PET, 0, 1)
+    plt.hist(img_PET.flatten(), bins=100)
+    # plt.title("input PET")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    plt.subplot(4, 6, 8)
+    img_CT = np.clip(img_CT, 0, 1)
+    plt.hist(img_CT.flatten(), bins=100)
+    # plt.title("label CT")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    plt.subplot(4, 6, 9)
+    img_pred = np.clip(img_pred, 0, 1)
+    plt.hist(img_pred.flatten(), bins=100)
+    # plt.title("output CT")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    # second three and hist
+    plt.subplot(4, 6, 4)
+    img_PET = np.rot90(inputs[1, in_channels // 2, :, :].cpu().numpy())
+    plt.imshow(img_PET, cmap="gray")
+    # plt.title("input PET")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 5)
+    img_CT = np.rot90(labels[1, 0, :, :].cpu().numpy())
+    plt.imshow(img_CT, cmap="gray")
+    # plt.title("label CT")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 6)
+    img_pred = np.rot90(outputs[1, 0, :, :].cpu().numpy())
+    plt.imshow(img_pred, cmap="gray")
+    # plt.title("output CT")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 10)
+    img_PET = np.clip(img_PET, 0, 1)
+    plt.hist(img_PET.flatten(), bins=100)
+    # plt.title("input PET")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    plt.subplot(4, 6, 11)
+    img_CT = np.clip(img_CT, 0, 1)
+    plt.hist(img_CT.flatten(), bins=100)
+    # plt.title("label CT")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    plt.subplot(4, 6, 12)
+    img_pred = np.clip(img_pred, 0, 1)
+    plt.hist(img_pred.flatten(), bins=100)
+    # plt.title("output CT")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    # third three and hist
+    plt.subplot(4, 6, 13)
+    img_PET = np.rot90(inputs[2, in_channels // 2, :, :].cpu().numpy())
+    plt.imshow(img_PET, cmap="gray")
+    # plt.title("input PET")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 14)
+    img_CT = np.rot90(labels[2, 0, :, :].cpu().numpy())
+    plt.imshow(img_CT, cmap="gray")
+    # plt.title("label CT")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 15)
+    img_pred = np.rot90(outputs[2, 0, :, :].cpu().numpy())
+    plt.imshow(img_pred, cmap="gray")
+    # plt.title("output CT")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 19)
+    img_PET = np.clip(img_PET, 0, 1)
+    plt.hist(img_PET.flatten(), bins=100)
+    # plt.title("input PET")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    plt.subplot(4, 6, 20)
+    img_CT = np.clip(img_CT, 0, 1)
+    plt.hist(img_CT.flatten(), bins=100)
+    # plt.title("label CT")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    plt.subplot(4, 6, 21)
+    img_pred = np.clip(img_pred, 0, 1)
+    plt.hist(img_pred.flatten(), bins=100)
+    # plt.title("output CT")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    # forth three and hist
+    plt.subplot(4, 6, 16)
+    img_PET = np.rot90(inputs[3, in_channels // 2, :, :].cpu().numpy())
+    plt.imshow(img_PET, cmap="gray")
+    # plt.title("input PET")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 17)
+    img_CT = np.rot90(labels[3, 0, :, :].cpu().numpy())
+    plt.imshow(img_CT, cmap="gray")
+    # plt.title("label CT")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 18)
+    img_pred = np.rot90(outputs[3, 0, :, :].cpu().numpy())
+    plt.imshow(img_pred, cmap="gray")
+    # plt.title("output CT")
+    plt.axis("off")
+
+    plt.subplot(4, 6, 22)
+    img_PET = np.clip(img_PET, 0, 1)
+    plt.hist(img_PET.flatten(), bins=100)
+    # plt.title("input PET")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    plt.subplot(4, 6, 23)
+    img_CT = np.clip(img_CT, 0, 1)
+    plt.hist(img_CT.flatten(), bins=100)
+    # plt.title("label CT")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    plt.subplot(4, 6, 24)
+    img_pred = np.clip(img_pred, 0, 1)
+    plt.hist(img_pred.flatten(), bins=100)
+    # plt.title("output CT")
+    plt.yscale("log")
+    plt.axis("off")
+    plt.xlim(0, 1)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(root_folder, f"epoch_{idx_epoch}.png"))
+    plt.close()
+
+
+
 # start the training
 for idx_epoch in range(num_epoch):
 
@@ -243,6 +427,10 @@ for idx_epoch in range(num_epoch):
     # log the results
     with open(log_file, "a") as f:
         f.write(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}\n")
+
+    if idx_epoch % plot_per_epoch == 0:
+        if input.size(0) > 4:
+            plot_results(inputs, labels, outputs, idx_epoch)
 
     # evaluate the model
     if idx_epoch % eval_per_epoch == 0:
@@ -286,185 +474,6 @@ for idx_epoch in range(num_epoch):
         torch.save(model.state_dict(), save_path)
         print(f"Save model to {save_path}")
 
-    # plot the results
-    if idx_epoch % plot_per_epoch == 0:
-        plt.figure(figsize=(10, 5), dpi=300)
-
-        # first three and hist
-        plt.subplot(4, 6, 1)
-        img_PET = np.rot90(inputs[0, in_channels // 2, :, :].cpu().numpy())
-        plt.imshow(img_PET, cmap="gray")
-        # plt.title("input PET")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 2)
-        img_CT = np.rot90(labels[0, 0, :, :].cpu().numpy())
-        plt.imshow(img_CT, cmap="gray")
-        # plt.title("label CT")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 3)
-        img_pred = np.rot90(outputs[0, 0, :, :].cpu().numpy())
-        plt.imshow(img_pred, cmap="gray")
-        # plt.title("output CT")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 7)
-        img_PET = np.clip(img_PET, 0, 1)
-        plt.hist(img_PET.flatten(), bins=100)
-        # plt.title("input PET")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        plt.subplot(4, 6, 8)
-        img_CT = np.clip(img_CT, 0, 1)
-        plt.hist(img_CT.flatten(), bins=100)
-        # plt.title("label CT")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        plt.subplot(4, 6, 9)
-        img_pred = np.clip(img_pred, 0, 1)
-        plt.hist(img_pred.flatten(), bins=100)
-        # plt.title("output CT")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        # second three and hist
-        plt.subplot(4, 6, 4)
-        img_PET = np.rot90(inputs[1, in_channels // 2, :, :].cpu().numpy())
-        plt.imshow(img_PET, cmap="gray")
-        # plt.title("input PET")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 5)
-        img_CT = np.rot90(labels[1, 0, :, :].cpu().numpy())
-        plt.imshow(img_CT, cmap="gray")
-        # plt.title("label CT")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 6)
-        img_pred = np.rot90(outputs[1, 0, :, :].cpu().numpy())
-        plt.imshow(img_pred, cmap="gray")
-        # plt.title("output CT")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 10)
-        img_PET = np.clip(img_PET, 0, 1)
-        plt.hist(img_PET.flatten(), bins=100)
-        # plt.title("input PET")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        plt.subplot(4, 6, 11)
-        img_CT = np.clip(img_CT, 0, 1)
-        plt.hist(img_CT.flatten(), bins=100)
-        # plt.title("label CT")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        plt.subplot(4, 6, 12)
-        img_pred = np.clip(img_pred, 0, 1)
-        plt.hist(img_pred.flatten(), bins=100)
-        # plt.title("output CT")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        # third three and hist
-        plt.subplot(4, 6, 13)
-        img_PET = np.rot90(inputs[2, in_channels // 2, :, :].cpu().numpy())
-        plt.imshow(img_PET, cmap="gray")
-        # plt.title("input PET")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 14)
-        img_CT = np.rot90(labels[2, 0, :, :].cpu().numpy())
-        plt.imshow(img_CT, cmap="gray")
-        # plt.title("label CT")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 15)
-        img_pred = np.rot90(outputs[2, 0, :, :].cpu().numpy())
-        plt.imshow(img_pred, cmap="gray")
-        # plt.title("output CT")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 19)
-        img_PET = np.clip(img_PET, 0, 1)
-        plt.hist(img_PET.flatten(), bins=100)
-        # plt.title("input PET")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        plt.subplot(4, 6, 20)
-        img_CT = np.clip(img_CT, 0, 1)
-        plt.hist(img_CT.flatten(), bins=100)
-        # plt.title("label CT")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        plt.subplot(4, 6, 21)
-        img_pred = np.clip(img_pred, 0, 1)
-        plt.hist(img_pred.flatten(), bins=100)
-        # plt.title("output CT")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        # forth three and hist
-        plt.subplot(4, 6, 16)
-        img_PET = np.rot90(inputs[3, in_channels // 2, :, :].cpu().numpy())
-        plt.imshow(img_PET, cmap="gray")
-        # plt.title("input PET")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 17)
-        img_CT = np.rot90(labels[3, 0, :, :].cpu().numpy())
-        plt.imshow(img_CT, cmap="gray")
-        # plt.title("label CT")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 18)
-        img_pred = np.rot90(outputs[3, 0, :, :].cpu().numpy())
-        plt.imshow(img_pred, cmap="gray")
-        # plt.title("output CT")
-        plt.axis("off")
-
-        plt.subplot(4, 6, 22)
-        img_PET = np.clip(img_PET, 0, 1)
-        plt.hist(img_PET.flatten(), bins=100)
-        # plt.title("input PET")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        plt.subplot(4, 6, 23)
-        img_CT = np.clip(img_CT, 0, 1)
-        plt.hist(img_CT.flatten(), bins=100)
-        # plt.title("label CT")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        plt.subplot(4, 6, 24)
-        img_pred = np.clip(img_pred, 0, 1)
-        plt.hist(img_pred.flatten(), bins=100)
-        # plt.title("output CT")
-        plt.yscale("log")
-        plt.axis("off")
-        plt.xlim(0, 1)
-
-        plt.tight_layout()
-        plt.savefig(os.path.join(root_folder, f"epoch_{idx_epoch}.png"))
-        plt.close()
-
+    
 
     
