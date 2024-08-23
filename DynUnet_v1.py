@@ -25,9 +25,9 @@ in_channels = 3
 out_channels = 1
 batch_size = 16
 num_epoch = 10000
-save_per_epoch = 100
-eval_per_epoch = 50
-plot_per_epoch = 50
+save_per_epoch = 10
+eval_per_epoch = 1
+plot_per_epoch = 1
 CT_NORM = 5000
 root_folder = "./B100/dynunet2d_v1"
 if not os.path.exists(root_folder):
