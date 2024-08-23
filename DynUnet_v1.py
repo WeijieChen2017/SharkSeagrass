@@ -59,8 +59,8 @@ model = DynUNet(
 train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
-        Transposed(keys=input_modality, indices=(2, 0, 1)),
-        # EnsureChannelFirstd(keys=input_modality),
+        # Transposed(keys=input_modality, indices=(2, 0, 1)),
+        EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size,),
         #                  random_center=True, random_size=False),
@@ -79,10 +79,10 @@ train_transforms = Compose(
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=num_samples,
         #                         random_size=False, random_center=True),
-        # RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
-        # RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
+        RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
+        RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
         # RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
-        # RandRotated(keys=input_modality, prob=0.5, range_x=15, range_y=15, range_z=15),
+        RandRotated(keys=input_modality, prob=0.5, range_x=15, range_y=15),
         
     ]
 )
@@ -90,8 +90,7 @@ train_transforms = Compose(
 val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
-        # AsChannelFirst(keys=input_modality, channel_dim=-1),
-        Transposed(keys=input_modality, indices=(2, 0, 1)),
+        EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=batch_size,
