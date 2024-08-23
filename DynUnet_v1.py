@@ -82,7 +82,7 @@ train_transforms = Compose(
         RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
         RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
         # RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
-        RandRotated(keys=input_modality, prob=0.5, range_x=30),
+        # RandRotated(keys=input_modality, prob=0.5, range_x=30),
         
     ]
 )
