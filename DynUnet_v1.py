@@ -13,6 +13,8 @@ from monai.transforms import (
     RandSpatialCropSamplesd,
     RandFlipd, 
     RandRotated,
+    AsChannelFirst,
+    Transposed,
 )
 from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
@@ -58,7 +60,8 @@ model = DynUNet(
 train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
-        EnsureChannelFirstd(keys=input_modality),
+        Transposed(keys=input_modality, indices=(2, 0, 1)),
+        # EnsureChannelFirstd(keys=input_modality),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size,),
         #                  random_center=True, random_size=False),
@@ -88,7 +91,8 @@ train_transforms = Compose(
 val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
-        EnsureChannelFirstd(keys=input_modality),
+        # AsChannelFirst(keys=input_modality, channel_dim=-1),
+        Transposed(keys=input_modality, indices=(2, 0, 1)),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=batch_size,
