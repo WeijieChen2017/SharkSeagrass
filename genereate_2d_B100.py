@@ -44,7 +44,7 @@ for pair_list, new_pair in pair_list:
         for i in range(PET_data.shape[2]):
             if i == 0:
                 index_list = [0, 0, i]
-            elif i == PET_data.shape[2]:
+            elif i == PET_data.shape[2]-1:
                 index_list = [i-1, i, i]
             else:
                 index_list = [i-1, i, i+1]
