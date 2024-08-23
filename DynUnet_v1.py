@@ -57,6 +57,7 @@ model = DynUNet(
 train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
+        EnsureChannelFirstd(keys=input_modality),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(in_channels, img_size, img_size),
         #                  random_center=True, random_size=False),
@@ -79,13 +80,14 @@ train_transforms = Compose(
         RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
         RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
         RandRotated(keys=input_modality, prob=0.5, range_x=15, range_y=15, range_z=15),
-        EnsureChannelFirstd(keys=input_modality),
+        
     ]
 )
 
 val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
+        EnsureChannelFirstd(keys=input_modality),
         RandSpatialCropSamplesd(keys="PET",
                                 roi_size=(img_size, img_size, in_channels),
                                 num_samples=batch_size,
@@ -94,7 +96,7 @@ val_transforms = Compose(
                                 roi_size=(img_size, img_size, out_channels),
                                 num_samples=batch_size,
                                 random_size=False, random_center=False),
-        EnsureChannelFirstd(keys=input_modality),
+        
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(in_channels, img_size, img_size),
         #                  random_center=True, random_size=False),
