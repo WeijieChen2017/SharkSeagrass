@@ -21,7 +21,7 @@ input_modality = ["PET", "CT"]
 img_size = 400
 in_channels = 5
 out_channels = 1
-batch_size = 8
+batch_size = 16
 num_epoch = 10000
 save_per_epoch = 100
 eval_per_epoch = 50
@@ -58,20 +58,20 @@ train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality),
-        # RandSpatialCropd(keys="PET",
-        #                  roi_size=(in_channels, img_size, img_size),
-        #                  random_center=True, random_size=False),
-        # RandSpatialCropd(keys="CT",
-        #                  roi_size=(out_channels, img_size, img_size),
-        #                  random_center=True, random_size=False),
-        RandSpatialCropSamplesd(keys="PET",
-                                roi_size=(img_size, img_size, in_channels),
-                                num_samples=batch_size,
-                                random_size=False, random_center=False),
-        RandSpatialCropSamplesd(keys="CT",
-                                roi_size=(img_size, img_size, out_channels),
-                                num_samples=batch_size,
-                                random_size=False, random_center=False),
+        RandSpatialCropd(keys="PET",
+                         roi_size=(in_channels, img_size, img_size),
+                         random_center=True, random_size=False),
+        RandSpatialCropd(keys="CT",
+                         roi_size=(out_channels, img_size, img_size),
+                         random_center=True, random_size=False),
+        # RandSpatialCropSamplesd(keys="PET",
+        #                         roi_size=(img_size, img_size, in_channels),
+        #                         num_samples=batch_size,
+        #                         random_size=False, random_center=False),
+        # RandSpatialCropSamplesd(keys="CT",
+        #                         roi_size=(img_size, img_size, out_channels),
+        #                         num_samples=batch_size,
+        #                         random_size=False, random_center=False),
         # RandSpatialCropSamplesd(keys=input_modality,
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=num_samples,
@@ -88,21 +88,21 @@ val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality),
-        RandSpatialCropSamplesd(keys="PET",
-                                roi_size=(img_size, img_size, in_channels),
-                                num_samples=batch_size,
-                                random_size=False, random_center=False),
-        RandSpatialCropSamplesd(keys="CT",
-                                roi_size=(img_size, img_size, out_channels),
-                                num_samples=batch_size,
-                                random_size=False, random_center=False),
+        # RandSpatialCropSamplesd(keys="PET",
+        #                         roi_size=(img_size, img_size, in_channels),
+        #                         num_samples=batch_size,
+        #                         random_size=False, random_center=False),
+        # RandSpatialCropSamplesd(keys="CT",
+        #                         roi_size=(img_size, img_size, out_channels),
+        #                         num_samples=batch_size,
+        #                         random_size=False, random_center=False),
         
-        # RandSpatialCropd(keys="PET",
-        #                  roi_size=(in_channels, img_size, img_size),
-        #                  random_center=True, random_size=False),
-        # RandSpatialCropd(keys="CT",
-        #                  roi_size=(out_channels, img_size, img_size),
-        #                  random_center=True, random_size=False),
+        RandSpatialCropd(keys="PET",
+                         roi_size=(in_channels, img_size, img_size),
+                         random_center=True, random_size=False),
+        RandSpatialCropd(keys="CT",
+                         roi_size=(out_channels, img_size, img_size),
+                         random_center=True, random_size=False),
         # RandSpatialCropSamplesd(keys=input_modality,
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=num_samples,
@@ -147,12 +147,12 @@ val_ds = CacheDataset(
 )
 
 train_loader = DataLoader(train_ds, 
-                        batch_size=1,
+                        batch_size=batch_size,
                         shuffle=True, 
                         num_workers=4,
                         )
 val_loader = DataLoader(val_ds, 
-                        batch_size=1, 
+                        batch_size=batch_size, 
                         shuffle=False, 
                         num_workers=4,
                         )
