@@ -19,6 +19,7 @@ from monai.losses import DeepSupervisionLoss
 
 input_modality = ["PET", "CT"]
 img_size = 400
+cube_size = 64
 in_channels = 5
 out_channels = 1
 batch_size = 16
@@ -32,12 +33,12 @@ if not os.path.exists(root_folder):
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
 
-kernels = [[3, 3], [3, 3], [3, 3]]
-strides = [[1, 1], [1, 2], [1, 2]]
+kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
+strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2]]
 
 model = DynUNet(
-    spatial_dims=2,
-    in_channels=5,
+    spatial_dims=3,
+    in_channels=1,
     out_channels=1,
     kernel_size=kernels,
     strides=strides,
@@ -59,10 +60,10 @@ train_transforms = Compose(
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality),
         RandSpatialCropd(keys="PET",
-                         roi_size=(in_channels, img_size, img_size),
+                         roi_size=(cube_size, cube_size, cube_size,),
                          random_center=True, random_size=False),
         RandSpatialCropd(keys="CT",
-                         roi_size=(out_channels, img_size, img_size),
+                         roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
@@ -76,10 +77,10 @@ train_transforms = Compose(
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=num_samples,
         #                         random_size=False, random_center=True),
-        # RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
-        # RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
-        # RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
-        # RandRotated(keys=input_modality, prob=0.5, range_x=15, range_y=15, range_z=15),
+        RandFlipd(keys=input_modality, prob=0.5, spatial_axis=0),
+        RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
+        RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
+        RandRotated(keys=input_modality, prob=0.5, range_x=15, range_y=15, range_z=15),
         
     ]
 )
@@ -98,10 +99,10 @@ val_transforms = Compose(
         #                         random_size=False, random_center=False),
         
         RandSpatialCropd(keys="PET",
-                         roi_size=(in_channels, img_size, img_size),
+                         roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
         RandSpatialCropd(keys="CT",
-                         roi_size=(out_channels, img_size, img_size),
+                         roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
         # RandSpatialCropSamplesd(keys=input_modality,
         #                         roi_size=(img_size, img_size, in_channels),
@@ -191,8 +192,8 @@ for idx_epoch in range(num_epoch):
         labels = batch_data["CT"].to(device)
         # [16, 1, 5, 400, 400]
         # remove the second dimension
-        inputs = inputs.squeeze(1)
-        labels = labels.squeeze(1)
+        # inputs = inputs.squeeze(1)
+        # labels = labels.squeeze(1)
         print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
         optimizer.zero_grad()
         outputs = model(inputs)
@@ -217,8 +218,8 @@ for idx_epoch in range(num_epoch):
             for idx_batch, batch_data in enumerate(val_loader):
                 inputs = batch_data["PET"].to(device)
                 labels = batch_data["CT"].to(device)
-                inputs = inputs.squeeze(1)
-                labels = labels.squeeze(1)
+                # inputs = inputs.squeeze(1)
+                # labels = labels.squeeze(1)
                 outputs = model(inputs)
                 loss = output_loss(outputs, labels)
                 val_loss += loss.item()
