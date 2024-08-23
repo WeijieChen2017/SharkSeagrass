@@ -116,6 +116,14 @@ val_transforms = Compose(
     ]
 )
 
+test_transforms = Compose(
+    [
+        LoadImaged(keys=input_modality, image_only=True),
+        EnsureChannelFirstd(keys="PET", channel_dim=-1),
+        EnsureChannelFirstd(keys="CT", channel_dim='no_channel'),
+    ]
+)
+
 data_division_file = "./B100/B100_0822_2d3c.json"
 with open(data_division_file, "r") as f:
     data_division = json.load(f)
@@ -140,7 +148,7 @@ train_ds = CacheDataset(
     data=train_list,
     transform=train_transforms,
     cache_num=num_train_files,
-    cache_rate=1.,
+    cache_rate=0.1,
     num_workers=4,
 )
 
@@ -148,20 +156,37 @@ val_ds = CacheDataset(
     data=val_list,
     transform=val_transforms, 
     cache_num=num_val_files,
-    cache_rate=1.,
+    cache_rate=0.1,
     num_workers=4,
 )
+
+test_ds = CacheDataset(
+    data=test_list,
+    transform=test_transforms,
+    cache_num=num_test_files,
+    cache_rate=0.1,
+    num_workers=4,
+)
+
+
 
 train_loader = DataLoader(train_ds, 
                         batch_size=batch_size,
                         shuffle=True, 
                         num_workers=4,
-                        )
+
+)
 val_loader = DataLoader(val_ds, 
                         batch_size=batch_size, 
-                        shuffle=False, 
+                        shuffle=True, 
                         num_workers=4,
-                        )
+)
+
+test_loader = DataLoader(test_ds,
+                        batch_size=batch_size,
+                        shuffle=False,
+                        num_workers=4,
+)
 
 device = torch.device("cuda:0")
 model.to(device)
@@ -185,6 +210,8 @@ ds_loss = DeepSupervisionLoss(
     weights = None,
 )
 # def forward(self, input: Union[None, torch.Tensor, list[torch.Tensor]], target: torch.Tensor) -> torch.Tensor:
+
+best_val_loss = 1e10
 
 # start the training
 for idx_epoch in range(num_epoch):
@@ -228,6 +255,26 @@ for idx_epoch in range(num_epoch):
             print(f"Epoch {idx_epoch}, val_loss: {val_loss:.4f}")
             with open(log_file, "a") as f:
                 f.write(f"Epoch {idx_epoch}, val_loss: {val_loss:.4f}\n")
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                torch.save(model.state_dict(), os.path.join(root_folder, "best_model.pth"))
+                print(f"Save the best model with val_loss: {val_loss:.4f} at epoch {idx_epoch}")
+                with open(log_file, "a") as f:
+                    f.write(f"Save the best model with val_loss: {val_loss:.4f} at epoch {idx_epoch}\n")
+                
+                # test the model
+                with torch.no_grad():
+                    test_loss = 0
+                    for idx_batch, batch_data in enumerate(test_loader):
+                        inputs = batch_data["PET"].to(device)
+                        labels = batch_data["CT"].to(device)
+                        outputs = model(inputs)
+                        loss = output_loss(outputs, labels)
+                        test_loss += loss.item()
+                    test_loss /= len(test_loader)
+                    print(f"Epoch {idx_epoch}, test_loss: {test_loss:.4f}")
+                    with open(log_file, "a") as f:
+                        f.write(f"Epoch {idx_epoch}, test_loss: {test_loss:.4f}\n")
 
     # save the model
     if idx_epoch % save_per_epoch == 0:
