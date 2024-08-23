@@ -429,8 +429,7 @@ for idx_epoch in range(num_epoch):
         f.write(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}\n")
 
     if idx_epoch % plot_per_epoch == 0:
-        if input.size(0) > 4:
-            plot_results(inputs, labels, outputs, idx_epoch)
+        plot_results(inputs, labels, outputs, idx_epoch)
 
     # evaluate the model
     if idx_epoch % eval_per_epoch == 0:
