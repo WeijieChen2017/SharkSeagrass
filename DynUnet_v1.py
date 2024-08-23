@@ -5,7 +5,15 @@ import torch
 import matplotlib.pyplot as plt
 
 from monai.networks.nets import DynUNet
-from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, RandSpatialCropd, RandFlipd, RandRotated
+from monai.transforms import (
+    Compose, 
+    LoadImaged, 
+    EnsureChannelFirstd, 
+    RandSpatialCropd,
+    RandSpatialCropSamplesd,
+    RandFlipd, 
+    RandRotated,
+)
 from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
@@ -49,13 +57,20 @@ model = DynUNet(
 train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
-        EnsureChannelFirstd(keys=input_modality),
-        RandSpatialCropd(keys="PET",
-                         roi_size=(in_channels, img_size, img_size),
-                         random_center=True, random_size=False),
-        RandSpatialCropd(keys="CT",
-                         roi_size=(out_channels, img_size, img_size),
-                         random_center=True, random_size=False),
+        # RandSpatialCropd(keys="PET",
+        #                  roi_size=(in_channels, img_size, img_size),
+        #                  random_center=True, random_size=False),
+        # RandSpatialCropd(keys="CT",
+        #                  roi_size=(out_channels, img_size, img_size),
+        #                  random_center=True, random_size=False),
+        RandSpatialCropSamplesd(keys="PET",
+                                roi_size=(img_size, img_size, in_channels),
+                                num_samples=batch_size,
+                                random_size=False, random_center=False),
+        RandSpatialCropSamplesd(keys="CT",
+                                roi_size=(img_size, img_size, out_channels),
+                                num_samples=batch_size,
+                                random_size=False, random_center=False),
         # RandSpatialCropSamplesd(keys=input_modality,
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=num_samples,
@@ -64,19 +79,28 @@ train_transforms = Compose(
         RandFlipd(keys=input_modality, prob=0.5, spatial_axis=1),
         RandFlipd(keys=input_modality, prob=0.5, spatial_axis=2),
         RandRotated(keys=input_modality, prob=0.5, range_x=15, range_y=15, range_z=15),
+        EnsureChannelFirstd(keys=input_modality),
     ]
 )
 
 val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
+        RandSpatialCropSamplesd(keys="PET",
+                                roi_size=(img_size, img_size, in_channels),
+                                num_samples=batch_size,
+                                random_size=False, random_center=False),
+        RandSpatialCropSamplesd(keys="CT",
+                                roi_size=(img_size, img_size, out_channels),
+                                num_samples=batch_size,
+                                random_size=False, random_center=False),
         EnsureChannelFirstd(keys=input_modality),
-        RandSpatialCropd(keys="PET",
-                         roi_size=(in_channels, img_size, img_size),
-                         random_center=True, random_size=False),
-        RandSpatialCropd(keys="CT",
-                         roi_size=(out_channels, img_size, img_size),
-                         random_center=True, random_size=False),
+        # RandSpatialCropd(keys="PET",
+        #                  roi_size=(in_channels, img_size, img_size),
+        #                  random_center=True, random_size=False),
+        # RandSpatialCropd(keys="CT",
+        #                  roi_size=(out_channels, img_size, img_size),
+        #                  random_center=True, random_size=False),
         # RandSpatialCropSamplesd(keys=input_modality,
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=num_samples,
@@ -108,7 +132,7 @@ train_ds = CacheDataset(
     data=train_list,
     transform=train_transforms,
     cache_num=num_train_files,
-    cache_rate=1,
+    cache_rate=0.1,
     num_workers=4,
 )
 
@@ -116,17 +140,17 @@ val_ds = CacheDataset(
     data=val_list,
     transform=val_transforms, 
     cache_num=num_val_files,
-    cache_rate=1,
+    cache_rate=0.1,
     num_workers=4,
 )
 
 train_loader = DataLoader(train_ds, 
-                        batch_size=batch_size,
+                        batch_size=1,
                         shuffle=True, 
                         num_workers=4,
                         )
 val_loader = DataLoader(val_ds, 
-                        batch_size=batch_size, 
+                        batch_size=1, 
                         shuffle=False, 
                         num_workers=4,
                         )
@@ -167,10 +191,10 @@ for idx_epoch in range(num_epoch):
         # remove the second dimension
         inputs = inputs.squeeze(1)
         labels = labels.squeeze(1)
-        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
+        print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
         optimizer.zero_grad()
         outputs = model(inputs)
-        # print("outputs.shape: ", outputs.shape)
+        print("outputs.shape: ", outputs.shape)
         # loss = loss_function(outputs, labels)
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
@@ -215,148 +239,172 @@ for idx_epoch in range(num_epoch):
         plt.subplot(4, 6, 1)
         img_PET = np.rot90(inputs[0, in_channels // 2, :, :].cpu().numpy())
         plt.imshow(img_PET, cmap="gray")
-        plt.title("input PET")
+        # plt.title("input PET")
         plt.axis("off")
 
         plt.subplot(4, 6, 2)
         img_CT = np.rot90(labels[0, 0, :, :].cpu().numpy())
         plt.imshow(img_CT, cmap="gray")
-        plt.title("label CT")
+        # plt.title("label CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 3)
         img_pred = np.rot90(outputs[0, 0, :, :].cpu().numpy())
         plt.imshow(img_pred, cmap="gray")
-        plt.title("output CT")
+        # plt.title("output CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 7)
         img_PET = np.clip(img_PET, 0, 1)
         plt.hist(img_PET.flatten(), bins=100)
-        plt.title("input PET")
+        # plt.title("input PET")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         plt.subplot(4, 6, 8)
         img_CT = np.clip(img_CT, 0, 1)
         plt.hist(img_CT.flatten(), bins=100)
-        plt.title("label CT")
+        # plt.title("label CT")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         plt.subplot(4, 6, 9)
         img_pred = np.clip(img_pred, 0, 1)
         plt.hist(img_pred.flatten(), bins=100)
-        plt.title("output CT")
+        # plt.title("output CT")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         # second three and hist
         plt.subplot(4, 6, 4)
         img_PET = np.rot90(inputs[1, in_channels // 2, :, :].cpu().numpy())
         plt.imshow(img_PET, cmap="gray")
-        plt.title("input PET")
+        # plt.title("input PET")
         plt.axis("off")
 
         plt.subplot(4, 6, 5)
         img_CT = np.rot90(labels[1, 0, :, :].cpu().numpy())
         plt.imshow(img_CT, cmap="gray")
-        plt.title("label CT")
+        # plt.title("label CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 6)
         img_pred = np.rot90(outputs[1, 0, :, :].cpu().numpy())
         plt.imshow(img_pred, cmap="gray")
-        plt.title("output CT")
+        # plt.title("output CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 10)
         img_PET = np.clip(img_PET, 0, 1)
         plt.hist(img_PET.flatten(), bins=100)
-        plt.title("input PET")
+        # plt.title("input PET")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         plt.subplot(4, 6, 11)
         img_CT = np.clip(img_CT, 0, 1)
         plt.hist(img_CT.flatten(), bins=100)
-        plt.title("label CT")
+        # plt.title("label CT")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         plt.subplot(4, 6, 12)
         img_pred = np.clip(img_pred, 0, 1)
         plt.hist(img_pred.flatten(), bins=100)
-        plt.title("output CT")
+        # plt.title("output CT")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         # third three and hist
         plt.subplot(4, 6, 13)
         img_PET = np.rot90(inputs[2, in_channels // 2, :, :].cpu().numpy())
         plt.imshow(img_PET, cmap="gray")
-        plt.title("input PET")
+        # plt.title("input PET")
         plt.axis("off")
 
         plt.subplot(4, 6, 14)
         img_CT = np.rot90(labels[2, 0, :, :].cpu().numpy())
         plt.imshow(img_CT, cmap="gray")
-        plt.title("label CT")
+        # plt.title("label CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 15)
         img_pred = np.rot90(outputs[2, 0, :, :].cpu().numpy())
         plt.imshow(img_pred, cmap="gray")
-        plt.title("output CT")
+        # plt.title("output CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 19)
         img_PET = np.clip(img_PET, 0, 1)
         plt.hist(img_PET.flatten(), bins=100)
-        plt.title("input PET")
+        # plt.title("input PET")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         plt.subplot(4, 6, 20)
         img_CT = np.clip(img_CT, 0, 1)
         plt.hist(img_CT.flatten(), bins=100)
-        plt.title("label CT")
+        # plt.title("label CT")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         plt.subplot(4, 6, 21)
         img_pred = np.clip(img_pred, 0, 1)
         plt.hist(img_pred.flatten(), bins=100)
-        plt.title("output CT")
+        # plt.title("output CT")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         # forth three and hist
         plt.subplot(4, 6, 16)
         img_PET = np.rot90(inputs[3, in_channels // 2, :, :].cpu().numpy())
         plt.imshow(img_PET, cmap="gray")
-        plt.title("input PET")
+        # plt.title("input PET")
         plt.axis("off")
 
         plt.subplot(4, 6, 17)
         img_CT = np.rot90(labels[3, 0, :, :].cpu().numpy())
         plt.imshow(img_CT, cmap="gray")
-        plt.title("label CT")
+        # plt.title("label CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 18)
         img_pred = np.rot90(outputs[3, 0, :, :].cpu().numpy())
         plt.imshow(img_pred, cmap="gray")
-        plt.title("output CT")
+        # plt.title("output CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 22)
         img_PET = np.clip(img_PET, 0, 1)
         plt.hist(img_PET.flatten(), bins=100)
-        plt.title("input PET")
+        # plt.title("input PET")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         plt.subplot(4, 6, 23)
         img_CT = np.clip(img_CT, 0, 1)
         plt.hist(img_CT.flatten(), bins=100)
-        plt.title("label CT")
+        # plt.title("label CT")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         plt.subplot(4, 6, 24)
         img_pred = np.clip(img_pred, 0, 1)
         plt.hist(img_pred.flatten(), bins=100)
-        plt.title("output CT")
+        # plt.title("output CT")
+        plt.yscale("log")
+        plt.axis("off")
         plt.xlim(0, 1)
 
         plt.tight_layout()
