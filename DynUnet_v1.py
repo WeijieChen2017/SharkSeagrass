@@ -143,9 +143,10 @@ for idx_epoch in range(num_epoch):
         # remove the second dimension
         inputs = inputs.squeeze(1)
         labels = labels.squeeze(1)
-        print(inputs.shape, labels.shape)
+        print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
         optimizer.zero_grad()
         outputs = model(inputs)
+        print("outputs.shape: ", outputs.shape)
         loss = loss_function(outputs, labels)
         loss.backward()
         optimizer.step()
