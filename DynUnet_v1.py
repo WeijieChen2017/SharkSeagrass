@@ -22,9 +22,10 @@ root_folder = "./B100/dynunet_v1"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
+log_file = os.path.join(root_folder, "log.txt")
 
-kernels = [[3, 3], [3, 3], [3, 3]]
-strides = [[1, 1], [1, 2], [1, 2]]
+kernels = [[3, 3], [3, 3], [3, 3], [3, 3]]
+strides = [[1, 1], [1, 2], [1, 2], [1, 2]]
 
 model = DynUNet(
     spatial_dims=2,
@@ -33,12 +34,12 @@ model = DynUNet(
     kernel_size=kernels,
     strides=strides,
     upsample_kernel_size=strides[1:],
-    filters=(64, 128, 256),
+    filters=(128, 256, 512, 512),
     dropout=0.1,
     norm_name=('INSTANCE', {'affine': True}), 
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
     deep_supervision=True,
-    deep_supr_num=1,
+    deep_supr_num=2,
     res_block=False,
     trans_bias=False,
 )
@@ -107,7 +108,7 @@ train_ds = CacheDataset(
     data=train_list,
     transform=train_transforms,
     cache_num=num_train_files,
-    cache_rate=0.1,
+    cache_rate=1,
     num_workers=4,
 )
 
@@ -115,7 +116,7 @@ val_ds = CacheDataset(
     data=val_list,
     transform=val_transforms, 
     cache_num=num_val_files,
-    cache_rate=0.1,
+    cache_rate=1,
     num_workers=4,
 )
 
@@ -178,6 +179,9 @@ for idx_epoch in range(num_epoch):
         train_loss += loss.item()
     train_loss /= len(train_loader)
     print(f"Epoch {idx_epoch}, train_loss: {train_loss:.4f}")
+    # log the results
+    with open(log_file, "a") as f:
+        f.write(f"Epoch {idx_epoch}, train_loss: {train_loss:.4f}\n")
 
     # evaluate the model
     if idx_epoch % eval_per_epoch == 0:
@@ -194,6 +198,8 @@ for idx_epoch in range(num_epoch):
                 val_loss += loss.item()
             val_loss /= len(val_loader)
             print(f"Epoch {idx_epoch}, val_loss: {val_loss:.4f}")
+            with open(log_file, "a") as f:
+                f.write(f"Epoch {idx_epoch}, val_loss: {val_loss:.4f}\n")
 
     # save the model
     if idx_epoch % save_per_epoch == 0:
