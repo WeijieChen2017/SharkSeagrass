@@ -21,7 +21,7 @@ from monai.losses import DeepSupervisionLoss
 input_modality = ["PET", "CT"]
 img_size = 400
 cube_size = 64
-in_channels = 5
+in_channels = 3
 out_channels = 1
 batch_size = 16
 num_epoch = 10000
@@ -39,8 +39,8 @@ strides = [[1, 1], [2, 2], [2, 2]]
 
 model = DynUNet(
     spatial_dims=2,
-    in_channels=3,
-    out_channels=1,
+    in_channels=in_channels,
+    out_channels=out_channels,
     kernel_size=kernels,
     strides=strides,
     upsample_kernel_size=strides[1:],
@@ -140,7 +140,7 @@ train_ds = CacheDataset(
     data=train_list,
     transform=train_transforms,
     cache_num=num_train_files,
-    cache_rate=0.1,
+    cache_rate=1.,
     num_workers=4,
 )
 
@@ -148,7 +148,7 @@ val_ds = CacheDataset(
     data=val_list,
     transform=val_transforms, 
     cache_num=num_val_files,
-    cache_rate=0.1,
+    cache_rate=1.,
     num_workers=4,
 )
 
@@ -205,7 +205,7 @@ for idx_epoch in range(num_epoch):
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
         optimizer.step()
-        # print(f"Epoch {idx_epoch}, batch {idx_batch}, loss: {loss.item():.4f}")
+        print(f"Epoch {idx_epoch}, batch {idx_batch}, loss: {loss.item():.4f}")
         train_loss += loss.item()
     train_loss /= len(train_loader)
     print(f"Epoch {idx_epoch}, train_loss: {train_loss:.4f}")
