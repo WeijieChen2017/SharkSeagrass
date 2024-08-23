@@ -27,18 +27,18 @@ num_epoch = 10000
 save_per_epoch = 100
 eval_per_epoch = 50
 plot_per_epoch = 50
-root_folder = "./B100/dynunet_v1"
+root_folder = "./B100/dynunet2d_v1"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
 
-kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
-strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2]]
+kernels = [[3, 3], [3, 3], [3, 3]]
+strides = [[1, 1], [2, 2], [2, 2]]
 
 model = DynUNet(
     spatial_dims=3,
-    in_channels=1,
+    in_channels=3,
     out_channels=1,
     kernel_size=kernels,
     strides=strides,
@@ -59,12 +59,12 @@ train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality),
-        RandSpatialCropd(keys="PET",
-                         roi_size=(cube_size, cube_size, cube_size,),
-                         random_center=True, random_size=False),
-        RandSpatialCropd(keys="CT",
-                         roi_size=(cube_size, cube_size, cube_size),
-                         random_center=True, random_size=False),
+        # RandSpatialCropd(keys="PET",
+        #                  roi_size=(cube_size, cube_size, cube_size,),
+        #                  random_center=True, random_size=False),
+        # RandSpatialCropd(keys="CT",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=batch_size,
@@ -98,12 +98,12 @@ val_transforms = Compose(
         #                         num_samples=batch_size,
         #                         random_size=False, random_center=False),
         
-        RandSpatialCropd(keys="PET",
-                         roi_size=(cube_size, cube_size, cube_size),
-                         random_center=True, random_size=False),
-        RandSpatialCropd(keys="CT",
-                         roi_size=(cube_size, cube_size, cube_size),
-                         random_center=True, random_size=False),
+        # RandSpatialCropd(keys="PET",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
+        # RandSpatialCropd(keys="CT",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
         # RandSpatialCropSamplesd(keys=input_modality,
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=num_samples,
@@ -111,7 +111,7 @@ val_transforms = Compose(
     ]
 )
 
-data_division_file = "./B100/B100_0822.json"
+data_division_file = "./B100/B100_0822_2d3c.json"
 with open(data_division_file, "r") as f:
     data_division = json.load(f)
 
