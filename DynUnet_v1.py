@@ -8,8 +8,6 @@ from monai.networks.nets import DynUNet
 from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, RandSpatialCropd, RandFlipd, RandRotated
 from monai.data import CacheDataset, DataLoader
 
-
-
 input_modality = ["PET", "CT"]
 img_size = 400
 in_channels = 5
@@ -23,15 +21,17 @@ if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
 
+kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
+strides = [[1, 1, 1], [1, 2, 2], [1, 2, 2]]
 
 model = DynUNet(
     spatial_dims=2,
     in_channels=5,
     out_channels=1,
-    kernel_size=(3, 3),  # Matching 2D dimensions
-    strides=(2, 2),      # Matching 2D dimensions
-    upsample_kernel_size=(2, 2),  # Matching 2D dimensions
-    filters=(32, 64, 128, 256),
+    kernel_size=kernels,
+    strides=strides,
+    upsample_kernel_size=strides[1:],
+    filters=(64, 128, 256),
     dropout=0.1,
     norm_name=('INSTANCE', {'affine': True}), 
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
