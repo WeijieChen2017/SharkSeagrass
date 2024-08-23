@@ -213,13 +213,13 @@ for idx_epoch in range(num_epoch):
         plt.axis("off")
 
         plt.subplot(4, 6, 2)
-        img_CT = np.rot90(labels[0, in_channels // 2, :, :].cpu().numpy())
+        img_CT = np.rot90(labels[0, 0, :, :].cpu().numpy())
         plt.imshow(img_CT, cmap="gray")
         plt.title("label CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 3)
-        img_pred = np.rot90(outputs[0, in_channels // 2, :, :].cpu().numpy())
+        img_pred = np.rot90(outputs[0, 0, :, :].cpu().numpy())
         plt.imshow(img_pred, cmap="gray")
         plt.title("output CT")
         plt.axis("off")
@@ -250,13 +250,13 @@ for idx_epoch in range(num_epoch):
         plt.axis("off")
 
         plt.subplot(4, 6, 5)
-        img_CT = np.rot90(labels[1, in_channels // 2, :, :].cpu().numpy())
+        img_CT = np.rot90(labels[1, 0, :, :].cpu().numpy())
         plt.imshow(img_CT, cmap="gray")
         plt.title("label CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 6)
-        img_pred = np.rot90(outputs[1, in_channels // 2, :, :].cpu().numpy())
+        img_pred = np.rot90(outputs[1, 0, :, :].cpu().numpy())
         plt.imshow(img_pred, cmap="gray")
         plt.title("output CT")
         plt.axis("off")
@@ -287,13 +287,13 @@ for idx_epoch in range(num_epoch):
         plt.axis("off")
 
         plt.subplot(4, 6, 14)
-        img_CT = np.rot90(labels[2, in_channels // 2, :, :].cpu().numpy())
+        img_CT = np.rot90(labels[2, 0, :, :].cpu().numpy())
         plt.imshow(img_CT, cmap="gray")
         plt.title("label CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 15)
-        img_pred = np.rot90(outputs[2, in_channels // 2, :, :].cpu().numpy())
+        img_pred = np.rot90(outputs[2, 0, :, :].cpu().numpy())
         plt.imshow(img_pred, cmap="gray")
         plt.title("output CT")
         plt.axis("off")
@@ -324,13 +324,13 @@ for idx_epoch in range(num_epoch):
         plt.axis("off")
 
         plt.subplot(4, 6, 17)
-        img_CT = np.rot90(labels[3, in_channels // 2, :, :].cpu().numpy())
+        img_CT = np.rot90(labels[3, 0, :, :].cpu().numpy())
         plt.imshow(img_CT, cmap="gray")
         plt.title("label CT")
         plt.axis("off")
 
         plt.subplot(4, 6, 18)
-        img_pred = np.rot90(outputs[3, in_channels // 2, :, :].cpu().numpy())
+        img_pred = np.rot90(outputs[3, 0, :, :].cpu().numpy())
         plt.imshow(img_pred, cmap="gray")
         plt.title("output CT")
         plt.axis("off")
