@@ -13,7 +13,6 @@ from monai.transforms import (
     RandSpatialCropSamplesd,
     RandFlipd, 
     RandRotated,
-    AsChannelFirst,
     Transposed,
 )
 from monai.data import CacheDataset, DataLoader
