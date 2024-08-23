@@ -175,7 +175,7 @@ for idx_epoch in range(num_epoch):
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
         optimizer.step()
-        print(f"Epoch {idx_epoch}, batch {idx_batch}, loss: {loss.item():.4f}")
+        # print(f"Epoch {idx_epoch}, batch {idx_batch}, loss: {loss.item():.4f}")
         train_loss += loss.item()
     train_loss /= len(train_loader)
     print(f"Epoch {idx_epoch}, train_loss: {train_loss:.4f}")
