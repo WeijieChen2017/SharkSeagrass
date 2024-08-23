@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from monai.networks.nets import DynUNet
 from monai.transforms import Compose, LoadImaged, EnsureChannelFirstd, RandSpatialCropd, RandFlipd, RandRotated
 from monai.data import CacheDataset, DataLoader
+from monai.losses import DeepSupervisionLoss
 
 input_modality = ["PET", "CT"]
 img_size = 400
@@ -136,6 +137,21 @@ model.to(device)
 learning_rate = 1e-4
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 loss_function = torch.nn.L1Loss()
+# loss: main loss instance, e.g DiceLoss().
+# weight_mode: {``"same"``, ``"exp"``, ``"two"``}
+#     Specifies the weights calculation for each image level. Defaults to ``"exp"``.
+#     - ``"same"``: all weights are equal to 1.
+#     - ``"exp"``: exponentially decreasing weights by a power of 2: 1, 0.5, 0.25, 0.125, etc .
+#     - ``"two"``: equal smaller weights for lower levels: 1, 0.5, 0.5, 0.5, 0.5, etc
+# weights: a list of weights to apply to each deeply supervised sub-loss, if provided, this will be used
+#     regardless of the weight_mode
+output_loss = torch.nn.L1Loss()
+ds_loss = DeepSupervisionLoss(
+    loss = output_loss,
+    weight_mode = "exp",
+    weights = None,
+)
+# def forward(self, input: Union[None, torch.Tensor, list[torch.Tensor]], target: torch.Tensor) -> torch.Tensor:
 
 # start the training
 for idx_epoch in range(num_epoch):
@@ -150,11 +166,12 @@ for idx_epoch in range(num_epoch):
         # remove the second dimension
         inputs = inputs.squeeze(1)
         labels = labels.squeeze(1)
-        print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
+        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
         optimizer.zero_grad()
         outputs = model(inputs)
-        print("outputs.shape: ", outputs.shape)
-        loss = loss_function(outputs, labels)
+        # print("outputs.shape: ", outputs.shape)
+        # loss = loss_function(outputs, labels)
+        loss = ds_loss(outputs, labels)
         loss.backward()
         optimizer.step()
         print(f"Epoch {idx_epoch}, batch {idx_batch}, loss: {loss.item():.4f}")
@@ -173,7 +190,7 @@ for idx_epoch in range(num_epoch):
                 inputs = inputs.squeeze(1)
                 labels = labels.squeeze(1)
                 outputs = model(inputs)
-                loss = loss_function(outputs, labels)
+                loss = output_loss(outputs, labels)
                 val_loss += loss.item()
             val_loss /= len(val_loader)
             print(f"Epoch {idx_epoch}, val_loss: {val_loss:.4f}")
