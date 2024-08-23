@@ -24,8 +24,8 @@ if not os.path.exists(root_folder):
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
 
-kernels = [[3, 3], [3, 3], [3, 3], [3, 3]]
-strides = [[1, 1], [1, 2], [1, 2], [1, 2]]
+kernels = [[3, 3], [3, 3], [3, 3]]
+strides = [[1, 1], [1, 2], [1, 2]]
 
 model = DynUNet(
     spatial_dims=2,
@@ -34,7 +34,7 @@ model = DynUNet(
     kernel_size=kernels,
     strides=strides,
     upsample_kernel_size=strides[1:],
-    filters=(128, 256, 512, 512),
+    filters=(128, 256, 512),
     dropout=0.1,
     norm_name=('INSTANCE', {'affine': True}), 
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
