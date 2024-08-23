@@ -39,7 +39,7 @@ model = DynUNet(
     norm_name=('INSTANCE', {'affine': True}), 
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
     deep_supervision=True,
-    deep_supr_num=2,
+    deep_supr_num=1,
     res_block=False,
     trans_bias=False,
 )
