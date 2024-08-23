@@ -225,19 +225,19 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
     # first three and hist
     plt.subplot(4, 6, 1)
-    img_PET = np.rot90(inputs[0, in_channels // 2, :, :].cpu().numpy())
+    img_PET = np.rot90(inputs[0, in_channels // 2, :, :].detach().cpu().numpy())
     plt.imshow(img_PET, cmap="gray")
     # plt.title("input PET")
     plt.axis("off")
 
     plt.subplot(4, 6, 2)
-    img_CT = np.rot90(labels[0, 0, :, :].cpu().numpy())
+    img_CT = np.rot90(labels[0, 0, :, :].detach().cpu().numpy())
     plt.imshow(img_CT, cmap="gray")
     # plt.title("label CT")
     plt.axis("off")
 
     plt.subplot(4, 6, 3)
-    img_pred = np.rot90(outputs[0, 0, :, :].cpu().numpy())
+    img_pred = np.rot90(outputs[0, 0, :, :].detach().cpu().numpy())
     plt.imshow(img_pred, cmap="gray")
     # plt.title("output CT")
     plt.axis("off")
@@ -268,19 +268,19 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
     # second three and hist
     plt.subplot(4, 6, 4)
-    img_PET = np.rot90(inputs[1, in_channels // 2, :, :].cpu().numpy())
+    img_PET = np.rot90(inputs[1, in_channels // 2, :, :].detach().cpu().numpy())
     plt.imshow(img_PET, cmap="gray")
     # plt.title("input PET")
     plt.axis("off")
 
     plt.subplot(4, 6, 5)
-    img_CT = np.rot90(labels[1, 0, :, :].cpu().numpy())
+    img_CT = np.rot90(labels[1, 0, :, :].detach().cpu().numpy())
     plt.imshow(img_CT, cmap="gray")
     # plt.title("label CT")
     plt.axis("off")
 
     plt.subplot(4, 6, 6)
-    img_pred = np.rot90(outputs[1, 0, :, :].cpu().numpy())
+    img_pred = np.rot90(outputs[1, 0, :, :].detach().cpu().numpy())
     plt.imshow(img_pred, cmap="gray")
     # plt.title("output CT")
     plt.axis("off")
@@ -311,19 +311,19 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
     # third three and hist
     plt.subplot(4, 6, 13)
-    img_PET = np.rot90(inputs[2, in_channels // 2, :, :].cpu().numpy())
+    img_PET = np.rot90(inputs[2, in_channels // 2, :, :].detach().cpu().numpy())
     plt.imshow(img_PET, cmap="gray")
     # plt.title("input PET")
     plt.axis("off")
 
     plt.subplot(4, 6, 14)
-    img_CT = np.rot90(labels[2, 0, :, :].cpu().numpy())
+    img_CT = np.rot90(labels[2, 0, :, :].detach().cpu().numpy())
     plt.imshow(img_CT, cmap="gray")
     # plt.title("label CT")
     plt.axis("off")
 
     plt.subplot(4, 6, 15)
-    img_pred = np.rot90(outputs[2, 0, :, :].cpu().numpy())
+    img_pred = np.rot90(outputs[2, 0, :, :].detach().cpu().numpy())
     plt.imshow(img_pred, cmap="gray")
     # plt.title("output CT")
     plt.axis("off")
@@ -354,19 +354,19 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
     # forth three and hist
     plt.subplot(4, 6, 16)
-    img_PET = np.rot90(inputs[3, in_channels // 2, :, :].cpu().numpy())
+    img_PET = np.rot90(inputs[3, in_channels // 2, :, :].detach().cpu().numpy())
     plt.imshow(img_PET, cmap="gray")
     # plt.title("input PET")
     plt.axis("off")
 
     plt.subplot(4, 6, 17)
-    img_CT = np.rot90(labels[3, 0, :, :].cpu().numpy())
+    img_CT = np.rot90(labels[3, 0, :, :].detach().cpu().numpy())
     plt.imshow(img_CT, cmap="gray")
     # plt.title("label CT")
     plt.axis("off")
 
     plt.subplot(4, 6, 18)
-    img_pred = np.rot90(outputs[3, 0, :, :].cpu().numpy())
+    img_pred = np.rot90(outputs[3, 0, :, :].detach().cpu().numpy())
     plt.imshow(img_pred, cmap="gray")
     # plt.title("output CT")
     plt.axis("off")
