@@ -359,5 +359,9 @@ for idx_epoch in range(num_epoch):
         plt.title("output CT")
         plt.xlim(0, 1)
 
+        plt.tight_layout()
+        plt.savefig(os.path.join(root_folder, f"epoch_{idx_epoch}.png"))
+        plt.close()
+
 
     
