@@ -21,8 +21,8 @@ if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
 
-kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
-strides = [[1, 1, 1], [1, 2, 2], [1, 2, 2]]
+kernels = [[3, 3], [3, 3], [3, 3]]
+strides = [[1, 1], [1, 2], [1, 2]]
 
 model = DynUNet(
     spatial_dims=2,
