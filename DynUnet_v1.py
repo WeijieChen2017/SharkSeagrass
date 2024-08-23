@@ -37,7 +37,7 @@ kernels = [[3, 3], [3, 3], [3, 3]]
 strides = [[1, 1], [2, 2], [2, 2]]
 
 model = DynUNet(
-    spatial_dims=3,
+    spatial_dims=2,
     in_channels=3,
     out_channels=1,
     kernel_size=kernels,
