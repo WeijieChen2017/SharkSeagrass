@@ -28,6 +28,7 @@ num_epoch = 10000
 save_per_epoch = 100
 eval_per_epoch = 50
 plot_per_epoch = 50
+CT_NORM = 5000
 root_folder = "./B100/dynunet2d_v1"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
@@ -212,6 +213,9 @@ ds_loss = DeepSupervisionLoss(
 # def forward(self, input: Union[None, torch.Tensor, list[torch.Tensor]], target: torch.Tensor) -> torch.Tensor:
 
 best_val_loss = 1e10
+n_train_batches = len(train_loader)
+n_val_batches = len(val_loader)
+n_test_batches = len(test_loader)
 
 # start the training
 for idx_epoch in range(num_epoch):
@@ -232,13 +236,13 @@ for idx_epoch in range(num_epoch):
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
         optimizer.step()
-        print(f"Epoch {idx_epoch}, batch {idx_batch}, loss: {loss.item():.4f}")
+        print(f"Epoch {idx_epoch}, batch [{idx_batch}]/[{n_train_batches}], loss: {loss.item()*CT_NORM:.4f}")
         train_loss += loss.item()
     train_loss /= len(train_loader)
-    print(f"Epoch {idx_epoch}, train_loss: {train_loss:.4f}")
+    print(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}")
     # log the results
     with open(log_file, "a") as f:
-        f.write(f"Epoch {idx_epoch}, train_loss: {train_loss:.4f}\n")
+        f.write(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}\n")
 
     # evaluate the model
     if idx_epoch % eval_per_epoch == 0:
@@ -252,15 +256,15 @@ for idx_epoch in range(num_epoch):
                 loss = output_loss(outputs, labels)
                 val_loss += loss.item()
             val_loss /= len(val_loader)
-            print(f"Epoch {idx_epoch}, val_loss: {val_loss:.4f}")
+            print(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f}")
             with open(log_file, "a") as f:
-                f.write(f"Epoch {idx_epoch}, val_loss: {val_loss:.4f}\n")
+                f.write(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f}\n")
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 torch.save(model.state_dict(), os.path.join(root_folder, "best_model.pth"))
-                print(f"Save the best model with val_loss: {val_loss:.4f} at epoch {idx_epoch}")
+                print(f"Save the best model with val_loss: {val_loss*CT_NORM:.4f} at epoch {idx_epoch}")
                 with open(log_file, "a") as f:
-                    f.write(f"Save the best model with val_loss: {val_loss:.4f} at epoch {idx_epoch}\n")
+                    f.write(f"Save the best model with val_loss: {val_loss*CT_NORM:.4f} at epoch {idx_epoch}\n")
                 
                 # test the model
                 with torch.no_grad():
@@ -272,9 +276,9 @@ for idx_epoch in range(num_epoch):
                         loss = output_loss(outputs, labels)
                         test_loss += loss.item()
                     test_loss /= len(test_loader)
-                    print(f"Epoch {idx_epoch}, test_loss: {test_loss:.4f}")
+                    print(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f}")
                     with open(log_file, "a") as f:
-                        f.write(f"Epoch {idx_epoch}, test_loss: {test_loss:.4f}\n")
+                        f.write(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f}\n")
 
     # save the model
     if idx_epoch % save_per_epoch == 0:
