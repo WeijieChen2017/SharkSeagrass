@@ -11,6 +11,7 @@ from monai.data import CacheDataset, DataLoader
 input_modality = ["PET", "CT"]
 img_size = 400
 in_channels = 5
+out_channels = 1
 batch_size = 16
 num_epoch = 10000
 save_per_epoch = 100
@@ -47,8 +48,11 @@ train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality),
-        RandSpatialCropd(keys=input_modality,
+        RandSpatialCropd(keys="PET",
                          roi_size=(in_channels, img_size, img_size),
+                         random_center=True, random_size=False),
+        RandSpatialCropd(keys="CT",
+                         roi_size=(out_channels, img_size, img_size),
                          random_center=True, random_size=False),
         # RandSpatialCropSamplesd(keys=input_modality,
         #                         roi_size=(img_size, img_size, in_channels),
@@ -65,8 +69,11 @@ val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality),
-        RandSpatialCropd(keys=input_modality,
+        RandSpatialCropd(keys="PET",
                          roi_size=(in_channels, img_size, img_size),
+                         random_center=True, random_size=False),
+        RandSpatialCropd(keys="CT",
+                         roi_size=(out_channels, img_size, img_size),
                          random_center=True, random_size=False),
         # RandSpatialCropSamplesd(keys=input_modality,
         #                         roi_size=(img_size, img_size, in_channels),
