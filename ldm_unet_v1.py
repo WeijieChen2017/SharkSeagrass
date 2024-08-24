@@ -540,15 +540,15 @@ model = VQModel(ddconfig=dd_config,
                 image_key="image",
 ).to(device)
 
-# here we want to output all the parameters of the model, including :name, :type, :shape
-print()
-print("The model parameters are: ")
-for name, param in model.named_parameters():
-    print(f"name: {name}, type: {param.type()}, shape: {param.shape}")
-    # print(f"param: {param}")
-print()
+# # here we want to output all the parameters of the model, including :name, :type, :shape
+# print()
+# print("The model parameters are: ")
+# for name, param in model.named_parameters():
+#     print(f"name: {name}, type: {param.type()}, shape: {param.shape}")
+#     # print(f"param: {param}")
+# print()
 
-exit()
+# exit()
 
 import os
 import json
