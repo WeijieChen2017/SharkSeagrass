@@ -397,7 +397,7 @@ class Decoder(nn.Module):
             attn = nn.ModuleList()
             block_out = ch*ch_mult[i_level]
             for i_block in range(self.num_res_blocks+1):
-                block.append(ResnetBlock(in_channels=block_in * 2,
+                block.append(ResnetBlock(in_channels=block_in * 2, # double it for concat
                                          out_channels=block_out,
                                          temb_channels=self.temb_ch,
                                          dropout=dropout))
@@ -485,19 +485,39 @@ class VQModel(pl.LightningModule):
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
 
+    # def init_from_ckpt(self, path, ignore_keys=list()):
+    #     sd = torch.load(path, map_location="cpu")["state_dict"]
+    #     keys = list(sd.keys())
+    #     for k in keys:
+    #         for ik in ignore_keys:
+    #             if k.startswith(ik):
+    #                 print("Deleting key {} from state_dict.".format(k))
+    #                 del sd[k]
+    #     missing, unexpected = self.load_state_dict(sd, strict=False)
+    #     print(f"Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys")
+    #     if len(missing) > 0:
+    #         print(f"Missing Keys: {missing}")
+    #         print(f"Unexpected Keys: {unexpected}")
+
     def init_from_ckpt(self, path, ignore_keys=list()):
-        sd = torch.load(path, map_location="cpu")["state_dict"]
-        keys = list(sd.keys())
-        for k in keys:
-            for ik in ignore_keys:
-                if k.startswith(ik):
-                    print("Deleting key {} from state_dict.".format(k))
-                    del sd[k]
-        missing, unexpected = self.load_state_dict(sd, strict=False)
-        print(f"Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys")
-        if len(missing) > 0:
-            print(f"Missing Keys: {missing}")
-            print(f"Unexpected Keys: {unexpected}")
+        # Load the checkpoint
+        checkpoint = torch.load(path, map_location="cpu")
+        sd = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
+
+        # Load model state dict, ignoring incompatible layers
+        model_dict = self.state_dict()
+        pretrained_dict = {k: v for k, v in sd.items() if k in model_dict and v.shape == model_dict[k].shape}
+
+        # Optionally log the layers that are skipped due to shape mismatch
+        skipped_layers = [k for k in sd.keys() if k not in pretrained_dict]
+        if skipped_layers:
+            print(f"Skipped loading parameters for layers: {skipped_layers}")
+
+        # Update the model's state dict with matching pretrained weights
+        model_dict.update(pretrained_dict)
+        self.load_state_dict(model_dict, strict=False)
+        print(f"Restored from {path}, loaded weights for {len(pretrained_dict)} layers, skipped {len(skipped_layers)} layers.")
+
 
     def encode(self, x):
         h, in_maps = self.encoder(x)
