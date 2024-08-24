@@ -14,6 +14,37 @@ from einops import rearrange
 # from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
 import pytorch_lightning as pl
 
+VQ_NAME = "f4-noattn"
+config_yaml_path = f"ldm_models/first_stage_models/vq-{VQ_NAME}/config.yaml"
+ckpt_path = f"vq_{VQ_NAME}.ckpt"
+input_modality = ["PET", "CT"]
+img_size = 400
+cube_size = 64
+in_channels = 3
+out_channels = 1
+batch_size = 1
+num_epoch = 10000
+save_per_epoch = 10
+eval_per_epoch = 1
+plot_per_epoch = 1
+CT_NORM = 5000
+learning_rate = 1e-5
+root_folder = "./B100/ldm_unet_v1"
+data_division_file = "./B100/B100_0822_2d3c.json"
+if not os.path.exists(root_folder):
+    os.makedirs(root_folder)
+print("The root folder is: ", root_folder)
+log_file = os.path.join(root_folder, "log.txt")
+
+
+
+
+
+
+
+
+
+
 def nonlinearity(x):
     # swish
     return x*torch.sigmoid(x)
@@ -497,20 +528,16 @@ class VQModel(pl.LightningModule):
         out = self.out_conv(dec)
         return out
 
-
-VQ_NAME = "f4-noattn"
-
 # load the configuration yaml files
 import os
 import yaml
 
-config_yaml_path = f"ldm_models/first_stage_models/vq-{VQ_NAME}/config.yaml"
 with open(config_yaml_path, 'r') as file:
     config = yaml.safe_load(file)
 
 print(config)
 
-ckpt_path = f"vq_{VQ_NAME}.ckpt"
+
 
 dd_config = config['model']['params']['ddconfig']
 loss_config = config['model']['params']['lossconfig']
@@ -536,23 +563,6 @@ from monai.transforms import (
     EnsureChannelFirstd, 
 )
 from monai.data import CacheDataset, DataLoader
-
-input_modality = ["PET", "CT"]
-img_size = 400
-cube_size = 64
-in_channels = 3
-out_channels = 1
-batch_size = 8
-num_epoch = 10000
-save_per_epoch = 10
-eval_per_epoch = 1
-plot_per_epoch = 1
-CT_NORM = 5000
-root_folder = "./B100/ldm_unet_v1"
-if not os.path.exists(root_folder):
-    os.makedirs(root_folder)
-print("The root folder is: ", root_folder)
-log_file = os.path.join(root_folder, "log.txt")
 
 
 # set the data transform
@@ -580,7 +590,7 @@ test_transforms = Compose(
     ]
 )
 
-data_division_file = "./B100/B100_0822_2d3c.json"
+
 with open(data_division_file, "r") as f:
     data_division = json.load(f)
 
@@ -645,7 +655,6 @@ test_loader = DataLoader(test_ds,
 )
 
 # set the optimizer and loss
-learning_rate = 1e-4
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 loss_function = torch.nn.L1Loss()
 output_loss = torch.nn.L1Loss()
