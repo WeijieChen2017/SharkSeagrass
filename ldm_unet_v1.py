@@ -29,7 +29,7 @@ eval_per_epoch = 1
 plot_per_epoch = 1
 CT_NORM = 5000
 learning_rate = 1e-5
-root_folder = "./B100/ldm_unet_v1"
+root_folder = "./B100/ldm_unet_v1_nofreeze"
 data_division_file = "./B100/B100_0822_2d3c.json"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
