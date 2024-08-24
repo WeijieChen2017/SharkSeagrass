@@ -271,6 +271,8 @@ class Encoder(nn.Module):
         self.in_ch_mult = in_ch_mult
         self.down = nn.ModuleList()
 
+        self.h_maps = []  # Store intermediate feature maps
+
         for i_level in range(self.num_resolutions):
             block = nn.ModuleList()
             attn = nn.ModuleList()
@@ -315,6 +317,7 @@ class Encoder(nn.Module):
     def forward(self, x):
         # timestep embedding
         temb = None
+        intermediate_maps = []
 
         # downsampling
         hs = [self.conv_in(x)]
@@ -324,6 +327,7 @@ class Encoder(nn.Module):
                 if len(self.down[i_level].attn) > 0:
                     h = self.down[i_level].attn[i_block](h)
                 hs.append(h)
+            intermediate_maps.append(h) # Store feature maps
             if i_level != self.num_resolutions-1:
                 hs.append(self.down[i_level].downsample(hs[-1]))
 
@@ -337,7 +341,7 @@ class Encoder(nn.Module):
         h = self.norm_out(h)
         h = nonlinearity(h)
         h = self.conv_out(h)
-        return h
+        return h, intermediate_maps
 
 
 
@@ -416,7 +420,7 @@ class Decoder(nn.Module):
                                         stride=1,
                                         padding=1)
 
-    def forward(self, z):
+    def forward(self, z, enc_intermediate_maps):
         #assert z.shape[1:] == self.z_shape[1:]
         self.last_z_shape = z.shape
 
@@ -434,7 +438,7 @@ class Decoder(nn.Module):
         # upsampling
         for i_level in reversed(range(self.num_resolutions)):
             # Concatenate with corresponding encoder feature map
-            h = self.up[i_level].block[i_block](h, temb)
+            h = torch.cat([h, enc_intermediate_maps[i_level]], dim=1)
             for i_block in range(self.num_res_blocks + 1):
                 h = self.up[i_level].block[i_block](h, temb)
                 if len(self.up[i_level].attn) > 0:
@@ -481,40 +485,66 @@ class VQModel(pl.LightningModule):
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
 
+    # def init_from_ckpt(self, path, ignore_keys=list()):
+    #     sd = torch.load(path, map_location="cpu")["state_dict"]
+    #     keys = list(sd.keys())
+    #     for k in keys:
+    #         for ik in ignore_keys:
+    #             if k.startswith(ik):
+    #                 print("Deleting key {} from state_dict.".format(k))
+    #                 del sd[k]
+    #     missing, unexpected = self.load_state_dict(sd, strict=False)
+    #     print(f"Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys")
+    #     if len(missing) > 0:
+    #         print(f"Missing Keys: {missing}")
+    #         print(f"Unexpected Keys: {unexpected}")
+
     def init_from_ckpt(self, path, ignore_keys=list()):
-        sd = torch.load(path, map_location="cpu")["state_dict"]
-        keys = list(sd.keys())
-        for k in keys:
-            for ik in ignore_keys:
-                if k.startswith(ik):
-                    print("Deleting key {} from state_dict.".format(k))
-                    del sd[k]
-        missing, unexpected = self.load_state_dict(sd, strict=False)
-        print(f"Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys")
-        if len(missing) > 0:
-            print(f"Missing Keys: {missing}")
-            print(f"Unexpected Keys: {unexpected}")
+        # Load the checkpoint
+        checkpoint = torch.load(path, map_location="cpu")
+        sd = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
+
+        # Load model state dict, ignoring incompatible layers
+        model_dict = self.state_dict()
+        pretrained_dict = {k: v for k, v in sd.items() if k in model_dict and v.shape == model_dict[k].shape}
+
+        # Optionally log the layers that are skipped due to shape mismatch
+        skipped_layers = [k for k in sd.keys() if k not in pretrained_dict]
+        if skipped_layers:
+            print(f"Skipped loading parameters for layers: {skipped_layers}")
+
+        # Update the model's state dict with matching pretrained weights
+        model_dict.update(pretrained_dict)
+        self.load_state_dict(model_dict, strict=False)
+        print(f"Restored from {path}, loaded weights for {len(pretrained_dict)} layers, skipped {len(skipped_layers)} layers.")
+
 
     def encode(self, x):
-        h = self.encoder(x)
+        h, in_maps = self.encoder(x)
         # print(f"Shape checking 2, h: {h.shape}")
         h = self.quant_conv(h)
         # print(f"Shape checking 3, h: {h.shape} after quant_conv")
         # print(f"Shape checking 4, quant: {quant.shape} after quantize")
-        return h
+        return h, in_maps
 
-    def decode(self, quant):
+    def decode(self, quant, in_maps):
         quant = self.post_quant_conv(quant)
         # print(f"Shape checking 5, quant: {quant.shape} after post_quant_conv")
-        dec = self.decoder(quant)
+        dec = self.decoder(quant, in_maps)
         # print(f"Shape checking 6, dec: {dec.shape}")
+        return dec
+
+    def decode_code(self, code_b):
+        quant_b = self.quantize.embed_code(code_b)
+        dec = self.decode(quant_b)
         return dec
 
     def forward(self, input):
         
         # print(f"Shape checking 1, input: {input.shape}")
-        quant = self.encode(input)
-        dec = self.decode(quant)
+
+        quant, in_maps = self.encode(input)
+        dec = self.decode(quant, in_maps)
         out = self.out_conv(dec)
         return out
 
