@@ -692,7 +692,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 3)
-        img_pred = np.rot90(outputs[i, 0, 0, :, :].detach().cpu().numpy())
+        img_pred = np.rot90(outputs[i, 0, :, :].detach().cpu().numpy())
         img_pred = np.squeeze(np.clip(img_pred, 0, 1))
         plt.imshow(img_pred, cmap="gray")
         plt.axis("off")
