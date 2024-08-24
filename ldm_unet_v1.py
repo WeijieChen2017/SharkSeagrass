@@ -428,7 +428,7 @@ class Decoder(nn.Module):
 
 
 
-class VQModel(pl.LightningModule):
+class VQModel(nn.Module):
 # class VQModel(nn.Module):
     def __init__(self,
                  ddconfig,
