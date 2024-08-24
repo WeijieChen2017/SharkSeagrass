@@ -479,6 +479,11 @@ class VQModel(nn.Module):
                         return torch.nn.Module  # Replace it with torch's base nn.Module
                     return super().find_class(module, name)
 
+                def persistent_load(self, pid):
+                    # Ignore persistent IDs by returning None (or some default value)
+                    print(f"Ignoring persistent ID {pid}")
+                    return None
+
             with open(path, 'rb') as f:
                 return IgnorePytorchLightningModule(f).load()
 
