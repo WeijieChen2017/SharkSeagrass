@@ -403,7 +403,7 @@ class Decoder(nn.Module):
                                          dropout=dropout))
                 block_in = block_out
                 if curr_res in attn_resolutions:
-                    attn.append(make_attn(block_in, attn_type=attn_type))
+                    attn.append(make_attn(block_in * 2, attn_type=attn_type))
             up = nn.Module()
             up.block = block
             up.attn = attn
