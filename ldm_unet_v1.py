@@ -23,6 +23,8 @@ cube_size = 64
 in_channels = 3
 out_channels = 1
 batch_size = 1
+cache_ratio = 0.1
+test_file_num = 20
 num_epoch = 10000
 save_per_epoch = 10
 eval_per_epoch = 1
@@ -591,9 +593,14 @@ test_transforms = Compose(
 with open(data_division_file, "r") as f:
     data_division = json.load(f)
 
-train_list = data_division["train"][:20]
-val_list = data_division["val"][:20]
-test_list = data_division["test"][:20]
+if test_file_num > 0:
+    train_list = data_division["train"][:test_file_num]
+    val_list = data_division["val"][:test_file_num]
+    test_list = data_division["test"][:test_file_num]
+else:
+    train_list = data_division["train"]
+    val_list = data_division["val"]
+    test_list = data_division["test"]
 
 num_train_files = len(train_list)
 num_val_files = len(val_list)
@@ -611,7 +618,7 @@ train_ds = CacheDataset(
     data=train_list,
     transform=train_transforms,
     cache_num=num_train_files,
-    cache_rate=0.1,
+    cache_rate=cache_ratio,
     num_workers=4,
 )
 
@@ -619,7 +626,7 @@ val_ds = CacheDataset(
     data=val_list,
     transform=val_transforms, 
     cache_num=num_val_files,
-    cache_rate=0.1,
+    cache_rate=cache_ratio,
     num_workers=4,
 )
 
@@ -627,7 +634,7 @@ test_ds = CacheDataset(
     data=test_list,
     transform=test_transforms,
     cache_num=num_test_files,
-    cache_rate=0.1,
+    cache_rate=cache_ratio,
     num_workers=4,
 )
 
