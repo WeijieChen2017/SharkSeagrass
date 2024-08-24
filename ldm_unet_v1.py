@@ -6,14 +6,13 @@ import torch
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 import torch
-import pickle
 import torch.nn as nn
 import numpy as np
 from einops import rearrange
 # import torch.nn.functional as F
 
 # from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
-# import pytorch_lightning as pl
+import pytorch_lightning as pl
 
 def nonlinearity(x):
     # swish
@@ -429,7 +428,7 @@ class Decoder(nn.Module):
 
 
 
-class VQModel(nn.Module):
+class VQModel(pl.LightningModule):
 # class VQModel(nn.Module):
     def __init__(self,
                  ddconfig,
@@ -455,55 +454,14 @@ class VQModel(nn.Module):
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
 
-    # def init_from_ckpt(self, path, ignore_keys=list()):
-    #     sd = torch.load(path, map_location="cpu")["state_dict"]
-    #     keys = list(sd.keys())
-    #     for k in keys:
-    #         for ik in ignore_keys:
-    #             if k.startswith(ik):
-    #                 print("Deleting key {} from state_dict.".format(k))
-    #                 del sd[k]
-    #     missing, unexpected = self.load_state_dict(sd, strict=False)
-    #     print(f"Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys")
-    #     if len(missing) > 0:
-    #         print(f"Missing Keys: {missing}")
-    #         print(f"Unexpected Keys: {unexpected}")
-
     def init_from_ckpt(self, path, ignore_keys=list()):
-    # Custom loader to avoid importing 'pytorch_lightning'
-        def custom_load(path):
-            class IgnorePytorchLightningModule(pickle.Unpickler):
-                def find_class(self, module, name):
-                    # Ignore pytorch_lightning classes
-                    if module == 'pytorch_lightning.core.module' and name == 'LightningModule':
-                        return torch.nn.Module  # Replace it with torch's base nn.Module
-                    return super().find_class(module, name)
-
-                def persistent_load(self, pid):
-                    # Ignore persistent IDs by returning None (or some default value)
-                    print(f"Ignoring persistent ID {pid}")
-                    return None
-
-            with open(path, 'rb') as f:
-                return IgnorePytorchLightningModule(f).load()
-
-        # Load the state_dict
-        try:
-            # Attempt to load the state dict directly
-            sd = custom_load(path)["state_dict"]
-        except KeyError:
-            # Fall back to loading the whole dict if "state_dict" key is missing
-            sd = custom_load(path)
-
-        # Process the state_dict, remove ignored keys
+        sd = torch.load(path, map_location="cpu")["state_dict"]
         keys = list(sd.keys())
         for k in keys:
             for ik in ignore_keys:
                 if k.startswith(ik):
                     print("Deleting key {} from state_dict.".format(k))
                     del sd[k]
-
-        # Load the state_dict into the model
         missing, unexpected = self.load_state_dict(sd, strict=False)
         print(f"Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys")
         if len(missing) > 0:
