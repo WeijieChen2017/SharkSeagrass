@@ -433,8 +433,6 @@ class Decoder(nn.Module):
 
         # upsampling
         for i_level in reversed(range(self.num_resolutions)):
-            # Concatenate with corresponding encoder feature map
-            h = self.up[i_level].block[i_block](h, temb)
             for i_block in range(self.num_res_blocks + 1):
                 h = self.up[i_level].block[i_block](h, temb)
                 if len(self.up[i_level].attn) > 0:
