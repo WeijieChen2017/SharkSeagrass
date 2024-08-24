@@ -578,6 +578,8 @@ for name, param in model.named_parameters():
     # print(f"param: {param}")
 print()
 
+exit()
+
 import os
 import json
 import numpy as np
