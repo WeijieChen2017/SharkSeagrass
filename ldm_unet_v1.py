@@ -22,7 +22,7 @@ img_size = 400
 cube_size = 64
 in_channels = 3
 out_channels = 1
-batch_size = 8
+batch_size = 4
 cache_ratio = 0.1
 test_file_num = 20
 num_epoch = 10000
@@ -672,6 +672,8 @@ n_test_batches = len(test_loader)
 def plot_results(inputs, labels, outputs, idx_epoch):
     # plot the results
     n_block = 8
+    if n_block > batch_size:
+        n_block = batch_size
     plt.figure(figsize=(12, 12), dpi=300)
 
     n_row = n_block
