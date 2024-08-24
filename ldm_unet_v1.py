@@ -403,7 +403,7 @@ class Decoder(nn.Module):
                                          dropout=dropout))
                 block_in = block_out
                 if curr_res in attn_resolutions:
-                    attn.append(make_attn(block_in * 2, attn_type=attn_type))
+                    attn.append(make_attn(block_in, attn_type=attn_type))
             up = nn.Module()
             up.block = block
             up.attn = attn
@@ -570,6 +570,13 @@ model = VQModel(ddconfig=dd_config,
                 image_key="image",
 ).to(device)
 
+# here we want to output all the parameters of the model, including :name, :type, :shape
+print()
+print("The model parameters are: ")
+for name, param in model.named_parameters():
+    print(f"name: {name}, type: {param.type()}, shape: {param.shape}")
+    # print(f"param: {param}")
+print()
 
 import os
 import json
