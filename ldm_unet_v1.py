@@ -614,9 +614,9 @@ test_transforms = Compose(
 with open(data_division_file, "r") as f:
     data_division = json.load(f)
 
-train_list = data_division["train"]
-val_list = data_division["val"]
-test_list = data_division["test"]
+train_list = data_division["train"][:20]
+val_list = data_division["val"][:20]
+test_list = data_division["test"][:20]
 
 num_train_files = len(train_list)
 num_val_files = len(val_list)
