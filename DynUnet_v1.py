@@ -221,7 +221,7 @@ n_test_batches = len(test_loader)
 def plot_results(inputs, labels, outputs, idx_epoch):
     # plot the results
     n_block = 8
-    plt.figure(figsize=(12, 6), dpi=300)
+    plt.figure(figsize=(12, 12), dpi=300)
 
     n_row = n_block
     n_col = 6
