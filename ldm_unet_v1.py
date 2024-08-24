@@ -393,7 +393,7 @@ class Decoder(nn.Module):
             attn = nn.ModuleList()
             block_out = ch*ch_mult[i_level]
             for i_block in range(self.num_res_blocks+1):
-                block.append(ResnetBlock(in_channels=block_in * 2, # double it for concat
+                block.append(ResnetBlock(in_channels=block_in, # double it for concat
                                          out_channels=block_out,
                                          temb_channels=self.temb_ch,
                                          dropout=dropout))
