@@ -239,6 +239,9 @@ class Encoder(nn.Module):
         in_ch_mult = (1,)+tuple(ch_mult)
         self.in_ch_mult = in_ch_mult
         self.down = nn.ModuleList()
+
+        self.h_maps = []  # Store intermediate feature maps
+
         for i_level in range(self.num_resolutions):
             block = nn.ModuleList()
             attn = nn.ModuleList()
@@ -283,6 +286,7 @@ class Encoder(nn.Module):
     def forward(self, x):
         # timestep embedding
         temb = None
+        intermediate_maps = []
 
         # downsampling
         hs = [self.conv_in(x)]
@@ -292,6 +296,7 @@ class Encoder(nn.Module):
                 if len(self.down[i_level].attn) > 0:
                     h = self.down[i_level].attn[i_block](h)
                 hs.append(h)
+            intermediate_maps.append(h) # Store feature maps
             if i_level != self.num_resolutions-1:
                 hs.append(self.down[i_level].downsample(hs[-1]))
 
@@ -305,7 +310,7 @@ class Encoder(nn.Module):
         h = self.norm_out(h)
         h = nonlinearity(h)
         h = self.conv_out(h)
-        return h
+        return h, intermediate_maps
 
 
 
@@ -329,6 +334,8 @@ class Decoder(nn.Module):
         in_ch_mult = (1,)+tuple(ch_mult)
         block_in = ch*ch_mult[self.num_resolutions-1]
         curr_res = resolution // 2**(self.num_resolutions-1)
+
+
         self.z_shape = (1,z_channels,curr_res,curr_res)
         print("Working with z of shape {} = {} dimensions.".format(
             self.z_shape, np.prod(self.z_shape)))
@@ -382,7 +389,7 @@ class Decoder(nn.Module):
                                         stride=1,
                                         padding=1)
 
-    def forward(self, z):
+    def forward(self, z, enc_intermediate_maps):
         #assert z.shape[1:] == self.z_shape[1:]
         self.last_z_shape = z.shape
 
@@ -399,7 +406,9 @@ class Decoder(nn.Module):
 
         # upsampling
         for i_level in reversed(range(self.num_resolutions)):
-            for i_block in range(self.num_res_blocks+1):
+            # Concatenate with corresponding encoder feature map
+            h = torch.cat([h, enc_intermediate_maps[i_level]], dim=1)
+            for i_block in range(self.num_res_blocks + 1):
                 h = self.up[i_level].block[i_block](h, temb)
                 if len(self.up[i_level].attn) > 0:
                     h = self.up[i_level].attn[i_block](h)
@@ -423,19 +432,11 @@ class VQModel(pl.LightningModule):
 # class VQModel(nn.Module):
     def __init__(self,
                  ddconfig,
-                 lossconfig,
                  n_embed,
                  embed_dim,
                  ckpt_path=None,
                  ignore_keys=[],
                  image_key="image",
-                 colorize_nlabels=None,
-                 monitor=None,
-                 batch_resize_range=None,
-                 scheduler_config=None,
-                 lr_g_factor=1.0,
-                 remap=None,
-                 sane_index_shape=False, # tell vector quantizer to return indices as bhw
                  ):
         super().__init__()
         self.embed_dim = embed_dim
@@ -444,24 +445,14 @@ class VQModel(pl.LightningModule):
         self.encoder = Encoder(**ddconfig)
         self.decoder = Decoder(**ddconfig)
         # self.loss = instantiate_from_config(lossconfig)
-        self.quantize = VectorQuantizer(n_embed, embed_dim, beta=0.25,
-                                        remap=remap,
-                                        sane_index_shape=sane_index_shape)
+        
         self.quant_conv = torch.nn.Conv2d(ddconfig["z_channels"], embed_dim, 1)
         self.post_quant_conv = torch.nn.Conv2d(embed_dim, ddconfig["z_channels"], 1)
-        if colorize_nlabels is not None:
-            assert type(colorize_nlabels)==int
-            self.register_buffer("colorize", torch.randn(3, colorize_nlabels, 1, 1))
-        if monitor is not None:
-            self.monitor = monitor
-        self.batch_resize_range = batch_resize_range
-        if self.batch_resize_range is not None:
-            print(f"{self.__class__.__name__}: Using per-batch resizing in range {batch_resize_range}.")
+
+        self.out_conv = torch.nn.Conv2d(ddconfig["out_ch"], 1, 1)
 
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
-        self.scheduler_config = scheduler_config
-        self.lr_g_factor = lr_g_factor
 
     def init_from_ckpt(self, path, ignore_keys=list()):
         sd = torch.load(path, map_location="cpu")["state_dict"]
@@ -477,29 +468,19 @@ class VQModel(pl.LightningModule):
             print(f"Missing Keys: {missing}")
             print(f"Unexpected Keys: {unexpected}")
 
-    def on_train_batch_end(self, *args, **kwargs):
-        if self.use_ema:
-            self.model_ema(self)
-
     def encode(self, x):
-        h = self.encoder(x)
-        print(f"Shape checking 2, h: {h.shape}")
+        h, in_maps = self.encoder(x)
+        # print(f"Shape checking 2, h: {h.shape}")
         h = self.quant_conv(h)
-        print(f"Shape checking 3, h: {h.shape} after quant_conv")
-        quant, emb_loss, info = self.quantize(h)
-        print(f"Shape checking 4, quant: {quant.shape} after quantize")
-        return quant, emb_loss, info
+        # print(f"Shape checking 3, h: {h.shape} after quant_conv")
+        # print(f"Shape checking 4, quant: {quant.shape} after quantize")
+        return h, in_maps
 
-    def encode_to_prequant(self, x):
-        h = self.encoder(x)
-        h = self.quant_conv(h)
-        return h
-
-    def decode(self, quant):
+    def decode(self, quant, in_maps):
         quant = self.post_quant_conv(quant)
-        print(f"Shape checking 5, quant: {quant.shape} after post_quant_conv")
-        dec = self.decoder(quant)
-        print(f"Shape checking 6, dec: {dec.shape}")
+        # print(f"Shape checking 5, quant: {quant.shape} after post_quant_conv")
+        dec = self.decoder(quant, in_maps)
+        # print(f"Shape checking 6, dec: {dec.shape}")
         return dec
 
     def decode_code(self, code_b):
@@ -507,41 +488,14 @@ class VQModel(pl.LightningModule):
         dec = self.decode(quant_b)
         return dec
 
-    def forward(self, input, return_pred_indices=False):
+    def forward(self, input):
         
-        print(f"Shape checking 1, input: {input.shape}")
+        # print(f"Shape checking 1, input: {input.shape}")
 
-        quant, diff, (_,_,ind) = self.encode(input)
-        dec = self.decode(quant)
-        if return_pred_indices:
-            return dec, diff, ind
-        return dec, diff
-
-    def get_input(self, batch, k):
-        x = batch[k]
-        if len(x.shape) == 3:
-            x = x[..., None]
-        x = x.permute(0, 3, 1, 2).to(memory_format=torch.contiguous_format).float()
-        if self.batch_resize_range is not None:
-            lower_size = self.batch_resize_range[0]
-            upper_size = self.batch_resize_range[1]
-            if self.global_step <= 4:
-                # do the first few batches with max size to avoid later oom
-                new_resize = upper_size
-            else:
-                new_resize = np.random.choice(np.arange(lower_size, upper_size+16, 16))
-            if new_resize != x.shape[2]:
-                x = F.interpolate(x, size=new_resize, mode="bicubic")
-            x = x.detach()
-        return x
-
-    def to_rgb(self, x):
-        assert self.image_key == "segmentation"
-        if not hasattr(self, "colorize"):
-            self.register_buffer("colorize", torch.randn(3, x.shape[1], 1, 1).to(x))
-        x = F.conv2d(x, weight=self.colorize)
-        x = 2.*(x-x.min())/(x.max()-x.min()) - 1.
-        return x
+        quant, in_maps = self.encode(input)
+        dec = self.decode(quant, in_maps)
+        out = self.out_conv(dec)
+        return out
 
 
 VQ_NAME = "f4-noattn"
@@ -562,342 +516,266 @@ dd_config = config['model']['params']['ddconfig']
 loss_config = config['model']['params']['lossconfig']
 
 model = VQModel(ddconfig=dd_config,
-                lossconfig=loss_config,
                 n_embed=config['model']['params']['n_embed'],
                 embed_dim=config['model']['params']['embed_dim'],
                 ckpt_path=ckpt_path,
                 ignore_keys=[],
                 image_key="image",
-                colorize_nlabels=None,
-                monitor=None,
-                batch_resize_range=None,
-                scheduler_config=None,
-                lr_g_factor=1.0,
-                remap=None,
-                sane_index_shape=False, # tell vector quantizer to return indices as bhw
+).to(device)
+
+
+import os
+import json
+import numpy as np
+import torch
+import matplotlib.pyplot as plt
+
+from monai.transforms import (
+    Compose, 
+    LoadImaged, 
+    EnsureChannelFirstd, 
+)
+from monai.data import CacheDataset, DataLoader
+
+input_modality = ["PET", "CT"]
+img_size = 400
+cube_size = 64
+in_channels = 3
+out_channels = 1
+batch_size = 16
+num_epoch = 10000
+save_per_epoch = 10
+eval_per_epoch = 1
+plot_per_epoch = 1
+CT_NORM = 5000
+root_folder = "./B100/ldm_unet_v1"
+if not os.path.exists(root_folder):
+    os.makedirs(root_folder)
+print("The root folder is: ", root_folder)
+log_file = os.path.join(root_folder, "log.txt")
+
+
+# set the data transform
+train_transforms = Compose(
+    [
+        LoadImaged(keys=input_modality, image_only=True),
+        EnsureChannelFirstd(keys="PET", channel_dim=-1),
+        EnsureChannelFirstd(keys="CT", channel_dim='no_channel'),
+    ]
 )
 
-# load ckpt_path and show all keys
-sd = torch.load(ckpt_path, map_location="cpu")["state_dict"]
-keys = list(sd.keys())
+val_transforms = Compose(
+    [
+        LoadImaged(keys=input_modality, image_only=True),
+        EnsureChannelFirstd(keys="PET", channel_dim=-1),
+        EnsureChannelFirstd(keys="CT", channel_dim='no_channel'),
+    ]
+)
 
-for k in keys:
-    print(k)
+test_transforms = Compose(
+    [
+        LoadImaged(keys=input_modality, image_only=True),
+        EnsureChannelFirstd(keys="PET", channel_dim=-1),
+        EnsureChannelFirstd(keys="CT", channel_dim='no_channel'),
+    ]
+)
 
-print("<" * 50)
+data_division_file = "./B100/B100_0822_2d3c.json"
+with open(data_division_file, "r") as f:
+    data_division = json.load(f)
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# print("The current device is", device)
-# model.to(device)
+train_list = data_division["train"]
+val_list = data_division["val"]
+test_list = data_division["test"]
 
-def plot_images(savename, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET):
+num_train_files = len(train_list)
+num_val_files = len(val_list)
+num_test_files = len(test_list)
 
-    # 1st plot for recon
-    fig = plt.figure(figsize=(12, 16), dpi=100)
+print("The number of train files is: ", num_train_files)
+print("The number of val files is: ", num_val_files)
+print("The number of test files is: ", num_test_files)
+print()
 
-    plt.subplot(4, 3, 1)
-    img = np.rot90(CTr_img[1, :, :])
-    # img = CTr_img[1, :, :]
-    plt.imshow(img, cmap='gray')
-    plt.title('CTr')
-    plt.axis('off')
+# save the data division file
+data_division_file = os.path.join(root_folder, "data_division.json")
 
-    plt.subplot(4, 3, 2)
-    img_rCTr = np.rot90(return_CTr[0, 1, :, :])
-    # img_rCTr = return_CTr[0, 1, :, :]
-    # clip img from -1 to 1
-    img_rCTr = np.clip(img_rCTr, -1, 1)
-    plt.imshow(img_rCTr, cmap='gray')
-    n_unique_CTr = torch.unique(ind_CTr).shape[0]
-    plt.title(f"CTr_recon via {n_unique_CTr} embedding")
-    plt.axis('off')
+train_ds = CacheDataset(
+    data=train_list,
+    transform=train_transforms,
+    cache_num=num_train_files,
+    cache_rate=0.1,
+    num_workers=4,
+)
 
-    plt.subplot(4, 3, 3)
-    img = img_rCTr - np.rot90(CTr_img[1, :, :])
-    # img = img_rCTr - CTr_img[1, :, :]
-    plt.imshow(img, cmap='bwr')
-    plt.title('diff_CTr')
-    plt.axis('off')
+val_ds = CacheDataset(
+    data=val_list,
+    transform=val_transforms, 
+    cache_num=num_val_files,
+    cache_rate=0.1,
+    num_workers=4,
+)
 
-    plt.subplot(4, 3, 7)
-    img = np.rot90(PET_img[1, :, :])
-    # img = PET_img[1, :, :]
-    plt.imshow(img, cmap='gray')
-    plt.title('PET')
-    plt.axis('off')
+test_ds = CacheDataset(
+    data=test_list,
+    transform=test_transforms,
+    cache_num=num_test_files,
+    cache_rate=0.1,
+    num_workers=4,
+)
 
-    plt.subplot(4, 3, 8)
-    img_rPET = np.rot90(return_PET[0, 1, :, :])
-    # img_rPET = return_PET[0, 1, :, :]
-    # clip img from -1 to 1
-    img_rPET = np.clip(img_rPET, -1, 1)
-    plt.imshow(img_rPET, cmap='gray')
-    n_unique_PET = torch.unique(ind_PET).shape[0]
-    plt.title(f"PET_recon via {n_unique_PET} embedding")
-    plt.axis('off')
 
-    plt.subplot(4, 3, 9)
-    img = img_rPET - np.rot90(PET_img[1, :, :])
-    # img = img_rPET - PET_img[1, :, :]
-    plt.imshow(img, cmap='bwr')
-    plt.title('diff_PET')
-    plt.axis('off')
 
-    plt.subplot(4, 3, 4)
-    img = np.rot90(CTr_img[1, :, :])
-    # img = CTr_img[1, :, :]
-    plt.hist(img.flatten(), bins=100)
-    plt.xlim(-1, 1)
-    plt.title('CTr')
-    plt.yscale('log')
+train_loader = DataLoader(train_ds, 
+                        batch_size=batch_size,
+                        shuffle=True, 
+                        num_workers=4,
 
-    plt.subplot(4, 3, 5)
-    img_rCTr = np.rot90(return_CTr[0, 1, :, :])
-    # img_rCTr = return_CTr[0, 1, :, :]
-    # clip img from -1 to 1
-    img_rCTr = np.clip(img_rCTr, -1, 1)
-    plt.hist(img_rCTr.flatten(), bins=100)
-    plt.xlim(-1, 1)
-    n_unique_CTr = torch.unique(ind_CTr).shape[0]
-    plt.title(f"CTr_recon via {n_unique_CTr} embedding")
-    plt.yscale('log')
+)
+val_loader = DataLoader(val_ds, 
+                        batch_size=batch_size, 
+                        shuffle=True, 
+                        num_workers=4,
+)
 
-    plt.subplot(4, 3, 6)
-    img = img_rCTr - np.rot90(CTr_img[1, :, :])
-    # img = img_rCTr - CTr_img[1, :, :]
-    plt.hist(img.flatten(), bins=100)
-    plt.xlim(-1, 1)
-    plt.title('diff_CTr')
-    plt.yscale('log')
+test_loader = DataLoader(test_ds,
+                        batch_size=batch_size,
+                        shuffle=True,
+                        num_workers=4,
+)
 
-    plt.subplot(4, 3, 10)
-    img = np.rot90(PET_img[1, :, :])
-    # img = PET_img[1, :, :]
-    plt.hist(img.flatten(), bins=100)
-    plt.xlim(-1, 1)
-    plt.title('PET')
-    plt.yscale('log')
+# set the optimizer and loss
+learning_rate = 1e-4
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+loss_function = torch.nn.L1Loss()
+output_loss = torch.nn.L1Loss()
 
-    plt.subplot(4, 3, 11)
-    img_rPET = np.rot90(return_PET[0, 1, :, :])
-    # img_rPET = return_PET[0, 1, :, :]
-    # clip img from -1 to 1
-    img_rPET = np.clip(img_rPET, -1, 1)
-    plt.hist(img_rPET.flatten(), bins=100)
-    plt.xlim(-1, 1)
-    n_unique_PET = torch.unique(ind_PET).shape[0]
-    plt.title(f"PET_recon via {n_unique_PET} embedding")
-    plt.yscale('log')
+best_val_loss = 1e10
+n_train_batches = len(train_loader)
+n_val_batches = len(val_loader)
+n_test_batches = len(test_loader)
 
-    plt.subplot(4, 3, 12)
-    img = img_rPET - np.rot90(PET_img[1, :, :])
-    # img = img_rPET - PET_img[1, :, :]
-    plt.hist(img.flatten(), bins=100)
-    plt.xlim(-1, 1)
-    plt.title('diff_PET')
-    plt.yscale('log')
+
+def plot_results(inputs, labels, outputs, idx_epoch):
+    # plot the results
+    n_block = 8
+    plt.figure(figsize=(12, 12), dpi=300)
+
+    n_row = n_block
+    n_col = 6
+
+    for i in range(n_block):
+        # first three and hist
+        plt.subplot(n_row, n_col, i * n_col + 1)
+        img_PET = np.rot90(inputs[i, in_channels // 2, :, :].detach().cpu().numpy())
+        img_PET = np.squeeze(np.clip(img_PET, 0, 1))
+        plt.imshow(img_PET, cmap="gray")
+        plt.axis("off")
+
+        plt.subplot(n_row, n_col, i * n_col + 2)
+        img_CT = np.rot90(labels[i, 0, :, :].detach().cpu().numpy())
+        img_CT = np.squeeze(np.clip(img_CT, 0, 1))
+        plt.imshow(img_CT, cmap="gray")
+        plt.axis("off")
+
+        plt.subplot(n_row, n_col, i * n_col + 3)
+        img_pred = np.rot90(outputs[i, 0, 0, :, :].detach().cpu().numpy())
+        img_pred = np.squeeze(np.clip(img_pred, 0, 1))
+        plt.imshow(img_pred, cmap="gray")
+        plt.axis("off")
+
+        plt.subplot(n_row, n_col, i * n_col + 4)
+        plt.hist(img_PET.flatten(), bins=100)
+        plt.yscale("log")
+        plt.axis("off")
+        plt.xlim(0, 1)
+
+        plt.subplot(n_row, n_col, i * n_col + 5)
+        plt.hist(img_CT.flatten(), bins=100)
+        plt.yscale("log")
+        plt.axis("off")
+        plt.xlim(0, 1)
+
+        plt.subplot(n_row, n_col, i * n_col + 6)
+        plt.hist(img_pred.flatten(), bins=100)
+        plt.yscale("log")
+        plt.axis("off")
+        plt.xlim(0, 1)
 
     plt.tight_layout()
-    plt.savefig(savename)
+    plt.savefig(os.path.join(root_folder, f"epoch_{idx_epoch}.png"))
     plt.close()
 
-def two_segment_scale(arr, MIN, MID, MAX, MIQ):
-    # Create an empty array to hold the scaled results
-    scaled_arr = np.zeros_like(arr, dtype=np.float32)
 
-    # First segment: where arr <= MID
-    mask1 = arr <= MID
-    scaled_arr[mask1] = (arr[mask1] - MIN) / (MID - MIN) * MIQ
 
-    # Second segment: where arr > MID
-    mask2 = arr > MID
-    scaled_arr[mask2] = MIQ + (arr[mask2] - MID) / (MAX - MID) * (1 - MIQ)
+# start the training
+for idx_epoch in range(num_epoch):
+
+    # train the model
+    model.train()
+    train_loss = 0
+    for idx_batch, batch_data in enumerate(train_loader):
+        inputs = batch_data["PET"].to(device)
+        labels = batch_data["CT"].to(device)
+        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
+        # inputs.shape:  torch.Size([16, 3, 400, 400]) labels.shape:  torch.Size([16, 1, 400, 400])
+        # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = output_loss(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        print(f"Epoch {idx_epoch}, batch [{idx_batch}]/[{n_train_batches}], loss: {loss.item()*CT_NORM:.4f}")
+        train_loss += loss.item()
+    train_loss /= len(train_loader)
+    print(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}")
+    # log the results
+    with open(log_file, "a") as f:
+        f.write(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}\n")
+
+    if idx_epoch % plot_per_epoch == 0:
+        plot_results(inputs, labels, outputs, idx_epoch)
+
+    # evaluate the model
+    if idx_epoch % eval_per_epoch == 0:
+        model.eval()
+        with torch.no_grad():
+            val_loss = 0
+            for idx_batch, batch_data in enumerate(val_loader):
+                inputs = batch_data["PET"].to(device)
+                labels = batch_data["CT"].to(device)
+                outputs = model(inputs)
+                loss = output_loss(outputs, labels)
+                val_loss += loss.item()
+            val_loss /= len(val_loader)
+            print(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f}")
+            with open(log_file, "a") as f:
+                f.write(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f}\n")
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                torch.save(model.state_dict(), os.path.join(root_folder, "best_model.pth"))
+                print(f"Save the best model with val_loss: {val_loss*CT_NORM:.4f} at epoch {idx_epoch}")
+                with open(log_file, "a") as f:
+                    f.write(f"Save the best model with val_loss: {val_loss*CT_NORM:.4f} at epoch {idx_epoch}\n")
+                
+                # test the model
+                with torch.no_grad():
+                    test_loss = 0
+                    for idx_batch, batch_data in enumerate(test_loader):
+                        inputs = batch_data["PET"].to(device)
+                        labels = batch_data["CT"].to(device)
+                        outputs = model(inputs)
+                        loss = output_loss(outputs, labels)
+                        test_loss += loss.item()
+                    test_loss /= len(test_loader)
+                    print(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f}")
+                    with open(log_file, "a") as f:
+                        f.write(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f}\n")
+
+    # save the model
+    if idx_epoch % save_per_epoch == 0:
+        save_path = os.path.join(root_folder, f"model_epoch_{idx_epoch}.pth")
+        torch.save(model.state_dict(), save_path)
+        print(f"Save model to {save_path}")
+
     
-    return scaled_arr
-
-def reverse_two_segment_scale(arr, MIN, MID, MAX, MIQ):
-    # Create an empty array to hold the reverse scaled results
-    reverse_scaled_arr = np.zeros_like(arr, dtype=np.float32)
-
-    # First segment: where arr <= MIQ
-    mask1 = arr <= MIQ
-    reverse_scaled_arr[mask1] = arr[mask1] * (MID - MIN) / MIQ + MIN
-
-    # Second segment: where arr > MIQ
-    mask2 = arr > MIQ
-    reverse_scaled_arr[mask2] = MID + (arr[mask2] - MIQ) * (MAX - MID) / (1 - MIQ)
-    
-    return reverse_scaled_arr
-
-import nibabel as nib
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.ndimage import zoom
-
-tag_list = [
-    "E4055", "E4058", "E4061",          "E4066",
-    "E4068", "E4069", "E4073", "E4074", "E4077",
-    "E4078", "E4079",          "E4081", "E4084",
-             "E4091", "E4092", "E4094", "E4096",
-             "E4098", "E4099",          "E4103",
-    "E4105", "E4106", "E4114", "E4115", "E4118",
-    "E4120", "E4124", "E4125", "E4128", "E4129",
-    "E4130", "E4131", "E4134", "E4137", "E4138",
-    "E4139",
-]
-
-MID_PET = 5000
-MIQ_PET = 0.9
-MAX_PET = 20000
-MAX_CT = 3976
-MIN_CT = -1024
-MIN_PET = 0
-RANGE_CT = MAX_CT - MIN_CT
-RANGE_PET = MAX_PET - MIN_PET
-
-new_folders = [
-    f"./B100/vq_{VQ_NAME}_recon",
-    f"./B100/vq_{VQ_NAME}_loss",
-    f"./B100/vq_{VQ_NAME}_png",
-    f"./B100/vq_{VQ_NAME}_ind",
-]
-
-for new_folder in new_folders:
-    if not os.path.exists(new_folder):
-        os.makedirs(new_folder)
-
-for idx_tag, name_tag in enumerate(tag_list):
-
-    CT_res_path = f"./B100/npy/CTACIVV_{name_tag}.npy"
-    PET_path = f"./B100/npy/PET_TOFNAC_{name_tag}.npy"
-
-    CT_res_data = np.load(CT_res_path)
-    PET_data = np.load(PET_path)
-    len_z = CT_res_data.shape[0]
-
-    recon_CTr_data = np.zeros(CT_res_data.shape, dtype=np.float32)
-    recon_PET_data = np.zeros(PET_data.shape, dtype=np.float32)
-
-    # describe the images
-    print("CTr shape: ", CT_res_data.shape, "PET shape: ", PET_data.shape)
-    print("CTr mean: ", np.mean(CT_res_data), "PET mean: ", np.mean(PET_data))
-    print("CTr std: ", np.std(CT_res_data), "PET std: ", np.std(PET_data))
-    print("CTr min: ", np.min(CT_res_data), "PET min: ", np.min(PET_data))
-    print("CTr max: ", np.max(CT_res_data), "PET max: ", np.max(PET_data))
-
-    CTr_l1_loss_list = []
-    PET_l1_loss_list = []
-    CTr_ind_list = []
-    PET_ind_list = []
-
-    for idz in range(len_z):
-        print(f"Processing {name_tag}:[{idx_tag}]/[{len(tag_list)}] z=[{idz}]/[{len_z-1}]")
-
-        if idz == 0:
-            idx_list = [0, 0, 1]
-        elif idz == len_z - 1:
-            idx_list = [len_z-2, len_z-1, len_z-1]
-        else:
-            idx_list = [idz-1, idz, idz+1]
-
-        CTr_img = CT_res_data[idx_list, :, :]
-        PET_img = PET_data[idx_list, :, :]
-
-        # add one dim into img to be a batch
-        batch_CTr = np.expand_dims(CTr_img, axis=0)
-        batch_PET = np.expand_dims(PET_img, axis=0)
-        
-        # convert them into a torch tensor
-        batch_CTr = torch.from_numpy(batch_CTr)
-        batch_PET = torch.from_numpy(batch_PET)
-
-        # convert batch to float
-        batch_CTr = batch_CTr.float()
-        batch_PET = batch_PET.float()
-
-        # send batch to device
-        batch_CTr = batch_CTr.to(device)
-        batch_PET = batch_PET.to(device)
-
-        # evaluation
-        return_CTr, _, ind_CTr = model(batch_CTr, return_pred_indices=True)
-        return_PET, _, ind_PET = model(batch_PET, return_pred_indices=True)
-
-        # detach the tensor and convert to numpy
-        return_CTr = return_CTr.detach().cpu().numpy()
-        return_PET = return_PET.detach().cpu().numpy()
-
-        # compute unique index count
-        CTr_ind_list.append(ind_CTr.detach().cpu().numpy())
-        PET_ind_list.append(ind_PET.detach().cpu().numpy())
-
-        # save the index using 3 digit number
-        if idz % 50 == 0:
-            save_name = f"./B100/vq_{VQ_NAME}_png/vq_{VQ_NAME}_{name_tag}_z{idz:03d}.png"
-            plot_images(save_name, CTr_img, PET_img, return_CTr, return_PET, ind_CTr, ind_PET)
-
-        # convert the img to be channel last, from 3, 400, 400 to 400, 400, 3
-        CTr_recon = return_CTr[0, 1, :, :]
-        PET_recon = return_PET[0, 1, :, :]
-        recon_CTr_data[idz, :, :] = CTr_recon
-        recon_PET_data[idz, :, :] = PET_recon
-
-        # clip the ref img to be in the range
-        CTr_ref = CTr_img[1, :, :]
-        PET_ref = PET_img[1, :, :]
-
-        # compute the l1 loss
-        CTr_l1_loss = np.mean(np.abs(CTr_ref - CTr_recon)) / 2 * RANGE_CT
-        PET_ref_scale = reverse_two_segment_scale(PET_ref, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
-        PET_recon_scale = reverse_two_segment_scale(PET_recon, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
-        PET_l1_loss = np.mean(np.abs(PET_ref_scale - PET_recon_scale))
-        CTr_l1_loss_list.append(CTr_l1_loss)
-        PET_l1_loss_list.append(PET_l1_loss)
-
-    # save the recon data
-    # CTr_save_path = f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_CTr_recon.nii.gz"
-    # recon_CTr_nii = nib.Nifti1Image(recon_CTr_data, CT_res_file.affine, CT_res_file.header)
-    # nib.save(recon_CTr_nii, CTr_save_path)
-    # print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon CTr data saved at {CTr_save_path}")
-
-    # PET_save_path = f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_PET_recon.nii.gz"
-    # recon_PET_nii = nib.Nifti1Image(recon_PET_data, PET_file.affine, PET_file.header)
-    # nib.save(recon_PET_nii, PET_save_path)
-    # print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon PET data saved at {PET_save_path}")
-
-    # # save the diff
-    # ori_CT_res_data = np.clip(ori_CT_res_data, MIN_CT, MAX_CT)
-    # CTr_save_path = f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_CTr_diff.nii.gz"
-    # recon_CTr_nii = nib.Nifti1Image(recon_CTr_data - ori_CT_res_data, CT_res_file.affine, CT_res_file.header)
-    # nib.save(recon_CTr_nii, CTr_save_path)
-    # print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon CTr data saved at {CTr_save_path}")
-
-    # ori_PET_data = np.clip(ori_PET_data, MIN_PET, MAX_PET)
-    # PET_save_path = f"/Ammongus/synCT_PET_James/vq_{VQ_NAME}_{name_tag}_PET_diff.nii.gz"
-    # recon_PET_nii = nib.Nifti1Image(recon_PET_data - ori_PET_data, PET_file.affine, PET_file.header)
-    # nib.save(recon_PET_nii, PET_save_path)
-    # print(f"<{name_tag}>:[{idx_tag}]/[{len(tag_list)}] ---Recon PET data saved at {PET_save_path}")
-
-    # convert list to numpy array
-    CTr_l1_loss_list = np.array(CTr_l1_loss_list)
-    PET_l1_loss_list = np.array(PET_l1_loss_list)
-    CTr_ind_list = np.array(CTr_ind_list)
-    PET_ind_list = np.array(PET_ind_list)
-    CTr_recon_data = np.array(recon_CTr_data)
-    PET_recon_data = np.array(recon_PET_data)
-
-    # save the l1 loss and unique index count
-    np.save(f"./B100/vq_{VQ_NAME}_loss/vq_{VQ_NAME}_{name_tag}_CTr_l1_loss.npy", CTr_l1_loss_list)
-    np.save(f"./B100/vq_{VQ_NAME}_loss/vq_{VQ_NAME}_{name_tag}_PET_l1_loss.npy", PET_l1_loss_list)
-    np.save(f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy", CTr_ind_list)
-    np.save(f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_PET_ind.npy", PET_ind_list)
-    np.save(f"./B100/vq_{VQ_NAME}_recon/vq_{VQ_NAME}_{name_tag}_CTr_recon.npy", CTr_recon_data)
-    np.save(f"./B100/vq_{VQ_NAME}_recon/vq_{VQ_NAME}_{name_tag}_PET_recon.npy", PET_recon_data)
-    print(f"Average CTr l1 loss: {np.mean(CTr_l1_loss_list):.4f}, Average PET l1 loss: {np.mean(PET_l1_loss_list):.4f}")
-    # print(f"Average CTr unique index count: {np.mean(CTr_ind_cnt_list):.4f}, Average PET unique index count: {np.mean(PET_ind_cnt_list):.4f}")
-
-
-
-
-
-
