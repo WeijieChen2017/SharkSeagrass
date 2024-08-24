@@ -9,10 +9,10 @@ import torch
 import torch.nn as nn
 import numpy as np
 from einops import rearrange
-import torch.nn.functional as F
+# import torch.nn.functional as F
 
-from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
-import pytorch_lightning as pl
+# from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
+# import pytorch_lightning as pl
 
 def nonlinearity(x):
     # swish
