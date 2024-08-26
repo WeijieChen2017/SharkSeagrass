@@ -21,7 +21,7 @@ from monai.losses import DeepSupervisionLoss
 input_modality = ["PET", "CT"]
 img_size = 400
 cube_size = 96
-in_channels = 3
+in_channels = 1
 out_channels = 1
 batch_size = 16
 num_epoch = 10000
