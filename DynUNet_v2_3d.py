@@ -233,7 +233,9 @@ n_test_batches = len(test_loader)
 def plot_results(inputs, labels, outputs, idx_epoch):
     # plot the results
     n_block = 8
-    plt.figure(figsize=(12, 12), dpi=300)
+    if inputs.shape[0] < n_block:
+        n_block = inputs.shape[0]
+    plt.figure(figsize=(12, n_block*1.5), dpi=300)
 
     n_row = n_block
     n_col = 6
@@ -241,14 +243,14 @@ def plot_results(inputs, labels, outputs, idx_epoch):
     for i in range(n_block):
         # first three and hist
         plt.subplot(n_row, n_col, i * n_col + 1)
-        img_PET = np.rot90(inputs[i, in_channels // 2, :, :].detach().cpu().numpy())
+        img_PET = np.rot90(inputs[i, :, :, :, cube_size // 2].detach().cpu().numpy())
         img_PET = np.squeeze(np.clip(img_PET, 0, 1))
         plt.imshow(img_PET, cmap="gray")
         # plt.title("input PET")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 2)
-        img_CT = np.rot90(labels[i, 0, :, :].detach().cpu().numpy())
+        img_CT = np.rot90(labels[i, :, :, :, cube_size // 2].detach().cpu().numpy())
         img_CT = np.squeeze(np.clip(img_CT, 0, 1))
         plt.imshow(img_CT, cmap="gray")
         # plt.title("label CT")
@@ -256,7 +258,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 3)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        img_pred = np.rot90(outputs[i, 0, 0, :, :].detach().cpu().numpy())
+        img_pred = np.rot90(outputs[i, 0, :, :, :, cube_size // 2].detach().cpu().numpy())
         img_pred = np.squeeze(np.clip(img_pred, 0, 1))
         plt.imshow(img_pred, cmap="gray")
         # plt.title("output CT")
@@ -302,8 +304,8 @@ for idx_epoch in range(num_epoch):
         inputs = batch_data["PET"].to(device)
         labels = batch_data["CT"].to(device)
         print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        # inputs.shape:  torch.Size([16, 3, 400, 400]) labels.shape:  torch.Size([16, 1, 400, 400])
-        # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
+        # inputs.shape:  torch.Size([5, 1, 96, 96, 96]) labels.shape:  torch.Size([5, 1, 96, 96, 96])
+        # outputs.shape:  torch.Size([5, 2, 1, 96, 96, 96])
         optimizer.zero_grad()
         outputs = model(inputs)
         print("outputs.shape: ", outputs.shape)
