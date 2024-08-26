@@ -25,7 +25,7 @@ in_channels = 1
 out_channels = 1
 batch_size = 16
 num_epoch = 10000
-debug_file_num = 5
+debug_file_num = 0
 save_per_epoch = 10
 eval_per_epoch = 1
 plot_per_epoch = 1
@@ -303,12 +303,12 @@ for idx_epoch in range(num_epoch):
     for idx_batch, batch_data in enumerate(train_loader):
         inputs = batch_data["PET"].to(device)
         labels = batch_data["CT"].to(device)
-        print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
+        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
         # inputs.shape:  torch.Size([5, 1, 96, 96, 96]) labels.shape:  torch.Size([5, 1, 96, 96, 96])
         # outputs.shape:  torch.Size([5, 2, 1, 96, 96, 96])
         optimizer.zero_grad()
         outputs = model(inputs)
-        print("outputs.shape: ", outputs.shape)
+        # print("outputs.shape: ", outputs.shape)
         # loss = loss_function(outputs, labels)
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
