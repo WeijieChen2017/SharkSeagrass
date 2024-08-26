@@ -139,8 +139,8 @@ with open(data_division_file, "r") as f:
 
 if debug_file_num > 0:
     train_list = data_division["train"][:debug_file_num]
-    train_list = data_division["val"][:debug_file_num]
-    train_list = data_division["test"][:debug_file_num]
+    val_list = data_division["val"][:debug_file_num]
+    test_list = data_division["test"][:debug_file_num]
 else:
     train_list = data_division["train"]
     val_list = data_division["val"]
