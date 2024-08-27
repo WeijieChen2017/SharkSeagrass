@@ -24,8 +24,7 @@ for bedseg_path in bedseg_list:
 
     bedseg_data = bedseg_file.get_fdata()[:, :, idz-1]
     CT_data = CT_file.get_fdata()
-    print("CT shape:", CT_data.shape)
-    print("BedSeg shape:", mask.shape)
+    print("CT shape:", CT_data.shape, "BedSeg shape:", bedseg_data.shape)
 
     # extract the mask
     mask = bedseg_data == 1
