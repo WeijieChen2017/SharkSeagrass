@@ -22,13 +22,13 @@ for bedseg_path in bedseg_list:
     bedseg_file = nib.load(bedseg_path)
     CT_file = nib.load(CT_path)
 
-    mask = bedseg_file.get_fdata()[:, :, idz-1]
+    bedseg_data = bedseg_file.get_fdata()[:, :, idz-1]
     CT_data = CT_file.get_fdata()
     print("CT shape:", CT_data.shape)
     print("BedSeg shape:", mask.shape)
 
     # extract the mask
-    # mask = bedseg_data == 1
+    mask = bedseg_data == 1
     # show the mask size
     print("Mask size:", np.sum(mask))
 
