@@ -7,7 +7,7 @@ import glob
 import numpy as np
 import nibabel as nib
 
-idz = 366
+idz = 366 # this is in the ITK-SNAP coordinate system
 bedseg_path = './B100/BedSeg_z366/'
 bedseg_list = sorted(glob.glob(bedseg_path + '*.nii.gz'))
 CT_raw_folder = './B100/nifti/raw/'
@@ -22,7 +22,7 @@ for bedseg_path in bedseg_list:
     bedseg_file = nib.load(bedseg_path)
     CT_file = nib.load(CT_path)
 
-    bedseg_data = bedseg_file.get_fdata()[:, :, idz]
+    bedseg_data = bedseg_file.get_fdata()[:, :, idz-1]
     CT_data = CT_file.get_fdata()
     print("CT shape:", CT_data.shape)
     print("BedSeg shape:", bedseg_data.shape)
