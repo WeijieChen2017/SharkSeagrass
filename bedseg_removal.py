@@ -28,9 +28,9 @@ for bedseg_path in bedseg_list:
     print("BedSeg shape:", bedseg_data.shape)
 
     # extract the mask
-    mask = bedseg_data == 1
+    # mask = bedseg_data == 1
     # show the mask size
-    print("Mask size:", np.sum(mask))
+    print("Mask size:", np.sum(bedseg_data))
 
     # for i in range(CT_data.shape[2]):
     #     img = CT_data[:, :, i]
