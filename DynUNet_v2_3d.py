@@ -25,12 +25,12 @@ in_channels = 1
 out_channels = 1
 batch_size = 2
 num_epoch = 10000
-debug_file_num = 0
+debug_file_num = 2
 save_per_epoch = 10
 eval_per_epoch = 1
 plot_per_epoch = 1
 CT_NORM = 5000
-cache_rate = 1.
+cache_rate = 0.1
 root_folder = "./B100/dynunet3d_v1"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
@@ -66,12 +66,15 @@ train_transforms = Compose(
         # EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
-        RandSpatialCropd(keys="PET",
+        RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
-        RandSpatialCropd(keys="CT",
-                         roi_size=(cube_size, cube_size, cube_size),
-                         random_center=True, random_size=False),
+        # RandSpatialCropd(keys="PET",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
+        # RandSpatialCropd(keys="CT",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=batch_size,
@@ -105,13 +108,15 @@ val_transforms = Compose(
         #                         roi_size=(img_size, img_size, out_channels),
                                 # num_samples=batch_size,
                                 # random_size=False, random_center=False),
-        
-        RandSpatialCropd(keys="PET",
+        RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
-        RandSpatialCropd(keys="CT",
-                         roi_size=(cube_size, cube_size, cube_size),
-                         random_center=True, random_size=False),
+        # RandSpatialCropd(keys="PET",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
+        # RandSpatialCropd(keys="CT",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
         # RandSpatialCropSamplesd(keys=input_modality,
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=num_samples,
@@ -124,12 +129,15 @@ test_transforms = Compose(
         LoadImaged(keys=input_modality, image_only=True),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
-        RandSpatialCropd(keys="PET",
+        RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
-        RandSpatialCropd(keys="CT",
-                         roi_size=(cube_size, cube_size, cube_size),
-                         random_center=True, random_size=False),
+        # RandSpatialCropd(keys="PET",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
+        # RandSpatialCropd(keys="CT",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
     ]
 )
 
