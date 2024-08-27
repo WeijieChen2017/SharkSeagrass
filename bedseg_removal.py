@@ -12,5 +12,5 @@ bedseg_list = sorted(glob.glob(bedseg_path + '*.nii.gz'))
 
 for bedseg_path in bedseg_list:
     print("Processing", bedseg_path)
-    case_tag = bedseg_path.split('/')[-1].split('.')[0][:-5]
+    case_tag = bedseg_path.split('/')[-1].split('.')[0][-5:]
     print("Case tag:", case_tag)
