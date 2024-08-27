@@ -9,8 +9,30 @@ import nibabel as nib
 idz = 366
 bedseg_path = './B100/BedSeg_z366/'
 bedseg_list = sorted(glob.glob(bedseg_path + '*.nii.gz'))
+CT_raw_folder = './B100/nifti/raw/'
+os.makedirs(CT_raw_folder, exist_ok=True)
 
 for bedseg_path in bedseg_list:
-    print("Processing", bedseg_path)
+
     case_tag = bedseg_path.split('/')[-1].split('.')[0][-5:]
-    print("Case tag:", case_tag)
+    CT_path = "./B100/nifti/CTACIVV_"+case_tag+".nii.gz"
+    print("Processing", bedseg_path, "and", CT_path)
+    
+    bedseg_file = nib.load(bedseg_path)
+    CT_file = nib.load(CT_path)
+
+    bedseg_data = bedseg_file.get_fdata()[:, :, idz]
+    CT_data = CT_file.get_fdata()
+
+    # extract the mask
+    mask = bedseg_data == 1
+    for i in range(CT_data.shape[2]):
+        img = CT_data[:, :, i]
+        img[mask] = 0
+        CT_data[:, :, i] = img
+    
+    new_CT_file = nib.Nifti1Image(CT_data, affine=CT_file.affine, header=CT_file.header)
+    # mv the original CT file to raw folder
+    os.system("mv "+CT_path+" "+CT_raw_folder)
+    nib.save(new_CT_file, CT_path)
+    print("Processed", CT_path)
