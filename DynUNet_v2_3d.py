@@ -25,12 +25,12 @@ in_channels = 1
 out_channels = 1
 batch_size = 2
 num_epoch = 10000
-debug_file_num = 2
+debug_file_num = 0
 save_per_epoch = 10
 eval_per_epoch = 1
 plot_per_epoch = 1
 CT_NORM = 5000
-cache_rate = 0.1
+cache_rate = 1.0
 root_folder = "./B100/dynunet3d_v1"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
