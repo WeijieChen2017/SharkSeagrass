@@ -22,23 +22,23 @@ for bedseg_path in bedseg_list:
     bedseg_file = nib.load(bedseg_path)
     CT_file = nib.load(CT_path)
 
-    bedseg_data = bedseg_file.get_fdata()[:, :, idz-1]
+    mask = bedseg_file.get_fdata()[:, :, idz-1]
     CT_data = CT_file.get_fdata()
     print("CT shape:", CT_data.shape)
-    print("BedSeg shape:", bedseg_data.shape)
+    print("BedSeg shape:", mask.shape)
 
     # extract the mask
     # mask = bedseg_data == 1
     # show the mask size
-    print("Mask size:", np.sum(bedseg_data))
+    print("Mask size:", np.sum(mask))
 
-    # for i in range(CT_data.shape[2]):
-    #     img = CT_data[:, :, i]
-    #     img[mask] = 0
-    #     CT_data[:, :, i] = img
+    for i in range(CT_data.shape[2]):
+        img = CT_data[:, :, i]
+        img[mask] = 0
+        CT_data[:, :, i] = img
     
-    # new_CT_file = nib.Nifti1Image(CT_data, affine=CT_file.affine, header=CT_file.header)
+    new_CT_file = nib.Nifti1Image(CT_data, affine=CT_file.affine, header=CT_file.header)
     # mv the original CT file to raw folder
-    # os.system("mv "+CT_path+" "+CT_raw_folder)
-    # nib.save(new_CT_file, CT_path)
-    # print("Processed", CT_path)
+    os.system("mv "+CT_path+" "+CT_raw_folder)
+    nib.save(new_CT_file, CT_path)
+    print("Processed", CT_path)
