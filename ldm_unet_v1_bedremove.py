@@ -15,5 +15,5 @@ for tag in target_tags:
     for idz in range(nii_data.shape[2]):
         img = nii_data[:, :, idz]
         npy_path = save_folder + "STEP2_"+tag+"_z"+str(idz)+".npy"
-        np.load(npy_path)
-        print(f"Processing {nii_path}. the img shape is {img.shape} and the npy shape is {npy.shape}")
+        np_data = np.load(npy_path)
+        print(f"Processing {nii_path}. the img shape is {img.shape} and the npy shape is {np_data.shape}")
