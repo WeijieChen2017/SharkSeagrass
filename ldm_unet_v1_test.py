@@ -611,7 +611,7 @@ for old_list, new_list in [(train_list, new_train_list), (val_list, new_val_list
         x_data = preds
         y_data = outputs_data
         x_path = root_folder + inputs_path.split("/")[-1].replace("PET_TOFNAC", "STEP1")
-        y_path = root_folder + inputs_path.split("/")[-1].replace("CTACIVV", "STEP2")
+        y_path = root_folder + outputs_path.split("/")[-1].replace("CTACIVV", "STEP2")
         np.save(x_path, x_data)
         np.save(y_path, y_data)
         print(f"Save the outputs to {x_path} and {y_path}")
