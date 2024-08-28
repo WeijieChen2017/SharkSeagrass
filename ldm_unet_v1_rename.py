@@ -18,6 +18,6 @@ test_list = data_division['test']
 print("Train:", len(train_list), "Val:", len(val_list), "Test:", len(test_list))
 
 for pair in train_list:
-    step_1_path = pair["step1"]
-    step_2_path = pair["step2"]
-    print("Processing", step_1_path, step_2_path)
+    step_1_path = pair["STEP1"]
+    step_2_path = pair["STEP2"]
+    print("Processing", step_2_path)
