@@ -17,7 +17,20 @@ test_list = data_division['test']
 
 print("Train:", len(train_list), "Val:", len(val_list), "Test:", len(test_list))
 
+new_train_list = []
+new_val_list = []
+new_test_list = []
+
 for pair in train_list[:10]:
     step_1_path = pair["STEP1"]
     step_2_path = pair["STEP2"]
     print("Processing", step_2_path)
+
+    new_step_2_path = step_2_path.replace("PET_TOFNAC", "STEP2")
+    rename_cmd = "mv "+step_2_path+" "+new_step_2_path
+    new_pair = {
+        "STEP1": step_1_path,
+        "STEP2": new_step_2_path,
+    }
+    print(rename_cmd)
+    print(new_pair)
