@@ -63,7 +63,8 @@ model = Sam3D(
         ),
 )
 
-model.load_pretrain(path="sam_med3d_turbo.pth").to(device)
+model.load_pretrain(path="sam_med3d_turbo.pth")
+model.to(device)
 
 
 
