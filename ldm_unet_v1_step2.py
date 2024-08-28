@@ -62,7 +62,7 @@ train_transforms = Compose(
         LoadImaged(keys=input_modality, image_only=True),
         # Transposed(keys=input_modality, indices=(2, 0, 1)),
         # EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
-        EnsureChannelFirstd(keys=input_modality, channel_dim="no_channel"),
+        EnsureChannelFirstd(keys="STEP2", channel_dim="no_channel"),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         # EnsureChannelFirstd(keys="CT", channel_dim='no_channel'),
         # RandSpatialCropd(keys="PET",
@@ -94,7 +94,7 @@ train_transforms = Compose(
 val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
-        EnsureChannelFirstd(keys=input_modality, channel_dim="no_channel"),
+        EnsureChannelFirstd(keys="STEP2", channel_dim="no_channel"),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         # EnsureChannelFirstd(keys="CT", channel_dim='no_channel'),
         # RandSpatialCropSamplesd(keys="PET",
@@ -122,7 +122,7 @@ val_transforms = Compose(
 test_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
-        EnsureChannelFirstd(keys=input_modality, channel_dim="no_channel"),
+        EnsureChannelFirstd(keys="STEP2", channel_dim="no_channel"),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         # EnsureChannelFirstd(keys="CT", channel_dim='no_channel'),
     ]
