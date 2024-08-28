@@ -16,4 +16,6 @@ for tag in target_tags:
     print("Data shape:", nii_data.shape)
     for idz in range(nii_data.shape[2]):
         img = nii_data[:, :, idz]
-        print("Slice", idz, "max:", np.max(img), "min:", np.min(img), img.shape)
+        npy_path = save_folder + "STEP2_"+tag+"_"+str(idz)+".npy"
+        np.load(npy_path)
+        print("The img shape is", img.shape, "and the npy shape is", np.load(npy_path).shape)
