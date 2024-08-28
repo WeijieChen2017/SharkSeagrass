@@ -13,6 +13,7 @@ from monai.transforms import (
     RandFlipd, 
     RandRotated,
     Transposed,
+    NormalizeIntensityd,
 )
 from monai.data import CacheDataset, DataLoader
 from SAM_Med3D_util import Sam3D, ImageEncoderViT3D, partial
@@ -74,6 +75,7 @@ train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
+        NormalizeIntensityd(keys=input_modality),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
@@ -84,6 +86,7 @@ val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
+        NormalizeIntensityd(keys=input_modality),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
@@ -94,6 +97,7 @@ test_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
+        NormalizeIntensityd(keys=input_modality),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
@@ -205,7 +209,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 2)
-        img_CT = np.rot90(labels[i, :, :, :, cube_size // 2].detach().cpu().numpy())
+        img_CT = np.rot90(labels[i, :, :, cube_size // 2].detach().cpu().numpy())
         img_CT = np.squeeze(np.clip(img_CT, 0, 1))
         plt.imshow(img_CT, cmap="gray")
         # plt.title("label CT")
@@ -259,8 +263,8 @@ for idx_epoch in range(num_epoch):
         inputs = batch_data["PET"].to(device)
         labels = batch_data["CT"].to(device)
         # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        # inputs.shape:  torch.Size([5, 1, 96, 96, 96]) labels.shape:  torch.Size([5, 1, 96, 96, 96])
-        # outputs.shape:  torch.Size([5, 2, 1, 96, 96, 96])
+        # inputs.shape:  torch.Size([1, 1, 128, 128, 128]) labels.shape:  torch.Size([1, 1, 128, 128, 128])
+        # outputs.shape:  torch.Size([1, 1, 128, 128, 128])
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = output_loss(outputs, labels)
