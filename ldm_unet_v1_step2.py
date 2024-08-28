@@ -292,6 +292,7 @@ for idx_epoch in range(num_epoch):
     for idx_batch, batch_data in enumerate(train_loader):
         inputs = batch_data["STEP1"].to(device)
         labels = batch_data["STEP2"].to(device)
+        print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
         # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
         # inputs.shape:  torch.Size([16, 1, 400, 400]) labels.shape:  torch.Size([16, 1, 400, 400])
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
@@ -299,9 +300,11 @@ for idx_epoch in range(num_epoch):
         # res_x should be based on inputs torch.Size([16, 1, 400, 400]) and copy it to be torch.Size([16, 2, 1, 400, 400])
         optimizer.zero_grad()
         res_x = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
+        print("res_x.shape: ", res_x.shape)
         # torch.Size([16, 2, 400, 400]) add the axis
-        outputs = model(inputs) + res_x
-        # print("outputs.shape: ", outputs.shape)
+        outputs = model(inputs)
+        print("outputs.shape: ", outputs.shape)
+        outputs = outputs + res_x
         # loss = loss_function(outputs, labels)
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
