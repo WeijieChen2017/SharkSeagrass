@@ -35,6 +35,8 @@ if not os.path.exists(root_folder):
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
 
+device = torch.device("cuda:1")
+
 kernels = [[3, 3], [3, 3], [3, 3], [3, 3]]
 strides = [[1, 1], [2, 2], [2, 2], [2, 2]]
 
@@ -53,7 +55,7 @@ model = DynUNet(
     deep_supr_num=1,
     res_block=True,
     trans_bias=False,
-)
+).to(device)
 
 
 # set the data transform
@@ -192,8 +194,6 @@ test_loader = DataLoader(test_ds,
                         num_workers=4,
 )
 
-device = torch.device("cuda:0")
-model.to(device)
 
 # set the optimizer and loss
 learning_rate = 1e-4
