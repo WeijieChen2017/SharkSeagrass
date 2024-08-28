@@ -586,7 +586,7 @@ new_test_list = []
 BedSeg_tages = ["E4061", "E4098", "E4114", "E4128", "E4139"]
 
 model.eval()
-for old_list, new_list in zip((train_list, new_train_list), (val_list, new_val_list), (test_list, new_test_list)):
+for old_list, new_list in [(train_list, new_train_list), (val_list, new_val_list), (test_list, new_test_list)]:
     for pair in old_list:
 
         loss_list = []
