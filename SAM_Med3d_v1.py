@@ -62,7 +62,7 @@ model = Sam3D(
         ),
 )
 
-model.load_pretrain(path="sam_med3d_turbo.pth")
+model.load_pretrain(path="sam_med3d_turbo.pth").to()
 
 
 
@@ -175,11 +175,11 @@ learning_rate = 1e-4
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 loss_function = torch.nn.L1Loss()
 output_loss = torch.nn.L1Loss()
-ds_loss = DeepSupervisionLoss(
-    loss = output_loss,
-    weight_mode = "exp",
-    weights = None,
-)
+# ds_loss = DeepSupervisionLoss(
+#     loss = output_loss,
+#     weight_mode = "exp",
+#     weights = None,
+# )
 
 best_val_loss = 1e10
 n_train_batches = len(train_loader)
