@@ -30,6 +30,7 @@ eval_per_epoch = 10
 plot_per_epoch = 10
 CT_NORM = 5000
 cache_rate = 1.0
+device = torch.device("cuda:0")
 root_folder = "./B100/SAM-Med3D_v1"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
@@ -62,7 +63,7 @@ model = Sam3D(
         ),
 )
 
-model.load_pretrain(path="sam_med3d_turbo.pth").to()
+model.load_pretrain(path="sam_med3d_turbo.pth").to(device)
 
 
 
@@ -166,9 +167,6 @@ test_loader = DataLoader(test_ds,
                         shuffle=True,
                         num_workers=4,
 )
-
-device = torch.device("cuda:0")
-model.to(device)
 
 # set the optimizer and loss
 learning_rate = 1e-4
