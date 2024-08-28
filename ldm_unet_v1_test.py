@@ -528,10 +528,13 @@ loss_config = config['model']['params']['lossconfig']
 model = VQModel(ddconfig=dd_config,
                 n_embed=config['model']['params']['n_embed'],
                 embed_dim=config['model']['params']['embed_dim'],
-                ckpt_path=ckpt_path,
+                ckpt_path=None,
                 ignore_keys=[],
                 image_key="image",
-).to(device)
+)
+
+model.load_state_dict(torch.load(ckpt_path))
+model.to(device)
 
 # # here we want to output all the parameters of the model, including :name, :type, :shape
 # print()
