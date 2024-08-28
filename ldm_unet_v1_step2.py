@@ -28,6 +28,7 @@ num_epoch = 10000
 save_per_epoch = 10
 eval_per_epoch = 1
 plot_per_epoch = 1
+cache_rate = 0.25
 CT_NORM = 5000
 root_folder = "./B100/ldm_unet_v1_step2"
 if not os.path.exists(root_folder):
@@ -154,7 +155,7 @@ train_ds = CacheDataset(
     data=train_list,
     transform=train_transforms,
     cache_num=num_train_files,
-    cache_rate=0.1,
+    cache_rate=cache_rate,
     num_workers=4,
 )
 
@@ -162,7 +163,7 @@ val_ds = CacheDataset(
     data=val_list,
     transform=val_transforms, 
     cache_num=num_val_files,
-    cache_rate=0.1,
+    cache_rate=cache_rate,
     num_workers=4,
 )
 
@@ -170,7 +171,7 @@ test_ds = CacheDataset(
     data=test_list,
     transform=test_transforms,
     cache_num=num_test_files,
-    cache_rate=0.1,
+    cache_rate=cache_rate,
     num_workers=4,
 )
 
@@ -292,20 +293,13 @@ for idx_epoch in range(num_epoch):
     for idx_batch, batch_data in enumerate(train_loader):
         inputs = batch_data["STEP1"].to(device)
         labels = batch_data["STEP2"].to(device)
-        print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        # inputs.shape:  torch.Size([16, 1, 400, 400]) labels.shape:  torch.Size([16, 1, 400, 400])
-        # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        # res_x is the skip connection from the encoder to the decoder, and add axis for deep supervision
-        # res_x should be based on inputs torch.Size([16, 1, 400, 400]) and copy it to be torch.Size([16, 2, 1, 400, 400])
         optimizer.zero_grad()
         res_x = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
-        print("res_x.shape: ", res_x.shape)
-        # torch.Size([16, 2, 400, 400]) add the axis
         outputs = model(inputs)
-        print("outputs.shape: ", outputs.shape)
+        # inputs.shape:  torch.Size([16, 1, 400, 400]) labels.shape:  torch.Size([16, 1, 400, 400])
+        # res_x.shape:  torch.Size([16, 2, 1, 400, 400])
+        # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
         outputs = outputs + res_x
-        # loss = loss_function(outputs, labels)
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
         optimizer.step()
