@@ -16,4 +16,8 @@ for tag in target_tags:
         img = nii_data[:, :, idz]
         npy_path = save_folder + "STEP2_"+tag+"_z"+str(idz)+".npy"
         np_data = np.load(npy_path)
-        print(f"Processing {nii_path}. the img shape is {img.shape} and the npy shape is {np_data.shape}")
+        if img.shape == np_data.shape:
+            np.save(npy_path, img)
+            print("Processed", npy_path)
+        else:
+            print("Shape mismatch:", img.shape, np_data.shape)
