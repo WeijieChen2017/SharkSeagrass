@@ -290,8 +290,8 @@ for idx_epoch in range(num_epoch):
     model.train()
     train_loss = 0
     for idx_batch, batch_data in enumerate(train_loader):
-        inputs = batch_data["PET"].to(device)
-        labels = batch_data["CT"].to(device)
+        inputs = batch_data["STEP1"].to(device)
+        labels = batch_data["STEP2"].to(device)
         # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
         # inputs.shape:  torch.Size([16, 1, 400, 400]) labels.shape:  torch.Size([16, 1, 400, 400])
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
@@ -322,8 +322,8 @@ for idx_epoch in range(num_epoch):
         with torch.no_grad():
             val_loss = 0
             for idx_batch, batch_data in enumerate(val_loader):
-                inputs = batch_data["PET"].to(device)
-                labels = batch_data["CT"].to(device)
+                inputs = batch_data["STEP1"].to(device)
+                labels = batch_data["STEP2"].to(device)
                 outputs = model(inputs) + inputs
                 loss = output_loss(outputs, labels)
                 val_loss += loss.item()
@@ -342,8 +342,8 @@ for idx_epoch in range(num_epoch):
                 with torch.no_grad():
                     test_loss = 0
                     for idx_batch, batch_data in enumerate(test_loader):
-                        inputs = batch_data["PET"].to(device)
-                        labels = batch_data["CT"].to(device)
+                        inputs = batch_data["STEP1"].to(device)
+                        labels = batch_data["STEP2"].to(device)
                         outputs = model(inputs) + inputs
                         loss = output_loss(outputs, labels)
                         test_loss += loss.item()
