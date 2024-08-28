@@ -297,8 +297,9 @@ for idx_epoch in range(num_epoch):
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
         # res_x is the skip connection from the encoder to the decoder, and add axis for deep supervision
         # res_x should be based on inputs torch.Size([16, 1, 400, 400]) and copy it to be torch.Size([16, 2, 1, 400, 400])
-        res_x = torch.unsqueeze(inputs, 1).repeat(1, 2, 1, 1, 1)
         optimizer.zero_grad()
+        res_x = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
+        # torch.Size([16, 2, 400, 400]) add the axis
         outputs = model(inputs) + res_x
         # print("outputs.shape: ", outputs.shape)
         # loss = loss_function(outputs, labels)
