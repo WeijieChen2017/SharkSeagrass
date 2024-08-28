@@ -29,7 +29,7 @@ save_per_epoch = 100
 eval_per_epoch = 10
 plot_per_epoch = 10
 CT_NORM = 5000
-cache_rate = 1.0
+cache_rate = 0.1
 device = torch.device("cuda:0")
 root_folder = "./B100/SAM-Med3D_v1"
 if not os.path.exists(root_folder):

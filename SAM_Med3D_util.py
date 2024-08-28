@@ -483,8 +483,8 @@ class Sam3D(nn.Module):
         self.image_encoder = image_encoder
         
         self.out_conv = nn.ModuleList()
-        self.channel_list = [256, 128, 64, 32]
-        for i in range(3):
+        self.channel_list = [384, 128, 64, 32, 16]
+        for i in range(len(self.channel_list)-1):
             # input_size = [1,1,256,256,256]
             # x = [1,16,16,16,768] in transformers
             # x = [1,256,16,16,16] after neck
@@ -494,6 +494,7 @@ class Sam3D(nn.Module):
                     spatial_dims=3,
                     in_channels=self.channel_list[i],
                     out_channels=self.channel_list[i+1],
+                    strides=2,
                     act=Act.PRELU,
                     norm=Norm.INSTANCE,
                     is_transposed=True,
@@ -553,9 +554,14 @@ class Sam3D(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x = [B, C, 128, 128, 128]
         x = self.image_encoder(x)
+        # print(x.shape)
         # x = [B,256,16,16,16]
         x = self.out_conv(x)
+        # print(x.shape)
         # x = [B,16,128,128,128]
         x = self.last_conv(x)
+        # print(x.shape)
         # x = [B,1,128,128,128]
         return x
+    
+
