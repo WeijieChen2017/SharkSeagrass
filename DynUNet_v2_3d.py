@@ -31,7 +31,7 @@ eval_per_epoch = 10
 plot_per_epoch = 10
 CT_NORM = 5000
 cache_rate = 1.0
-root_folder = "./B100/dynunet3d_v1"
+root_folder = "./B100/dynunet3d_v2_nodropout"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
@@ -48,7 +48,7 @@ model = DynUNet(
     strides=strides,
     upsample_kernel_size=strides[1:],
     filters=(64, 128, 256),
-    dropout=0.1,
+    dropout=0.,
     norm_name=('INSTANCE', {'affine': True}), 
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
     deep_supervision=True,
