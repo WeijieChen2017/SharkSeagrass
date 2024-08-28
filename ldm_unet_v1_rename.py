@@ -16,3 +16,8 @@ val_list = data_division['val']
 test_list = data_division['test']
 
 print("Train:", len(train_list), "Val:", len(val_list), "Test:", len(test_list))
+
+for pair in train_list:
+    step_1_path = pair["step1"]
+    step_2_path = pair["step2"]
+    print("Processing", step_1_path, step_2_path)
