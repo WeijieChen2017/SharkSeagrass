@@ -75,7 +75,7 @@ train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
-        NormalizeIntensityd(keys=input_modality),
+        NormalizeIntensityd(keys="PET"),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
@@ -86,7 +86,7 @@ val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
-        NormalizeIntensityd(keys=input_modality),
+        NormalizeIntensityd(keys="PET"),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
@@ -97,7 +97,7 @@ test_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
-        NormalizeIntensityd(keys=input_modality),
+        NormalizeIntensityd(keys="PET"),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
@@ -209,7 +209,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 2)
-        img_CT = np.rot90(labels[i, :, :, cube_size // 2].detach().cpu().numpy())
+        img_CT = np.rot90(labels[i, :, :, :, cube_size // 2].detach().cpu().numpy())
         img_CT = np.squeeze(np.clip(img_CT, 0, 1))
         plt.imshow(img_CT, cmap="gray")
         # plt.title("label CT")
@@ -217,7 +217,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 3)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        img_pred = np.rot90(outputs[i, 0, :, :, :, cube_size // 2].detach().cpu().numpy())
+        img_pred = np.rot90(outputs[i, :, :, :, cube_size // 2].detach().cpu().numpy())
         img_pred = np.squeeze(np.clip(img_pred, 0, 1))
         plt.imshow(img_pred, cmap="gray")
         # plt.title("output CT")
