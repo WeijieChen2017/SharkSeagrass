@@ -8,7 +8,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 from ldm_unet_v1_release_util import VQModel # step 1 model
 from monai.networks.nets import DynUNet # step 2 model
 
-root_folder = "./B100/ldm_unet_v1_release"
+root_folder = "./B100/ldm_unet_v1_release/"
 data_target_folder = "./B100/nifti_tet/"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
@@ -83,4 +83,5 @@ model_step_2.load_state_dict(model_step_2_pretrained_dict)
 
 print("Model step 1 loaded from", model_step1_params["ckpt_path"])
 print("Model step 2 loaded from", model_step2_params["ckpt_path"])
+
 
