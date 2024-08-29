@@ -78,7 +78,7 @@ model_step_2 = DynUNet(
     trans_bias=model_step2_params["trans_bias"],
 )
 
-model_step_2_pretrained_dict = torch.load(model_step2_params["ckpt_path"])
+model_step_2_pretrained_dict = torch.load(model_step2_params["ckpt_path"], map_location="cpu")
 model_step_2.load_state_dict(model_step_2_pretrained_dict)
 
 print("Model step 1 loaded from", model_step1_params["ckpt_path"])
