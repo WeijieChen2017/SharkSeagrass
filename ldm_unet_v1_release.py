@@ -19,7 +19,7 @@ model_step1_params = {
     "VQ_NAME": "f4-noattn",
     "n_embed": 8192,
     "embed_dim": 3,
-    "ckpt_path": root_folder+"model_step1.pth",
+    "ckpt_path": root_folder+"model_step_1.pth",
     "ddconfig": {
         "attn_type": "none",
         "double_z": False,
@@ -49,7 +49,7 @@ model_step2_params = {
     "deep_supr_num": 1,
     "res_block": True,
     "trans_bias": False,
-    "ckpt_path": root_folder+"model_step2.pth",
+    "ckpt_path": root_folder+"model_step_2.pth",
 }
 
 model_step_1 = VQModel(
