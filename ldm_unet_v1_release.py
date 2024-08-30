@@ -178,7 +178,8 @@ def main():
 
         if to_COMPUTE_LOSS:
             CT_file = nib.load(CT_file_path)
-            CT_data = CT_file.get_fdata()
+            CT_data = CT_file.get_fdata() # 467, 467, z
+            CT_data = CT_data[33:433, 33:433, :] # 400, 400, z
             mask_CT = CT_data > -MIN_CT
             masked_loss = np.mean(np.abs(synthetic_CT_data[mask_CT] - CT_data[mask_CT]))
             print(f"Masked Loss: {masked_loss}")
