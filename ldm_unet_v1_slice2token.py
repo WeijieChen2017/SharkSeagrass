@@ -134,6 +134,8 @@ for idx, TOFNAC_path in enumerate(TOFNAC_list):
         # from 0 to 1 to -1 to 1
         synCT_step1_slices = synCT_step1_slices * 2 - 1
         synCT_step2_slices = synCT_step2_slices * 2 - 1
+        print(">>> synCT_step1_slices shape:", synCT_step1_slices.shape)
+        print(">>> synCT_step2_slices shape:", synCT_step2_slices.shape)
 
         # from 400, 400, 3 to 1, 3, 400, 400
         synCT_step1_slices = np.transpose(synCT_step1_slices, (2, 0, 1))
