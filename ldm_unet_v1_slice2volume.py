@@ -60,9 +60,10 @@ for idx, TOFNAC_path in enumerate(TOFNAC_list):
     TOFNAC_data = TOFNAC_file.get_fdata()
     len_z = TOFNAC_data.shape[2]
     synCT_data = np.zeros_like(TOFNAC_data)
+    gt_data = np.zeros_like(TOFNAC_data)
     
     for idz in range(len_z):
-        synCT_path = os.path.join(SLICE_FOLDER, f"STEP2_{TOFNAC_tag}_z{idz}.npy")
+        synCT_path = os.path.join(SLICE_FOLDER, f"STEP1_{TOFNAC_tag}_z{idz}.npy")
         # check if the file exists
         if os.path.exists(synCT_path):
             synCT_slice = np.load(synCT_path)
@@ -72,11 +73,29 @@ for idx, TOFNAC_path in enumerate(TOFNAC_list):
         else:
             print(">>> File not found:", synCT_path)
         
+        # load the ground truth
+        synCT_path = os.path.join(SLICE_FOLDER, f"STEP2_{TOFNAC_tag}_z{idz}.npy")
+        # check if the file exists
+        if os.path.exists(synCT_path):
+            synCT_slice = np.load(synCT_path)
+            synCT_slice = np.clip(synCT_slice, 0, 1)
+            synCT_slice = synCT_slice * RANGE_CT + MIN_CT
+            gt_data[:, :, idz] = synCT_slice
+        else:
+            print(">>> File not found:", synCT_path)
+
+        
     # save the synthetic CT
     synCT_file = nib.Nifti1Image(synCT_data, affine=TOFNAC_file.affine, header=TOFNAC_file.header)
-    synCT_path = os.path.join(STEP1_VOLUME_FOLDER, f"STEP2_{TOFNAC_tag}.nii.gz")
+    synCT_path = os.path.join(STEP1_VOLUME_FOLDER, f"STEP1_{TOFNAC_tag}.nii.gz")
     nib.save(synCT_file, synCT_path)
     print(">>> Saved to", synCT_path)
+
+    # save the ground truth
+    gt_file = nib.Nifti1Image(gt_data, affine=TOFNAC_file.affine, header=TOFNAC_file.header)
+    gt_path = os.path.join(STEP1_VOLUME_FOLDER, f"STEP2_{TOFNAC_tag}.nii.gz")
+    nib.save(gt_file, gt_path)
+    print(">>> Saved to", gt_path)
 
     # compute loss
     CTACIVV_path = os.path.join(CTACIVV_FOLDER, f"CTACIVV_{TOFNAC_tag[1:]}.nii.gz")
