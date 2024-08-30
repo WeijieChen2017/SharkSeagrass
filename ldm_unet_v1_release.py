@@ -21,7 +21,7 @@ def main():
     # here I will use argparse to parse the arguments
     parser = argparse.ArgumentParser(description='Synthetic CT from TOFNAC PET Model')
     parser.add_argument('--root_folder', type=str, default="./B100/ldm_unet_v1_release/", help='The root folder to save the model and log file')
-    parser.add_argument('--data_target_folder', type=str, default="./B100/nifti_test/", help='The folder to save the PET files')
+    parser.add_argument('--data_target_folder', type=str, default="./B100/TOFNAC_resample/", help='The folder to save the PET files')
     args = parser.parse_args()
 
     root_folder = args.root_folder
