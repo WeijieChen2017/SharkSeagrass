@@ -62,7 +62,7 @@ def reverse_two_segment_scale(arr, MIN, MID, MAX, MIQ):
 TOFNAC_list = sorted(glob.glob(TOFNAC_FOLDER+"*.nii.gz"))
 print("Found", len(TOFNAC_list), "TOFNAC files")
 
-config_yaml_path = f"models/first_stage_models/vq-{VQ_NAME}/config.yaml"
+config_yaml_path = f"ldm_models/first_stage_models/vq-{VQ_NAME}/config.yaml"
 with open(config_yaml_path, 'r') as file:
     config = yaml.safe_load(file)
 
