@@ -190,13 +190,13 @@ for idx, TOFNAC_path in enumerate(TOFNAC_list):
         # (10000,) (10000,)
         print(f"Diff count: {diff_count} out of {total_count}, percentage: {diff_count/total_count*100:.2f}%")
         with open("diff_count.txt", "a") as f:
-            f.write(f"{TOFNAC_tag} z{idz} Diff count: {diff_count}\n")
+            f.write(f"{TOFNAC_tag} z{idz} Diff count: {diff_count} out of {total_count}, percentage: {diff_count/total_count*100:.2f}%\n")
         indices_diff_count += diff_count
 
     indices_diff_count /= len_z
     print(f"Average diff count: {indices_diff_count}")
     with open("diff_count.txt", "a") as f:
-        f.write(f"{TOFNAC_tag} Average diff count: {indices_diff_count}\n")
+        f.write(f"{TOFNAC_tag} Average diff count: {indices_diff_count} out of {total_count}, percentage: {indices_diff_count/total_count*100:.2f}%\n")
         
 
         
