@@ -83,7 +83,9 @@ for idx, TOFNAC_path in enumerate(TOFNAC_list):
     if os.path.exists(CTACIVV_path):
         CTACIVV_file = nib.load(CTACIVV_path)
         CTACIVV_data = CTACIVV_file.get_fdata()[33:433, 33:433, :]
-        loss = np.mean(np.abs(synCT_data - CTACIVV_data))
+        CTACIVV_data = np.clip(CTACIVV_data, MIN_CT, MAX_CT)
+        mask_CTACIVV = CTACIVV_data > -1024
+        loss = np.mean(np.abs(synCT_data[mask_CTACIVV] - CTACIVV_data[mask_CTACIVV]))
         print(">>> MAE HU Loss:", loss)
     else:
         print(">>> CTACIVV file not found:", CTACIVV_path)
