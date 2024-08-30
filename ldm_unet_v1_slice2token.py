@@ -6,6 +6,7 @@ RECON_SLICE_FOLDER = "./B100/f4noattn_step1_recon/"
 TOKEN_SLICE_FOLDER = "./B100/f4noattn_step1_token/"
 VQ_NAME = "f4-noattn"
 
+import os
 for folder in [RECON_SLICE_FOLDER, TOKEN_SLICE_FOLDER]:
     os.makedirs(folder, exist_ok=True)
 
