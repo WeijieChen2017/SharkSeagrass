@@ -185,7 +185,9 @@ for idx, TOFNAC_path in enumerate(TOFNAC_list):
 
         # compute how many indices are different
         diff_count = np.sum(ind_synCT_step1_slices != ind_synCT_step2_slices)
-        print(f"Diff count: {diff_count}")
+        total_count = ind_synCT_step1_slices.size
+        print(ind_synCT_step1_slices.shape, ind_synCT_step2_slices.shape)
+        print(f"Diff count: {diff_count} out of {total_count}")
         with open("diff_count.txt", "a") as f:
             f.write(f"{TOFNAC_tag} z{idz} Diff count: {diff_count}\n")
         indices_diff_count += diff_count
