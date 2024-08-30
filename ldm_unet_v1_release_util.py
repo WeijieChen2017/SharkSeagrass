@@ -8,23 +8,23 @@ from einops import rearrange
 import pytorch_lightning as pl
 
 import os
-import json
 import numpy as np
 import torch
-import matplotlib.pyplot as plt
 
-from monai.networks.nets import DynUNet
-from monai.transforms import (
-    Compose, 
-    LoadImaged, 
-    EnsureChannelFirstd, 
-    RandSpatialCropd,
-    RandSpatialCropSamplesd,
-    RandFlipd, 
-    RandRotated,
-    Transposed,
-)
-from monai.data import CacheDataset, DataLoader
+
+def two_segment_scale(arr, MIN, MID, MAX, MIQ):
+    # Create an empty array to hold the scaled results
+    scaled_arr = np.zeros_like(arr, dtype=np.float32)
+
+    # First segment: where arr <= MID
+    mask1 = arr <= MID
+    scaled_arr[mask1] = (arr[mask1] - MIN) / (MID - MIN) * MIQ
+
+    # Second segment: where arr > MID
+    mask2 = arr > MID
+    scaled_arr[mask2] = MIQ + (arr[mask2] - MID) / (MAX - MID) * (1 - MIQ)
+    
+    return scaled_arr
 
 
 def nonlinearity(x):
