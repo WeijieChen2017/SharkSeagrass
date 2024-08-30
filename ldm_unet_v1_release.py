@@ -114,6 +114,9 @@ def main():
     model_step_1.to(device)
     model_step_2.to(device)
 
+    model_step_1.eval()
+    model_step_2.eval()
+
     # process the PET files
 
     PET_file_list = sorted(glob.glob(data_target_folder + "PET_TOFNAC*.nii.gz"))
@@ -160,13 +163,12 @@ def main():
 
             output_step_1 = model_step_1(PET_slice)
             output_step_2 = model_step_2(output_step_1)
-            print("Output step 1 shape:", output_step_1.shape, "Output step 2 shape:", output_step_2.shape)
             synthetic_CT_slice = output_step_1 + output_step_2
 
             synthetic_CT_slice = synthetic_CT_slice.detach().cpu().numpy()
             synthetic_CT_slice = np.squeeze(np.clip(synthetic_CT_slice, 0, 1))
             synthetic_CT_slice = synthetic_CT_slice * RANGE_CT + MIN_CT
-            synthetic_CT_data[1, :, :] = synthetic_CT_slice
+            synthetic_CT_data[:, :, idz] = synthetic_CT_slice
         
         # save the synthetic CT data
         synthetic_CT_file = nib.Nifti1Image(synthetic_CT_data, affine=PET_file.affine, header=PET_file.header)
