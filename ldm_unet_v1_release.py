@@ -30,6 +30,8 @@ def main():
         os.makedirs(root_folder)
     print("The root folder is: ", root_folder)
     log_file = os.path.join(root_folder, "log.txt")
+    with open(log_file, "w") as f:
+        f.write("\n")
     device = torch.device('cuda:0')
 
     MID_PET = 5000
@@ -123,7 +125,7 @@ def main():
     print(f"Detected {len(PET_file_list)} PET files in {data_target_folder}")
 
     for idx_PET, PET_file_path in enumerate(PET_file_list):
-
+        
         tik = time.time()
 
         CT_file_path = PET_file_path.replace("PET_TOFNAC", "CTACIVV")
@@ -204,8 +206,6 @@ def main():
 
         # compute the loss between the synthetic CT and the real CT
         if to_COMPUTE_LOSS:
-            CT_data = CT_data[33:433, 33:433, :]
-            mask_CT = CT_data > -MIN_CT
             masked_loss = np.mean(np.abs(synthetic_CT_data_step_1[mask_CT] - CT_data[mask_CT]))
             print(f"Masked Loss after step 1: {masked_loss}")
             with open(log_file, "a") as f:
