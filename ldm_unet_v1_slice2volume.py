@@ -1,5 +1,6 @@
 SLICE_FOLDER = "./B100/f4noattn_step1/"
 TOFNAC_FOLDER = "./B100/TOFNAC_resample/"
+CTACIVV_FOLDER = "./B100/CTACIVV_resample/"
 STEP1_VOLUME_FOLDER = "./B100/f4noattn_step1_volume/"
 
 MID_PET = 5000
@@ -16,6 +17,8 @@ import numpy as np
 import nibabel as nib
 import glob
 import os
+
+os.makedirs(STEP1_VOLUME_FOLDER, exist_ok=True)
 
 def two_segment_scale(arr, MIN, MID, MAX, MIQ):
     # Create an empty array to hold the scaled results
@@ -74,3 +77,13 @@ for idx, TOFNAC_path in enumerate(TOFNAC_list):
     synCT_path = os.path.join(STEP1_VOLUME_FOLDER, f"STEP2_{TOFNAC_tag}.nii.gz")
     nib.save(synCT_file, synCT_path)
     print(">>> Saved to", synCT_path)
+
+    # compute loss
+    CTACIVV_path = os.path.join(CTACIVV_FOLDER, f"CTACIVV_{TOFNAC_tag}.nii.gz")
+    if os.path.exists(CTACIVV_path):
+        CTACIVV_file = nib.load(CTACIVV_path)
+        CTACIVV_data = CTACIVV_file.get_fdata()[33:433, 33:433, :]
+        loss = np.mean(np.abs(synCT_data - CTACIVV_data))
+        print(">>> MAE HU Loss:", loss)
+    else:
+        print(">>> CTACIVV file not found:", CTACIVV_path)
