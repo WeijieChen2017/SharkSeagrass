@@ -47,10 +47,10 @@ def reverse_two_segment_scale(arr, MIN, MID, MAX, MIQ):
     return reverse_scaled_arr
 
 
-TOFNAC_list = glob.glob(TOFNAC_FOLDER+"*.nii.gz")
+TOFNAC_list = sorted(glob.glob(TOFNAC_FOLDER+"*.nii.gz"))
 print("Found", len(TOFNAC_list), "TOFNAC files")
 
-for idx, TOFNAC_path in enumerate(TOFNAC_list[:2]):
+for idx, TOFNAC_path in enumerate(TOFNAC_list):
     TOFNAC_tag = TOFNAC_path.split('/')[-1].split('.')[0][-5:]
     print(f"Processing [{idx+1}]/[{len(TOFNAC_list)}] {TOFNAC_path} TOFNAC tag is {TOFNAC_tag}")
     TOFNAC_file = nib.load(TOFNAC_path)
