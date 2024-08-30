@@ -109,7 +109,7 @@ def main():
     # print("Model step 2 loaded from", model_step2_params["ckpt_path"])
 
 
-    PET_file_list = sorted(glob.glob(data_target_folder + "TOFNAC*.nii.gz"))
+    PET_file_list = sorted(glob.glob(data_target_folder + "*TOFNAC*.nii.gz"))
     print(f"Detected {len(PET_file_list)} PET files in {data_target_folder}")
 
     for PET_file_path in PET_file_list:
