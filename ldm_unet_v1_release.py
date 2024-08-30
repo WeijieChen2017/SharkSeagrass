@@ -9,6 +9,7 @@ import argparse
 import os
 import torch
 import glob
+import time
 import numpy as np
 import nibabel as nib
 
@@ -119,6 +120,9 @@ def main():
     print(f"Detected {len(PET_file_list)} PET files in {data_target_folder}")
 
     for idx_PET, PET_file_path in enumerate(PET_file_list):
+
+        tik = time.time()
+
         CT_file_path = PET_file_path.replace("TOFNAC", "CTACIVV")
         # check whether the CT file exists
         if os.path.exists(CT_file_path):
@@ -180,6 +184,9 @@ def main():
         else:
             with open(log_file, "a") as f:
                 f.write(f"{PET_file_path} No CT file found\n")
+        
+        tok = time.time()
+        print(f"Time elapsed: {tok-tik:.2f} seconds")
 
 if __name__ == "__main__":
     main()
