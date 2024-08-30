@@ -76,45 +76,56 @@ def main():
     }
 
     # load step 1 model and step 2 model
-    # model_step_1 = VQModel(
-    #     ddconfig=model_step1_params["ddconfig"],
-    #     n_embed=model_step1_params["n_embed"],
-    #     embed_dim=model_step1_params["embed_dim"],
-    #     ckpt_path=model_step1_params["ckpt_path"],
-    #     ignore_keys=[],
-    #     image_key="image",
-    # )
+    model_step_1 = VQModel(
+        ddconfig=model_step1_params["ddconfig"],
+        n_embed=model_step1_params["n_embed"],
+        embed_dim=model_step1_params["embed_dim"],
+        ckpt_path=model_step1_params["ckpt_path"],
+        ignore_keys=[],
+        image_key="image",
+    )
 
-    # model_step_2 = DynUNet(
-    #     spatial_dims=model_step2_params["spatial_dims"],
-    #     in_channels=model_step2_params["in_channels"],
-    #     out_channels=model_step2_params["out_channels"],
-    #     kernel_size=model_step2_params["kernels"],
-    #     strides=model_step2_params["strides"],
-    #     upsample_kernel_size=model_step2_params["strides"][1:],
-    #     filters=model_step2_params["filters"],
-    #     dropout=model_step2_params["dropout"],
-    #     norm_name=model_step2_params["norm_name"],
-    #     act_name=model_step2_params["act_name"],
-    #     deep_supervision=model_step2_params["deep_supervision"],
-    #     deep_supr_num=model_step2_params["deep_supr_num"],
-    #     res_block=model_step2_params["res_block"],
-    #     trans_bias=model_step2_params["trans_bias"],
-    # )
+    model_step_2 = DynUNet(
+        spatial_dims=model_step2_params["spatial_dims"],
+        in_channels=model_step2_params["in_channels"],
+        out_channels=model_step2_params["out_channels"],
+        kernel_size=model_step2_params["kernels"],
+        strides=model_step2_params["strides"],
+        upsample_kernel_size=model_step2_params["strides"][1:],
+        filters=model_step2_params["filters"],
+        dropout=model_step2_params["dropout"],
+        norm_name=model_step2_params["norm_name"],
+        act_name=model_step2_params["act_name"],
+        deep_supervision=model_step2_params["deep_supervision"],
+        deep_supr_num=model_step2_params["deep_supr_num"],
+        res_block=model_step2_params["res_block"],
+        trans_bias=model_step2_params["trans_bias"],
+    )
 
-    # model_step_2_pretrained_dict = torch.load(model_step2_params["ckpt_path"], map_location="cpu")
-    # model_step_2.load_state_dict(model_step_2_pretrained_dict)
+    model_step_2_pretrained_dict = torch.load(model_step2_params["ckpt_path"], map_location="cpu")
+    model_step_2.load_state_dict(model_step_2_pretrained_dict)
 
-    # print("Model step 1 loaded from", model_step1_params["ckpt_path"])
-    # print("Model step 2 loaded from", model_step2_params["ckpt_path"])
+    print("Model step 1 loaded from", model_step1_params["ckpt_path"])
+    print("Model step 2 loaded from", model_step2_params["ckpt_path"])
 
+    model_step_1.to(device)
+    model_step_2.to(device)
 
+    # process the PET files
+    
     PET_file_list = sorted(glob.glob(data_target_folder + "*TOFNAC*.nii.gz"))
     print(f"Detected {len(PET_file_list)} PET files in {data_target_folder}")
 
-    for PET_file_path in PET_file_list:
-        PET_file_name = os.path.basename(PET_file_path)
-        print("Processing", PET_file_name)
+    for idx_PET, PET_file_path in enumerate(PET_file_list):
+        CT_file_path = PET_file_path.replace("TOFNAC", "CTACIVV")
+        # check whether the CT file exists
+        if os.path.exists(CT_file_path):
+            to_COMPUTE_LOSS = True
+            print(f"[{idx_PET}]/[{len(PET_file_list)}] Processing {PET_file_path} with CT {CT_file_path}")
+        else:
+            to_COMPUTE_LOSS = False
+            print(f"[{idx_PET}]/[{len(PET_file_list)}] Processing {PET_file_path} without CT")
+        
         # load the PET file
         PET_file = nib.load(PET_file_path)
         PET_data = PET_file.get_fdata()
@@ -150,11 +161,17 @@ def main():
         nib.save(synthetic_CT_file, synthetic_CT_path)
         print("Saved to", synthetic_CT_path)
 
-
-
-
-
-    
+        if to_COMPUTE_LOSS:
+            CT_file = nib.load(CT_file_path)
+            CT_data = CT_file.get_fdata()
+            mask_CT = CT_data > -MIN_CT
+            masked_loss = np.mean(np.abs(synthetic_CT_data[mask_CT] - CT_data[mask_CT]))
+            print(f"Masked Loss: {masked_loss}")
+            with open(log_file, "a") as f:
+                f.write(f"{PET_file_path} Masked Loss: {masked_loss}\n")
+        else:
+            with open(log_file, "a") as f:
+                f.write(f"{PET_file_path} No CT file found\n")
 
 if __name__ == "__main__":
     main()
