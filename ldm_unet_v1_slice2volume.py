@@ -48,3 +48,17 @@ def reverse_two_segment_scale(arr, MIN, MID, MAX, MIQ):
 
 TOFNAC_list = glob.glob(TOFNAC_FOLDER+"*.nii.gz")
 print("Found", len(TOFNAC_list), "TOFNAC files")
+
+for idx, TOFNAC_path in enumerate(TOFNAC_list[:2]):
+    print(f"Processing [{idx+1}]/[{len(TOFNAC_list)}] {TOFNAC_path}")
+    TOFNAC_file = nib.load(TOFNAC_path)
+    TOFNAC_data = TOFNAC_file.get_fdata()
+    len_z = TOFNAC_data.shape[2]
+    TOFNAC_tag = TOFNAC_path.split('/')[-1].split('.')[0][-5:]
+    print(">>> TOFNAC tag:", TOFNAC_tag)
+
+    for idz in range(len_z):
+        synCT_path = os.path.join(SLICE_FOLDER, f"STEP2_{TOFNAC_tag}_z{idz}.npy")
+        # check if the file exists
+        if os.path.exists(synCT_path):
+            print("File exists:", synCT_path)
