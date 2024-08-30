@@ -112,7 +112,7 @@ def main():
     model_step_2.to(device)
 
     # process the PET files
-    
+
     PET_file_list = sorted(glob.glob(data_target_folder + "*TOFNAC*.nii.gz"))
     print(f"Detected {len(PET_file_list)} PET files in {data_target_folder}")
 
@@ -136,7 +136,9 @@ def main():
         synthetic_CT_data = np.zeros_like(norm_PET_data)
 
         for idz in range(len_z):
-        
+            
+            print(f"Processing [{idx_PET}]/[{len(PET_file_list)}] slice {idz}/{len_z}")
+            
             if idz == 0:
                 index_list = [idz, idz, idz+1]
             elif idz == len_z-1:
@@ -148,9 +150,13 @@ def main():
             # (400, 400, 3) -> (3, 400, 400)
             PET_slice = np.transpose(PET_slice, (2, 0, 1))
             PET_slice = np.expand_dims(PET_slice, axis=0)
-            PET_slice = torch.from_numpy(PET_slice).float()
+            PET_slice = torch.from_numpy(PET_slice).float().to(device)
 
-            synthetic_CT_slice = PET_slice[:, 1, :, :].detach().cpu().numpy()
+            output_step_1 = model_step_1(PET_slice)
+            output_step_2 = model_step_2(output_step_1)
+            synthetic_CT_slice = output_step_1 + output_step_2
+
+            synthetic_CT_slice = synthetic_CT_slice.detach().cpu().numpy()
             synthetic_CT_slice = np.clip(synthetic_CT_slice, 0, 1)
             synthetic_CT_slice = synthetic_CT_slice * RANGE_CT + MIN_CT
             synthetic_CT_data[:, :, idz] = synthetic_CT_slice
