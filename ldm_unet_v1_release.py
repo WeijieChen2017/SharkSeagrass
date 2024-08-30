@@ -130,10 +130,10 @@ def main():
         # check whether the CT file exists
         if os.path.exists(CT_file_path):
             to_COMPUTE_LOSS = True
-            print(f"[{idx_PET}]/[{len(PET_file_list)}] Processing {PET_file_path} with CT {CT_file_path}")
+            print(f"[{idx_PET+1}]/[{len(PET_file_list)}] Processing {PET_file_path} with CT {CT_file_path}")
         else:
             to_COMPUTE_LOSS = False
-            print(f"[{idx_PET}]/[{len(PET_file_list)}] Processing {PET_file_path} without CT")
+            print(f"[{idx_PET+1}]/[{len(PET_file_list)}] Processing {PET_file_path} without CT")
         
         # load the PET file
         PET_file = nib.load(PET_file_path)
@@ -143,10 +143,11 @@ def main():
         norm_PET_data = np.clip(PET_data, MIN_PET, MAX_PET)
         norm_PET_data = two_segment_scale(norm_PET_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET) # (arr, MIN, MID, MAX, MIQ)
         synthetic_CT_data = np.zeros_like(norm_PET_data)
+        synthetic_CT_data_step_1 = np.zeros_like(norm_PET_data)
 
         for idz in range(len_z):
             
-            print(f"Processing [{idx_PET}]/[{len(PET_file_list)}] slice {idz}/{len_z}")
+            print(f"Processing [{idx_PET+1}]/[{len(PET_file_list)}] slice {idz}/{len_z}")
             
             if idz == 0:
                 index_list = [idz, idz, idz+1]
@@ -164,11 +165,17 @@ def main():
             output_step_1 = model_step_1(PET_slice)
             output_step_2 = model_step_2(output_step_1)
             synthetic_CT_slice = output_step_1 + output_step_2
-
+            
             synthetic_CT_slice = synthetic_CT_slice.detach().cpu().numpy()
             synthetic_CT_slice = np.squeeze(np.clip(synthetic_CT_slice, 0, 1))
             synthetic_CT_slice = synthetic_CT_slice * RANGE_CT + MIN_CT
             synthetic_CT_data[:, :, idz] = synthetic_CT_slice
+
+            synthetic_CT_slice_1 = output_step_1.detach().cpu().numpy()
+            synthetic_CT_slice_1 = np.squeeze(np.clip(synthetic_CT_slice_1, 0, 1))
+            synthetic_CT_slice_1 = synthetic_CT_slice_1 * RANGE_CT + MIN_CT
+            synthetic_CT_data_step_1[:, :, idz] = synthetic_CT_slice_1
+
         
         # save the synthetic CT data
         synthetic_CT_file = nib.Nifti1Image(synthetic_CT_data, affine=PET_file.affine, header=PET_file.header)
@@ -188,9 +195,29 @@ def main():
         else:
             with open(log_file, "a") as f:
                 f.write(f"{PET_file_path} No CT file found\n")
-        
+
+        # save the step 1
+        synthetic_CT_file_step_1 = nib.Nifti1Image(synthetic_CT_data_step_1, affine=PET_file.affine, header=PET_file.header)
+        synthetic_CT_path_step_1 = PET_file_path.replace("TOFNAC", "SYNTHCT_STEP1")
+        nib.save(synthetic_CT_file_step_1, synthetic_CT_path_step_1)
+        print("Saved to", synthetic_CT_path_step_1)
+
+        # compute the loss between the synthetic CT and the real CT
+        if to_COMPUTE_LOSS:
+            CT_data = CT_data[33:433, 33:433, :]
+            mask_CT = CT_data > -MIN_CT
+            masked_loss = np.mean(np.abs(synthetic_CT_data_step_1[mask_CT] - CT_data[mask_CT]))
+            print(f"Masked Loss after step 1: {masked_loss}")
+            with open(log_file, "a") as f:
+                f.write(f"{PET_file_path} Masked Loss after step 1: {masked_loss}\n")
+        else:
+            with open(log_file, "a") as f:
+                f.write(f"{PET_file_path} No CT file found\n")
+
         tok = time.time()
         print(f"Time elapsed: {tok-tik:.2f} seconds")
+        with open(log_file, "a") as f:
+            f.write(f"Time elapsed: {tok-tik:.2f} seconds\n")
 
 if __name__ == "__main__":
     main()
