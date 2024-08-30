@@ -30,7 +30,7 @@ eval_per_epoch = 1
 plot_per_epoch = 1
 cache_rate = 0.25
 CT_NORM = 5000
-root_folder = "./B100/ldm_unet_v1_step2"
+root_folder = "./B100/ldm_unet_v1_step2/"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
