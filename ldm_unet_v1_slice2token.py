@@ -141,8 +141,8 @@ for idx, TOFNAC_path in enumerate(TOFNAC_list):
         synCT_step1_slices = np.squeeze(synCT_step1_slices)
 
         # from 400, 400, 3 to 1, 3, 400, 400
-        synCT_step1_slices = np.transpose(synCT_step1_slices, (2, 0, 1))
-        synCT_step2_slices = np.transpose(synCT_step2_slices, (2, 0, 1))
+        # synCT_step1_slices = np.transpose(synCT_step1_slices, (2, 0, 1))
+        # synCT_step2_slices = np.transpose(synCT_step2_slices, (2, 0, 1))
         synCT_step1_slices = np.expand_dims(synCT_step1_slices, axis=0)
         synCT_step2_slices = np.expand_dims(synCT_step2_slices, axis=0)
 
