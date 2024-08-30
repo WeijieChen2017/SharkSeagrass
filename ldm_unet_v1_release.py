@@ -1,12 +1,13 @@
-gpu_list = ','.join(str(x) for x in [1])
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = gpu_list
-print('export CUDA_VISIBLE_DEVICES=' + gpu_list)
-import torch
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# gpu_list = ','.join(str(x) for x in [1])
+# import os
+# os.environ['CUDA_VISIBLE_DEVICES'] = gpu_list
+# print('export CUDA_VISIBLE_DEVICES=' + gpu_list)
+# import torch
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 import argparse
 import os
+import torch
 import glob
 import numpy as np
 import nibabel as nib
@@ -28,6 +29,7 @@ def main():
         os.makedirs(root_folder)
     print("The root folder is: ", root_folder)
     log_file = os.path.join(root_folder, "log.txt")
+    device = torch.device('cuda:0')
 
     MID_PET = 5000
     MIQ_PET = 0.9
