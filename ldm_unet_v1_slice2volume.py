@@ -79,7 +79,7 @@ for idx, TOFNAC_path in enumerate(TOFNAC_list):
     print(">>> Saved to", synCT_path)
 
     # compute loss
-    CTACIVV_path = os.path.join(CTACIVV_FOLDER, f"CTACIVV_{TOFNAC_tag}.nii.gz")
+    CTACIVV_path = os.path.join(CTACIVV_FOLDER, f"CTACIVV_{TOFNAC_tag[1:]}.nii.gz")
     if os.path.exists(CTACIVV_path):
         CTACIVV_file = nib.load(CTACIVV_path)
         CTACIVV_data = CTACIVV_file.get_fdata()[33:433, 33:433, :]
