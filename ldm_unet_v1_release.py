@@ -157,7 +157,7 @@ def main():
             synthetic_CT_slice = output_step_1 + output_step_2
 
             synthetic_CT_slice = synthetic_CT_slice.detach().cpu().numpy()
-            synthetic_CT_slice = np.clip(synthetic_CT_slice, 0, 1)
+            synthetic_CT_slice = np.squeeze(np.clip(synthetic_CT_slice, 0, 1))
             synthetic_CT_slice = synthetic_CT_slice * RANGE_CT + MIN_CT
             synthetic_CT_data[:, :, idz] = synthetic_CT_slice
         
