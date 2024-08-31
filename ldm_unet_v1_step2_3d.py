@@ -327,14 +327,15 @@ for idx_epoch in range(num_epoch):
         inputs = (inputs - CT_MIN) / CT_NORM
         labels = (labels - CT_MIN) / CT_NORM
         res_inputs = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
-        print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        print("res_inputs.shape: ", res_inputs.shape)
         # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        # inputs.shape:  torch.Size([5, 1, 96, 96, 96]) labels.shape:  torch.Size([5, 1, 96, 96, 96])
-        # outputs.shape:  torch.Size([5, 2, 1, 96, 96, 96])
+        # print("res_inputs.shape: ", res_inputs.shape)
+        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
+        # inputs.shape:  torch.Size([2, 1, 128, 128, 128]) labels.shape:  torch.Size([2, 1, 128, 128, 128])
+        # res_inputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
+        # outputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
         optimizer.zero_grad()
         outputs = model(inputs)
-        print("outputs.shape: ", outputs.shape)
+        # print("outputs.shape: ", outputs.shape)
         outputs = outputs + res_inputs
         # loss = loss_function(outputs, labels)
         loss = ds_loss(torch.unbind(outputs, 1), labels)
