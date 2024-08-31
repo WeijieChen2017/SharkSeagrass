@@ -37,6 +37,7 @@ CT_MIN = -1024
 CT_MAX = 3976
 cache_rate = 0.25
 root_folder = "./B100/dynunet3d_v2_step2_vanila"
+device = torch.device("cuda:0")
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
@@ -224,7 +225,6 @@ test_loader = DataLoader(test_ds,
                         pin_memory=True,
 )
 
-device = torch.device("cuda:1")
 model.to(device)
 
 # set the optimizer and loss
