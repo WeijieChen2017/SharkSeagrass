@@ -74,9 +74,9 @@ train_transforms = Compose(
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
-        # RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
-        # RandGaussianSharpend(keys=input_modality, prob=0.1),
-        # RandGaussianSmoothd(keys=input_modality, prob=0.1),
+        RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
+        RandGaussianSharpend(keys=input_modality, prob=0.1),
+        RandGaussianSmoothd(keys=input_modality, prob=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -187,7 +187,7 @@ val_ds = CacheDataset(
     transform=val_transforms, 
     cache_num=num_val_files,
     cache_rate=cache_rate,
-    num_workers=4,
+    num_workers=1,
 )
 
 test_ds = CacheDataset(
@@ -195,7 +195,7 @@ test_ds = CacheDataset(
     transform=test_transforms,
     cache_num=num_test_files,
     cache_rate=cache_rate,
-    num_workers=4,
+    num_workers=1,
 )
 
 
