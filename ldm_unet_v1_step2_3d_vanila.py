@@ -224,7 +224,6 @@ test_loader = DataLoader(test_ds,
                         pin_memory=True,
 )
 
-device = torch.device("cuda:1")
 model.to(device)
 
 # set the optimizer and loss
