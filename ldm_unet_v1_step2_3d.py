@@ -36,7 +36,7 @@ CT_NORM = 5000
 CT_MIN = -1024
 CT_MAX = 3976
 cache_rate = 1.0
-root_folder = "./B100/dynunet3d_v2_step2_intensity"
+root_folder = "./B100/dynunet3d_v2_step2_vanila"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
@@ -74,9 +74,9 @@ train_transforms = Compose(
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
-        RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
-        RandGaussianSharpend(keys=input_modality, prob=0.1),
-        RandGaussianSmoothd(keys=input_modality, prob=0.1),
+        # RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
+        # RandGaussianSharpend(keys=input_modality, prob=0.1),
+        # RandGaussianSmoothd(keys=input_modality, prob=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -218,7 +218,7 @@ test_loader = DataLoader(test_ds,
                         num_workers=4,
 )
 
-device = torch.device("cuda:0")
+device = torch.device("cuda:1")
 model.to(device)
 
 # set the optimizer and loss
