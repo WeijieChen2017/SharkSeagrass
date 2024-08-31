@@ -35,8 +35,9 @@ plot_per_epoch = 10
 CT_NORM = 5000
 CT_MIN = -1024
 CT_MAX = 3976
-cache_rate = 0.25
+cache_rate = 0.5
 root_folder = "./B100/dynunet3d_v2_step2_vanila"
+device = torch.device("cuda:1")
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
@@ -179,7 +180,7 @@ train_ds = CacheDataset(
     transform=train_transforms,
     cache_num=num_train_files,
     cache_rate=cache_rate,
-    num_workers=4,
+    num_workers=6,
 )
 
 val_ds = CacheDataset(
@@ -187,7 +188,7 @@ val_ds = CacheDataset(
     transform=val_transforms, 
     cache_num=num_val_files,
     cache_rate=cache_rate,
-    num_workers=1,
+    num_workers=2,
 )
 
 test_ds = CacheDataset(
@@ -195,7 +196,7 @@ test_ds = CacheDataset(
     transform=test_transforms,
     cache_num=num_test_files,
     cache_rate=cache_rate,
-    num_workers=1,
+    num_workers=2,
 )
 
 
