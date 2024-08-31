@@ -332,6 +332,9 @@ for idx_epoch in range(num_epoch):
         # then normalize the values to 0 and 1
         inputs = (inputs - CT_MIN) / CT_NORM
         labels = (labels - CT_MIN) / CT_NORM
+        # 0 to 1 to -1 to 1
+        inputs = inputs * 2 - 1
+        labels = labels * 2 - 1
         res_inputs = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
         # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
         # print("res_inputs.shape: ", res_inputs.shape)
@@ -370,6 +373,8 @@ for idx_epoch in range(num_epoch):
                 labels = torch.clamp(labels, CT_MIN, CT_MAX)
                 inputs = (inputs - CT_MIN) / CT_NORM
                 labels = (labels - CT_MIN) / CT_NORM
+                inputs = inputs * 2 - 1
+                labels = labels * 2 - 1
                 outputs = model(inputs)+inputs
                 loss = output_loss(outputs, labels)
                 val_loss += loss.item()
@@ -394,6 +399,8 @@ for idx_epoch in range(num_epoch):
                         labels = torch.clamp(labels, CT_MIN, CT_MAX)
                         inputs = (inputs - CT_MIN) / CT_NORM
                         labels = (labels - CT_MIN) / CT_NORM
+                        inputs = inputs * 2 - 1
+                        labels = labels * 2 - 1
                         outputs = model(inputs) + inputs
                         loss = output_loss(outputs, labels)
                         test_loss += loss.item()
