@@ -35,7 +35,7 @@ plot_per_epoch = 10
 CT_NORM = 5000
 CT_MIN = -1024
 CT_MAX = 3976
-cache_rate = 1.0
+cache_rate = 0.25
 root_folder = "./B100/dynunet3d_v2_step2_vanila"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
