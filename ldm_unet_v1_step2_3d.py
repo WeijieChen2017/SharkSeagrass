@@ -36,7 +36,7 @@ CT_NORM = 5000
 CT_MIN = -1024
 CT_MAX = 3976
 cache_rate = 0.5
-root_folder = "./B100/dynunet3d_v2_step2_vanila"
+root_folder = "./B100/dynunet3d_v2_step2/"
 device = torch.device("cuda:0")
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)

@@ -26,7 +26,7 @@ img_size = 400
 cube_size = 128
 in_channels = 1
 out_channels = 1
-batch_size = 2
+batch_size = 1
 num_epoch = 10000
 debug_file_num = 0
 save_per_epoch = 100
@@ -36,24 +36,24 @@ CT_NORM = 5000
 CT_MIN = -1024
 CT_MAX = 3976
 cache_rate = 0.5
-root_folder = "./B100/dynunet3d_v2_step2_vanila/"
-device = torch.device("cuda:1")
+root_folder = "./B100/dynunet3d_v2_step2_large/"
+device = torch.device("cuda:0")
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
 
-kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
-strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2]]
+kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]
+strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
 
 model = DynUNet(
-    spatial_dims=3,
+    spatial_dims=4,
     in_channels=in_channels,
     out_channels=out_channels,
     kernel_size=kernels,
     strides=strides,
     upsample_kernel_size=strides[1:],
-    filters=(64, 128, 256),
+    filters=(32, 64, 128, 256),
     dropout=0.,
     norm_name=('INSTANCE', {'affine': True}), 
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
@@ -75,9 +75,9 @@ train_transforms = Compose(
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
-        # RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
-        # RandGaussianSharpend(keys=input_modality, prob=0.1),
-        # RandGaussianSmoothd(keys=input_modality, prob=0.1),
+        RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
+        RandGaussianSharpend(keys=input_modality, prob=0.1),
+        RandGaussianSmoothd(keys=input_modality, prob=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -150,7 +150,7 @@ test_transforms = Compose(
     ]
 )
 
-data_division_file = "./step1step2_0822_vanila.json"
+data_division_file = "./step1step2_0822.json"
 with open(data_division_file, "r") as f:
     data_division = json.load(f)
 
