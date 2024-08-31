@@ -10,53 +10,57 @@ from monai.transforms import (
     LoadImaged, 
     EnsureChannelFirstd, 
     RandSpatialCropd,
-    RandSpatialCropSamplesd,
-    RandFlipd, 
-    RandRotated,
-    Transposed,
+    # RandSpatialCropSamplesd,
+    # RandFlipd, 
+    # RandRotated,
+    # Transposed,
+    RandGaussianNoised,
+    RandGaussianSharpend,
+    RandGaussianSmoothd,
 )
 from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
 input_modality = ["STEP1", "STEP2"]
 img_size = 400
-cube_size = 64
+cube_size = 128
 in_channels = 1
 out_channels = 1
-batch_size = 16
+batch_size = 2
 num_epoch = 10000
-save_per_epoch = 10
-eval_per_epoch = 1
-plot_per_epoch = 1
-cache_rate = 0.25
+debug_file_num = 0
+save_per_epoch = 100
+eval_per_epoch = 10
+plot_per_epoch = 10
 CT_NORM = 5000
-root_folder = "./B100/ldm_unet_v1_step2/"
+CT_MIN = -1024
+CT_MAX = 3976
+cache_rate = 1.0
+root_folder = "./B100/dynunet3d_v2_step2_intensity"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
 
-device = torch.device("cuda:1")
-
-kernels = [[3, 3], [3, 3], [3, 3], [3, 3]]
-strides = [[1, 1], [2, 2], [2, 2], [2, 2]]
+kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
+strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2]]
 
 model = DynUNet(
-    spatial_dims=2,
+    spatial_dims=3,
     in_channels=in_channels,
     out_channels=out_channels,
     kernel_size=kernels,
     strides=strides,
     upsample_kernel_size=strides[1:],
-    filters=(64, 128, 256, 512),
+    filters=(64, 128, 256),
     dropout=0.,
     norm_name=('INSTANCE', {'affine': True}), 
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
     deep_supervision=True,
     deep_supr_num=1,
-    res_block=True,
+    res_block=False,
     trans_bias=False,
-).to(device)
+)
 
 
 # set the data transform
@@ -65,11 +69,16 @@ train_transforms = Compose(
         LoadImaged(keys=input_modality, image_only=True),
         # Transposed(keys=input_modality, indices=(2, 0, 1)),
         # EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
-        EnsureChannelFirstd(keys="STEP2", channel_dim="no_channel"),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
-        # EnsureChannelFirstd(keys="CT", channel_dim='no_channel'),
+        EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
+        RandSpatialCropd(keys=input_modality,
+                         roi_size=(cube_size, cube_size, cube_size),
+                         random_center=True, random_size=False),
+        RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
+        RandGaussianSharpend(keys=input_modality, prob=0.1),
+        RandGaussianSmoothd(keys=input_modality, prob=0.1),
         # RandSpatialCropd(keys="PET",
-        #                  roi_size=(cube_size, cube_size, cube_size,),
+        #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
         # RandSpatialCropd(keys="CT",
         #                  roi_size=(cube_size, cube_size, cube_size),
@@ -97,18 +106,19 @@ train_transforms = Compose(
 val_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
-        EnsureChannelFirstd(keys="STEP2", channel_dim="no_channel"),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
-        # EnsureChannelFirstd(keys="CT", channel_dim='no_channel'),
+        EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=batch_size,
         #                         random_size=False, random_center=False),
         # RandSpatialCropSamplesd(keys="CT",
         #                         roi_size=(img_size, img_size, out_channels),
-        #                         num_samples=batch_size,
-        #                         random_size=False, random_center=False),
-        
+                                # num_samples=batch_size,
+                                # random_size=False, random_center=False),
+        RandSpatialCropd(keys=input_modality,
+                         roi_size=(cube_size, cube_size, cube_size),
+                         random_center=True, random_size=False),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -125,19 +135,32 @@ val_transforms = Compose(
 test_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
-        EnsureChannelFirstd(keys="STEP2", channel_dim="no_channel"),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
-        # EnsureChannelFirstd(keys="CT", channel_dim='no_channel'),
+        EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
+        RandSpatialCropd(keys=input_modality,
+                         roi_size=(cube_size, cube_size, cube_size),
+                         random_center=True, random_size=False),
+        # RandSpatialCropd(keys="PET",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
+        # RandSpatialCropd(keys="CT",
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
     ]
 )
 
-data_division_file = "./B100/f4noattn_step1_0822_2d3c_rename.json"
+data_division_file = "./step1step2_0822.json"
 with open(data_division_file, "r") as f:
     data_division = json.load(f)
 
-train_list = data_division["train"]
-val_list = data_division["val"]
-test_list = data_division["test"]
+if debug_file_num > 0:
+    train_list = data_division["train"][:debug_file_num]
+    val_list = data_division["val"][:debug_file_num]
+    test_list = data_division["test"][:debug_file_num]
+else:
+    train_list = data_division["train"]
+    val_list = data_division["val"]
+    test_list = data_division["test"]
 
 num_train_files = len(train_list)
 num_val_files = len(val_list)
@@ -195,6 +218,8 @@ test_loader = DataLoader(test_ds,
                         num_workers=4,
 )
 
+device = torch.device("cuda:0")
+model.to(device)
 
 # set the optimizer and loss
 learning_rate = 1e-4
@@ -221,11 +246,12 @@ n_train_batches = len(train_loader)
 n_val_batches = len(val_loader)
 n_test_batches = len(test_loader)
 
-
 def plot_results(inputs, labels, outputs, idx_epoch):
     # plot the results
     n_block = 8
-    plt.figure(figsize=(12, 12), dpi=300)
+    if inputs.shape[0] < n_block:
+        n_block = inputs.shape[0]
+    plt.figure(figsize=(12, n_block*1.5), dpi=300)
 
     n_row = n_block
     n_col = 6
@@ -233,14 +259,14 @@ def plot_results(inputs, labels, outputs, idx_epoch):
     for i in range(n_block):
         # first three and hist
         plt.subplot(n_row, n_col, i * n_col + 1)
-        img_PET = np.rot90(inputs[i, in_channels // 2, :, :].detach().cpu().numpy())
+        img_PET = np.rot90(inputs[i, :, :, :, cube_size // 2].detach().cpu().numpy())
         img_PET = np.squeeze(np.clip(img_PET, 0, 1))
         plt.imshow(img_PET, cmap="gray")
         # plt.title("input PET")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 2)
-        img_CT = np.rot90(labels[i, 0, :, :].detach().cpu().numpy())
+        img_CT = np.rot90(labels[i, :, :, :, cube_size // 2].detach().cpu().numpy())
         img_CT = np.squeeze(np.clip(img_CT, 0, 1))
         plt.imshow(img_CT, cmap="gray")
         # plt.title("label CT")
@@ -248,7 +274,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 3)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        img_pred = np.rot90(outputs[i, 0, 0, :, :].detach().cpu().numpy())
+        img_pred = np.rot90(outputs[i, 0, :, :, :, cube_size // 2].detach().cpu().numpy())
         img_pred = np.squeeze(np.clip(img_pred, 0, 1))
         plt.imshow(img_pred, cmap="gray")
         # plt.title("output CT")
@@ -293,13 +319,24 @@ for idx_epoch in range(num_epoch):
     for idx_batch, batch_data in enumerate(train_loader):
         inputs = batch_data["STEP1"].to(device)
         labels = batch_data["STEP2"].to(device)
+
+        # for inputs and labels, clip the values to CT_MIN and CT_MAX
+        inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
+        labels = torch.clamp(labels, CT_MIN, CT_MAX)
+        # then normalize the values to 0 and 1
+        inputs = (inputs - CT_MIN) / CT_NORM
+        labels = (labels - CT_MIN) / CT_NORM
+        res_inputs = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
+        print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
+        print("res_inputs.shape: ", res_inputs.shape)
+        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
+        # inputs.shape:  torch.Size([5, 1, 96, 96, 96]) labels.shape:  torch.Size([5, 1, 96, 96, 96])
+        # outputs.shape:  torch.Size([5, 2, 1, 96, 96, 96])
         optimizer.zero_grad()
-        res_x = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
         outputs = model(inputs)
-        # inputs.shape:  torch.Size([16, 1, 400, 400]) labels.shape:  torch.Size([16, 1, 400, 400])
-        # res_x.shape:  torch.Size([16, 2, 1, 400, 400])
-        # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        outputs = outputs + res_x
+        print("outputs.shape: ", outputs.shape)
+        outputs = outputs + res_inputs
+        # loss = loss_function(outputs, labels)
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
         optimizer.step()
@@ -322,7 +359,11 @@ for idx_epoch in range(num_epoch):
             for idx_batch, batch_data in enumerate(val_loader):
                 inputs = batch_data["STEP1"].to(device)
                 labels = batch_data["STEP2"].to(device)
-                outputs = model(inputs) + inputs
+                inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
+                labels = torch.clamp(labels, CT_MIN, CT_MAX)
+                inputs = (inputs - CT_MIN) / CT_NORM
+                labels = (labels - CT_MIN) / CT_NORM
+                outputs = model(inputs)+inputs
                 loss = output_loss(outputs, labels)
                 val_loss += loss.item()
             val_loss /= len(val_loader)
@@ -342,6 +383,10 @@ for idx_epoch in range(num_epoch):
                     for idx_batch, batch_data in enumerate(test_loader):
                         inputs = batch_data["STEP1"].to(device)
                         labels = batch_data["STEP2"].to(device)
+                        inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
+                        labels = torch.clamp(labels, CT_MIN, CT_MAX)
+                        inputs = (inputs - CT_MIN) / CT_NORM
+                        labels = (labels - CT_MIN) / CT_NORM
                         outputs = model(inputs) + inputs
                         loss = output_loss(outputs, labels)
                         test_loss += loss.item()
@@ -358,4 +403,4 @@ for idx_epoch in range(num_epoch):
 
     
 
-    
+     
