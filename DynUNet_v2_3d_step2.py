@@ -10,10 +10,10 @@ from monai.transforms import (
     LoadImaged, 
     EnsureChannelFirstd, 
     RandSpatialCropd,
-    RandSpatialCropSamplesd,
-    RandFlipd, 
-    RandRotated,
-    Transposed,
+    # RandSpatialCropSamplesd,
+    # RandFlipd, 
+    # RandRotated,
+    # Transposed,
     RandGaussianNoised,
     RandGaussianSharpend,
     RandGaussianSmoothd,
@@ -21,9 +21,9 @@ from monai.transforms import (
 from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
-input_modality = ["PET", "CT"]
+input_modality = ["STEP1", "STEP2"]
 img_size = 400
-cube_size = 96
+cube_size = 128
 in_channels = 1
 out_channels = 1
 batch_size = 2
@@ -34,7 +34,7 @@ eval_per_epoch = 10
 plot_per_epoch = 10
 CT_NORM = 5000
 cache_rate = 1.0
-root_folder = "./B100/dynunet3d_v2_nodropout"
+root_folder = "./B100/dynunet3d_v2_step2_intensity"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
@@ -147,7 +147,7 @@ test_transforms = Compose(
     ]
 )
 
-data_division_file = "./B100/B100_0822.json"
+data_division_file = "./step1step2_0822.json"
 with open(data_division_file, "r") as f:
     data_division = json.load(f)
 
