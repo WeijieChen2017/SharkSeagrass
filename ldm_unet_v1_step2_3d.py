@@ -204,18 +204,24 @@ train_loader = DataLoader(train_ds,
                         batch_size=batch_size,
                         shuffle=True, 
                         num_workers=4,
+                        persistent_workers=True,
+                        pin_memory=True,
 
 )
 val_loader = DataLoader(val_ds, 
                         batch_size=batch_size, 
                         shuffle=True, 
                         num_workers=4,
+                        persistent_workers=True,
+                        pin_memory=True,
 )
 
 test_loader = DataLoader(test_ds,
                         batch_size=batch_size,
                         shuffle=True,
                         num_workers=4,
+                        persistent_workers=True,
+                        pin_memory=True,
 )
 
 device = torch.device("cuda:1")
