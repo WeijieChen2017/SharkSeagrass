@@ -1,0 +1,153 @@
+{
+"train": [
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4078.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4078.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4084.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4084.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4069.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4069.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4125.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4125.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4134.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4134.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4103.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4103.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4130.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4130.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4120.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4120.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4114.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4114.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4124.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4124.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4131.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4131.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4079.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4079.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4081.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4081.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4128.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4128.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4077.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4077.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4105.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4105.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4096.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4096.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4139.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4139.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4073.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4073.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4118.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4118.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4055.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4055.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4138.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4138.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4091.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4091.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4099.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4099.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4061.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4061.nii.gz"
+    }
+],
+"val": [
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4137.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4137.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4129.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4129.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4106.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4106.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4066.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4066.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4115.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4115.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4068.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4068.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4092.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4092.nii.gz"
+    }
+],
+"test": [
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4094.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4094.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4098.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4098.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4058.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4058.nii.gz"
+    },
+    {
+        "STEP1": "./B100/STEP2f4noattn_step1_volume_vanila/STEP1_E4074.nii.gz",
+        "STEP2": "./B100/STEP2f4noattn_step1_volume_vanila/STEP2_E4074.nii.gz"
+    }
+]
+}
+

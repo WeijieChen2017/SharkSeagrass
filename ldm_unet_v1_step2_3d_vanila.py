@@ -149,7 +149,7 @@ test_transforms = Compose(
     ]
 )
 
-data_division_file = "./step1step2_0822.json"
+data_division_file = "./step1step2_0822_vanila.json"
 with open(data_division_file, "r") as f:
     data_division = json.load(f)
 
@@ -187,7 +187,7 @@ val_ds = CacheDataset(
     transform=val_transforms, 
     cache_num=num_val_files,
     cache_rate=cache_rate,
-    num_workers=4,
+    num_workers=1,
 )
 
 test_ds = CacheDataset(
@@ -195,7 +195,7 @@ test_ds = CacheDataset(
     transform=test_transforms,
     cache_num=num_test_files,
     cache_rate=cache_rate,
-    num_workers=4,
+    num_workers=1,
 )
 
 
