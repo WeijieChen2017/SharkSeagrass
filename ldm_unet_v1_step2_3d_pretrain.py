@@ -182,7 +182,7 @@ test_transforms = Compose(
 # num_train_files = len(train_list)
 # num_val_files = len(val_list)
 # num_test_files = len(test_list)
-print(f"The data search path is: {datset_folder+"/*.nii.gz"}")
+print(f"The data search path is: ", datset_folder+"/*.nii.gz")
 datset_list = sorted(glob.glob(datset_folder+"/*.nii.gz"))
 datset_list = random.shuffle(datset_list)
 print(f"{len(datset_list)} files are found in the dataset folder")
