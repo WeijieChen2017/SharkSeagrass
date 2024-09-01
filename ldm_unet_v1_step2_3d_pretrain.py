@@ -183,9 +183,9 @@ test_transforms = Compose(
 # num_val_files = len(val_list)
 # num_test_files = len(test_list)
 print(f"The data search path is: ", dataset_folder+"*.nii.gz")
-
+dataset_folder = "tsv1_ct"
 datalist = sorted(glob.glob(dataset_folder+"/*.nii.gz"))
-datalist = random.shuffle(datalist)
+random.shuffle(datalist)
 print(f"{len(datalist)} files are found in the dataset folder")
 data_pairs = [{"STEP1": item, "STEP2": item,} for item in datalist]
 
