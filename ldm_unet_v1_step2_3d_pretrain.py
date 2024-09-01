@@ -40,7 +40,7 @@ CT_MIN = -1024
 CT_MAX = 3976
 cache_rate = 0.05
 root_folder = "./B100/dynunet3d_v2_step2_pretrain/"
-datset_folder = "./tsv1_ct/"
+dataset_folder = "./tsv1_ct/"
 device = torch.device("cuda:1")
 train_ratio = 0.7
 val_ratio = 0.2
@@ -182,8 +182,8 @@ test_transforms = Compose(
 # num_train_files = len(train_list)
 # num_val_files = len(val_list)
 # num_test_files = len(test_list)
-print(f"The data search path is: ", datset_folder+"/*.nii.gz")
-datset_list = sorted(glob.glob(datset_folder+"/*.nii.gz"))
+print(f"The data search path is: ", dataset_folder+"*.nii.gz")
+datset_list = sorted(glob.glob(dataset_folder+"/*.nii.gz"))
 datset_list = random.shuffle(datset_list)
 print(f"{len(datset_list)} files are found in the dataset folder")
 datset_list = [{"STEP1": item, "STEP2": item,} for item in datset_list]
