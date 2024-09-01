@@ -1,7 +1,9 @@
 import os
 import json
-import numpy as np
 import torch
+import glob
+import random
+import numpy as np
 import matplotlib.pyplot as plt
 
 from monai.networks.nets import DynUNet
@@ -10,38 +12,46 @@ from monai.transforms import (
     LoadImaged, 
     EnsureChannelFirstd, 
     RandSpatialCropd,
-    RandSpatialCropSamplesd,
-    RandFlipd, 
-    RandRotated,
-    Transposed,
+    # RandSpatialCropSamplesd,
+    # RandFlipd, 
+    # RandRotated,
+    # Transposed,
     RandGaussianNoised,
     RandGaussianSharpend,
     RandGaussianSmoothd,
+    NormalizeIntensityd,
 )
 from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
-input_modality = ["PET", "CT"]
+input_modality = ["STEP1", "STEP2"]
 img_size = 400
-cube_size = 96
+cube_size = 128
 in_channels = 1
 out_channels = 1
-batch_size = 2
+batch_size = 1
 num_epoch = 10000
 debug_file_num = 0
 save_per_epoch = 100
 eval_per_epoch = 10
 plot_per_epoch = 10
 CT_NORM = 5000
-cache_rate = 1.0
-root_folder = "./B100/dynunet3d_v2_norm"
+CT_MIN = -1024
+CT_MAX = 3976
+cache_rate = 0.05
+root_folder = "./B100/dynunet3d_v2_step2_pretrain/"
+datset_folder = "./tsv1_ct"
+device = torch.device("cuda:1")
+train_ratio = 0.7
+val_ratio = 0.2
+test_ratio = 0.1
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
 
-kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
-strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2]]
+kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]
+strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
 
 model = DynUNet(
     spatial_dims=3,
@@ -50,7 +60,7 @@ model = DynUNet(
     kernel_size=kernels,
     strides=strides,
     upsample_kernel_size=strides[1:],
-    filters=(64, 128, 256),
+    filters=(32, 64, 128, 256),
     dropout=0.,
     norm_name=('INSTANCE', {'affine': True}), 
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
@@ -73,9 +83,9 @@ train_transforms = Compose(
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
-        RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
-        RandGaussianSharpend(keys=input_modality, prob=0.1),
-        RandGaussianSmoothd(keys=input_modality, prob=0.1),
+        RandGaussianNoised(keys="STEP1", prob=0.1, mean=0.0, std=0.15),
+        RandGaussianSharpend(keys="STEP1", prob=0.1),
+        RandGaussianSmoothd(keys="STEP1", prob=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -119,6 +129,9 @@ val_transforms = Compose(
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
+        RandGaussianNoised(keys="STEP1", prob=0.1, mean=0.0, std=0.15),
+        RandGaussianSharpend(keys="STEP1", prob=0.1),
+        RandGaussianSmoothd(keys="STEP1", prob=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -141,6 +154,9 @@ test_transforms = Compose(
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
+        RandGaussianNoised(keys="STEP1", prob=0.1, mean=0.0, std=0.15),
+        RandGaussianSharpend(keys="STEP1", prob=0.1),
+        RandGaussianSmoothd(keys="STEP1", prob=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -150,18 +166,30 @@ test_transforms = Compose(
     ]
 )
 
-data_division_file = "./B100/B100_0822.json"
-with open(data_division_file, "r") as f:
-    data_division = json.load(f)
+# data_division_file = "./step1step2_0822.json"
+# with open(data_division_file, "r") as f:
+#     data_division = json.load(f)
 
-if debug_file_num > 0:
-    train_list = data_division["train"][:debug_file_num]
-    val_list = data_division["val"][:debug_file_num]
-    test_list = data_division["test"][:debug_file_num]
-else:
-    train_list = data_division["train"]
-    val_list = data_division["val"]
-    test_list = data_division["test"]
+# if debug_file_num > 0:
+#     train_list = data_division["train"][:debug_file_num]
+#     val_list = data_division["val"][:debug_file_num]
+#     test_list = data_division["test"][:debug_file_num]
+# else:
+#     train_list = data_division["train"]
+#     val_list = data_division["val"]
+#     test_list = data_division["test"]
+
+# num_train_files = len(train_list)
+# num_val_files = len(val_list)
+# num_test_files = len(test_list)
+
+datset_list = sorted(glob.glob(datset_folder+"/*.nii.gz"))
+datset_list = random.shuffle(datset_list)
+datset_list = [{"STEP1": item, "STEP2": item,} for item in datset_list]
+
+train_list = datset_list[:int(len(datset_list)*train_ratio)]
+val_list = datset_list[int(len(datset_list)*train_ratio):int(len(datset_list)*(train_ratio+val_ratio))]
+test_list = datset_list[int(len(datset_list)*(train_ratio+val_ratio)):]
 
 num_train_files = len(train_list)
 num_val_files = len(val_list)
@@ -180,7 +208,7 @@ train_ds = CacheDataset(
     transform=train_transforms,
     cache_num=num_train_files,
     cache_rate=cache_rate,
-    num_workers=4,
+    num_workers=6,
 )
 
 val_ds = CacheDataset(
@@ -188,7 +216,7 @@ val_ds = CacheDataset(
     transform=val_transforms, 
     cache_num=num_val_files,
     cache_rate=cache_rate,
-    num_workers=4,
+    num_workers=2,
 )
 
 test_ds = CacheDataset(
@@ -196,7 +224,7 @@ test_ds = CacheDataset(
     transform=test_transforms,
     cache_num=num_test_files,
     cache_rate=cache_rate,
-    num_workers=4,
+    num_workers=2,
 )
 
 
@@ -205,21 +233,26 @@ train_loader = DataLoader(train_ds,
                         batch_size=batch_size,
                         shuffle=True, 
                         num_workers=4,
+                        persistent_workers=True,
+                        pin_memory=True,
 
 )
 val_loader = DataLoader(val_ds, 
                         batch_size=batch_size, 
                         shuffle=True, 
                         num_workers=4,
+                        persistent_workers=True,
+                        pin_memory=True,
 )
 
 test_loader = DataLoader(test_ds,
                         batch_size=batch_size,
                         shuffle=True,
                         num_workers=4,
+                        persistent_workers=True,
+                        pin_memory=True,
 )
 
-device = torch.device("cuda:0")
 model.to(device)
 
 # set the optimizer and loss
@@ -318,14 +351,29 @@ for idx_epoch in range(num_epoch):
     model.train()
     train_loss = 0
     for idx_batch, batch_data in enumerate(train_loader):
-        inputs = batch_data["PET"].to(device)
-        labels = batch_data["CT"].to(device)
+        inputs = batch_data["STEP1"].to(device)
+        labels = batch_data["STEP2"].to(device)
+
+        # for inputs and labels, clip the values to CT_MIN and CT_MAX
+        # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
+        # labels = torch.clamp(labels, CT_MIN, CT_MAX)
+        # then normalize the values to 0 and 1
+        # inputs = (inputs - CT_MIN) / CT_NORM
+        # labels = (labels - CT_MIN) / CT_NORM
+        # # 0 to 1 to -1 to 1
+        # inputs = inputs * 2 - 1
+        # labels = labels * 2 - 1
+        res_inputs = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
         # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        # inputs.shape:  torch.Size([5, 1, 96, 96, 96]) labels.shape:  torch.Size([5, 1, 96, 96, 96])
-        # outputs.shape:  torch.Size([5, 2, 1, 96, 96, 96])
+        # print("res_inputs.shape: ", res_inputs.shape)
+        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
+        # inputs.shape:  torch.Size([2, 1, 128, 128, 128]) labels.shape:  torch.Size([2, 1, 128, 128, 128])
+        # res_inputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
+        # outputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
         optimizer.zero_grad()
         outputs = model(inputs)
         # print("outputs.shape: ", outputs.shape)
+        outputs = outputs + res_inputs
         # loss = loss_function(outputs, labels)
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
@@ -347,9 +395,15 @@ for idx_epoch in range(num_epoch):
         with torch.no_grad():
             val_loss = 0
             for idx_batch, batch_data in enumerate(val_loader):
-                inputs = batch_data["PET"].to(device)
-                labels = batch_data["CT"].to(device)
-                outputs = model(inputs)
+                inputs = batch_data["STEP1"].to(device)
+                labels = batch_data["STEP2"].to(device)
+                # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
+                # labels = torch.clamp(labels, CT_MIN, CT_MAX)
+                # inputs = (inputs - CT_MIN) / CT_NORM
+                # labels = (labels - CT_MIN) / CT_NORM
+                # inputs = inputs * 2 - 1
+                # labels = labels * 2 - 1
+                outputs = model(inputs)+inputs
                 loss = output_loss(outputs, labels)
                 val_loss += loss.item()
             val_loss /= len(val_loader)
@@ -367,9 +421,15 @@ for idx_epoch in range(num_epoch):
                 with torch.no_grad():
                     test_loss = 0
                     for idx_batch, batch_data in enumerate(test_loader):
-                        inputs = batch_data["PET"].to(device)
-                        labels = batch_data["CT"].to(device)
-                        outputs = model(inputs)
+                        inputs = batch_data["STEP1"].to(device)
+                        labels = batch_data["STEP2"].to(device)
+                        # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
+                        # labels = torch.clamp(labels, CT_MIN, CT_MAX)
+                        # inputs = (inputs - CT_MIN) / CT_NORM
+                        # labels = (labels - CT_MIN) / CT_NORM
+                        # inputs = inputs * 2 - 1
+                        # labels = labels * 2 - 1
+                        outputs = model(inputs) + inputs
                         loss = output_loss(outputs, labels)
                         test_loss += loss.item()
                     test_loss /= len(test_loader)
