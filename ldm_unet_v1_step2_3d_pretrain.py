@@ -26,7 +26,7 @@ from monai.losses import DeepSupervisionLoss
 
 input_modality = ["STEP1", "STEP2"]
 img_size = 400
-cube_size = 128
+cube_size = 64
 in_channels = 1
 out_channels = 1
 batch_size = 1
