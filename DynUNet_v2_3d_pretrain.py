@@ -10,10 +10,10 @@ from monai.transforms import (
     LoadImaged, 
     EnsureChannelFirstd, 
     RandSpatialCropd,
-    # RandSpatialCropSamplesd,
-    # RandFlipd, 
-    # RandRotated,
-    # Transposed,
+    RandSpatialCropSamplesd,
+    RandFlipd, 
+    RandRotated,
+    Transposed,
     RandGaussianNoised,
     RandGaussianSharpend,
     RandGaussianSmoothd,
@@ -22,30 +22,27 @@ from monai.transforms import (
 from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
-input_modality = ["STEP1", "STEP2"]
+input_modality = ["PET", "CT"]
 img_size = 400
-cube_size = 128
+cube_size = 96
 in_channels = 1
 out_channels = 1
-batch_size = 1
+batch_size = 2
 num_epoch = 10000
 debug_file_num = 0
 save_per_epoch = 100
 eval_per_epoch = 10
 plot_per_epoch = 10
 CT_NORM = 5000
-CT_MIN = -1024
-CT_MAX = 3976
-cache_rate = 0.5
-root_folder = "./B100/dynunet3d_v2_step2_large/"
-device = torch.device("cuda:0")
+cache_rate = 1.0
+root_folder = "./B100/dynunet3d_v2_pretrain_ts"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
 
-kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]
-strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
+kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
+strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2]]
 
 model = DynUNet(
     spatial_dims=3,
@@ -54,7 +51,7 @@ model = DynUNet(
     kernel_size=kernels,
     strides=strides,
     upsample_kernel_size=strides[1:],
-    filters=(32, 64, 128, 256),
+    filters=(128, 256, 512),
     dropout=0.,
     norm_name=('INSTANCE', {'affine': True}), 
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
@@ -69,14 +66,12 @@ model = DynUNet(
 train_transforms = Compose(
     [
         LoadImaged(keys=input_modality, image_only=True),
-        # Transposed(keys=input_modality, indices=(2, 0, 1)),
-        # EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
-        # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
         NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
+                         
         RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
         RandGaussianSharpend(keys=input_modality, prob=0.1),
         RandGaussianSmoothd(keys=input_modality, prob=0.1),
@@ -112,6 +107,13 @@ val_transforms = Compose(
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
         NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
+        RandSpatialCropd(keys=input_modality,
+                         roi_size=(cube_size, cube_size, cube_size),
+                         random_center=True, random_size=False),
+                         
+        RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
+        RandGaussianSharpend(keys=input_modality, prob=0.1),
+        RandGaussianSmoothd(keys=input_modality, prob=0.1),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=batch_size,
@@ -120,9 +122,9 @@ val_transforms = Compose(
         #                         roi_size=(img_size, img_size, out_channels),
                                 # num_samples=batch_size,
                                 # random_size=False, random_center=False),
-        RandSpatialCropd(keys=input_modality,
-                         roi_size=(cube_size, cube_size, cube_size),
-                         random_center=True, random_size=False),
+        # RandSpatialCropd(keys=input_modality,
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -145,6 +147,13 @@ test_transforms = Compose(
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
+                         
+        RandGaussianNoised(keys=input_modality, prob=0.1, mean=0.0, std=0.1),
+        RandGaussianSharpend(keys=input_modality, prob=0.1),
+        RandGaussianSmoothd(keys=input_modality, prob=0.1),
+        # RandSpatialCropd(keys=input_modality,
+        #                  roi_size=(cube_size, cube_size, cube_size),
+        #                  random_center=True, random_size=False),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -154,7 +163,7 @@ test_transforms = Compose(
     ]
 )
 
-data_division_file = "./step1step2_0822.json"
+data_division_file = "./B100/B100_0822.json"
 with open(data_division_file, "r") as f:
     data_division = json.load(f)
 
@@ -184,7 +193,7 @@ train_ds = CacheDataset(
     transform=train_transforms,
     cache_num=num_train_files,
     cache_rate=cache_rate,
-    num_workers=6,
+    num_workers=4,
 )
 
 val_ds = CacheDataset(
@@ -192,7 +201,7 @@ val_ds = CacheDataset(
     transform=val_transforms, 
     cache_num=num_val_files,
     cache_rate=cache_rate,
-    num_workers=2,
+    num_workers=4,
 )
 
 test_ds = CacheDataset(
@@ -200,7 +209,7 @@ test_ds = CacheDataset(
     transform=test_transforms,
     cache_num=num_test_files,
     cache_rate=cache_rate,
-    num_workers=2,
+    num_workers=4,
 )
 
 
@@ -209,26 +218,21 @@ train_loader = DataLoader(train_ds,
                         batch_size=batch_size,
                         shuffle=True, 
                         num_workers=4,
-                        persistent_workers=True,
-                        pin_memory=True,
 
 )
 val_loader = DataLoader(val_ds, 
                         batch_size=batch_size, 
                         shuffle=True, 
                         num_workers=4,
-                        persistent_workers=True,
-                        pin_memory=True,
 )
 
 test_loader = DataLoader(test_ds,
                         batch_size=batch_size,
                         shuffle=True,
                         num_workers=4,
-                        persistent_workers=True,
-                        pin_memory=True,
 )
 
+device = torch.device("cuda:0")
 model.to(device)
 
 # set the optimizer and loss
@@ -327,29 +331,14 @@ for idx_epoch in range(num_epoch):
     model.train()
     train_loss = 0
     for idx_batch, batch_data in enumerate(train_loader):
-        inputs = batch_data["STEP1"].to(device)
-        labels = batch_data["STEP2"].to(device)
-
-        # for inputs and labels, clip the values to CT_MIN and CT_MAX
-        # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
-        # labels = torch.clamp(labels, CT_MIN, CT_MAX)
-        # then normalize the values to 0 and 1
-        # inputs = (inputs - CT_MIN) / CT_NORM
-        # labels = (labels - CT_MIN) / CT_NORM
-        # # 0 to 1 to -1 to 1
-        # inputs = inputs * 2 - 1
-        # labels = labels * 2 - 1
-        res_inputs = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
+        inputs = batch_data["PET"].to(device)
+        labels = batch_data["CT"].to(device)
         # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        # print("res_inputs.shape: ", res_inputs.shape)
-        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        # inputs.shape:  torch.Size([2, 1, 128, 128, 128]) labels.shape:  torch.Size([2, 1, 128, 128, 128])
-        # res_inputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
-        # outputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
+        # inputs.shape:  torch.Size([5, 1, 96, 96, 96]) labels.shape:  torch.Size([5, 1, 96, 96, 96])
+        # outputs.shape:  torch.Size([5, 2, 1, 96, 96, 96])
         optimizer.zero_grad()
         outputs = model(inputs)
         # print("outputs.shape: ", outputs.shape)
-        outputs = outputs + res_inputs
         # loss = loss_function(outputs, labels)
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
@@ -371,15 +360,9 @@ for idx_epoch in range(num_epoch):
         with torch.no_grad():
             val_loss = 0
             for idx_batch, batch_data in enumerate(val_loader):
-                inputs = batch_data["STEP1"].to(device)
-                labels = batch_data["STEP2"].to(device)
-                # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
-                # labels = torch.clamp(labels, CT_MIN, CT_MAX)
-                # inputs = (inputs - CT_MIN) / CT_NORM
-                # labels = (labels - CT_MIN) / CT_NORM
-                # inputs = inputs * 2 - 1
-                # labels = labels * 2 - 1
-                outputs = model(inputs)+inputs
+                inputs = batch_data["PET"].to(device)
+                labels = batch_data["CT"].to(device)
+                outputs = model(inputs)
                 loss = output_loss(outputs, labels)
                 val_loss += loss.item()
             val_loss /= len(val_loader)
@@ -397,15 +380,9 @@ for idx_epoch in range(num_epoch):
                 with torch.no_grad():
                     test_loss = 0
                     for idx_batch, batch_data in enumerate(test_loader):
-                        inputs = batch_data["STEP1"].to(device)
-                        labels = batch_data["STEP2"].to(device)
-                        # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
-                        # labels = torch.clamp(labels, CT_MIN, CT_MAX)
-                        # inputs = (inputs - CT_MIN) / CT_NORM
-                        # labels = (labels - CT_MIN) / CT_NORM
-                        # inputs = inputs * 2 - 1
-                        # labels = labels * 2 - 1
-                        outputs = model(inputs) + inputs
+                        inputs = batch_data["PET"].to(device)
+                        labels = batch_data["CT"].to(device)
+                        outputs = model(inputs)
                         loss = output_loss(outputs, labels)
                         test_loss += loss.item()
                     test_loss /= len(test_loader)
