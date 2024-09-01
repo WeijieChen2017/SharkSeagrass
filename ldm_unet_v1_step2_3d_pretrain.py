@@ -183,14 +183,14 @@ test_transforms = Compose(
 # num_val_files = len(val_list)
 # num_test_files = len(test_list)
 print(f"The data search path is: ", dataset_folder+"*.nii.gz")
-datset_list = sorted(glob.glob(dataset_folder+"/*.nii.gz"))
-datset_list = random.shuffle(datset_list)
-print(f"{len(datset_list)} files are found in the dataset folder")
-datset_list = [{"STEP1": item, "STEP2": item,} for item in datset_list]
+datalist = sorted(glob.glob(dataset_folder+"/*.nii.gz"))
+datalist = random.shuffle(datalist)
+print(f"{len(datalist)} files are found in the dataset folder")
+data_pairs = [{"STEP1": item, "STEP2": item,} for item in datalist]
 
-train_list = datset_list[:int(len(datset_list)*train_ratio)]
-val_list = datset_list[int(len(datset_list)*train_ratio):int(len(datset_list)*(train_ratio+val_ratio))]
-test_list = datset_list[int(len(datset_list)*(train_ratio+val_ratio)):]
+train_list = data_pairs[:int(len(data_pairs)*train_ratio)]
+val_list = data_pairs[int(len(data_pairs)*train_ratio):int(len(data_pairs)*(train_ratio+val_ratio))]
+test_list = data_pairs[int(len(data_pairs)*(train_ratio+val_ratio)):]
 
 num_train_files = len(train_list)
 num_val_files = len(val_list)
