@@ -26,7 +26,7 @@ from monai.losses import DeepSupervisionLoss
 
 input_modality = ["STEP1", "STEP2"]
 img_size = 400
-cube_size = 64
+cube_size = 128
 in_channels = 1
 out_channels = 1
 batch_size = 1
@@ -255,6 +255,15 @@ test_loader = DataLoader(test_ds,
                         pin_memory=True,
 )
 
+def check_batch_size(batch_data, check_size):
+    # given a batch, N, C, D, H, W, check wither D, H, W are the same as check_size
+    for key in batch_data.keys():
+        if key == "label":
+            continue
+        if batch_data[key].shape[2] != check_size or batch_data[key].shape[3] != check_size or batch_data[key].shape[4] != check_size:
+            return False
+    return True
+
 model.to(device)
 
 # set the optimizer and loss
@@ -353,6 +362,10 @@ for idx_epoch in range(num_epoch):
     model.train()
     train_loss = 0
     for idx_batch, batch_data in enumerate(train_loader):
+        if check_batch_size(batch_data, cube_size) is False:
+            print("The batch size is not correct")
+            continue
+        
         inputs = batch_data["STEP1"].to(device)
         labels = batch_data["STEP2"].to(device)
 
@@ -397,6 +410,9 @@ for idx_epoch in range(num_epoch):
         with torch.no_grad():
             val_loss = 0
             for idx_batch, batch_data in enumerate(val_loader):
+                if check_batch_size(batch_data, cube_size) is False:
+                    print("The batch size is not correct")
+                    continue
                 inputs = batch_data["STEP1"].to(device)
                 labels = batch_data["STEP2"].to(device)
                 # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
@@ -423,6 +439,9 @@ for idx_epoch in range(num_epoch):
                 with torch.no_grad():
                     test_loss = 0
                     for idx_batch, batch_data in enumerate(test_loader):
+                        if check_batch_size(batch_data, cube_size) is False:
+                            print("The batch size is not correct")
+                            continue
                         inputs = batch_data["STEP1"].to(device)
                         labels = batch_data["STEP2"].to(device)
                         # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
