@@ -371,7 +371,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 3)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        plt.imshow(yhat_x, cmap="bwr", vmin=0.35, vmax=0.65) # yhat = f(x) + x, img_pred = f(x) = yhat - x
+        plt.imshow(yhat_x, cmap="bwr", vmin=0.45, vmax=0.55) # yhat = f(x) + x, img_pred = f(x) = yhat - x
         # plt.title("output CT")
         plt.colorbar()
         if i == 0:
@@ -380,7 +380,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 4)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        plt.imshow(y_x, cmap="bwr", vmin=0.35, vmax=0.65) # y = x + (y - x), (y - x) = y - x
+        plt.imshow(y_x, cmap="bwr", vmin=0.45, vmax=0.55) # y = x + (y - x), (y - x) = y - x
         plt.colorbar()
         if i == 0:
             plt.title("gt=y-x")
