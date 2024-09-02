@@ -20,6 +20,7 @@ from monai.transforms import (
     RandGaussianSharpend,
     RandGaussianSmoothd,
     NormalizeIntensityd,
+    ScaleIntensityRanged,
 )
 from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
@@ -80,6 +81,7 @@ train_transforms = Compose(
         # EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
+        ScaleIntensityRanged(keys=["image"], a_min=CT_MIN, a_max=CT_MAX, b_min=0.0, b_max=1.0, clip=True),
         NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
@@ -118,6 +120,7 @@ val_transforms = Compose(
         LoadImaged(keys=input_modality, image_only=True),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
+        ScaleIntensityRanged(keys=["image"], a_min=CT_MIN, a_max=CT_MAX, b_min=0.0, b_max=1.0, clip=True),
         NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
@@ -151,6 +154,7 @@ test_transforms = Compose(
         LoadImaged(keys=input_modality, image_only=True),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
+        ScaleIntensityRanged(keys=["image"], a_min=CT_MIN, a_max=CT_MAX, b_min=0.0, b_max=1.0, clip=True),
         NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
