@@ -332,6 +332,12 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         img_pred = np.squeeze(np.clip(img_pred, -1, 1))
         img_pred = (img_pred + 1) / 2
 
+        yhat_x = img_pred - img_PET # -1 to 1
+        yhat_x = (yhat_x + 1) / 2 # 0 to 1
+
+        y_x = img_CT - img_PET
+        y_x = (y_x + 1) / 2
+
         # first three and hist
         plt.subplot(n_row, n_col, i * n_col + 1)
         plt.imshow(img_PET, cmap="gray") # x
@@ -349,7 +355,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 3)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        plt.imshow(img_pred-img_PET, cmap="gray") # yhat = f(x) + x, img_pred = f(x) = yhat - x
+        plt.imshow(yhat_x, cmap="gray") # yhat = f(x) + x, img_pred = f(x) = yhat - x
         # plt.title("output CT")
         if i == 0:
             plt.title("f(x)=yhat-x")
@@ -357,7 +363,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 4)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        plt.imshow(img_CT-img_PET, cmap="gray") # y = x + (y - x), (y - x) = y - x
+        plt.imshow(y_x, cmap="gray") # y = x + (y - x), (y - x) = y - x
         if i == 0:
             plt.title("gt=y-x")
         # plt.title("output CT")
