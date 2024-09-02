@@ -25,12 +25,14 @@ from monai.transforms import (
 from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
+mode = "d4f32"
+mode = "d3f64"
+
 input_modality = ["STEP1", "STEP2"]
 img_size = 400
 cube_size = 128
 in_channels = 1
 out_channels = 1
-batch_size = 3
 num_epoch = 10000
 debug_file_num = 0
 save_per_epoch = 10
@@ -43,10 +45,9 @@ cache_rate = 0.125
 train_case = 0
 val_case = 0
 test_case = 0
-root_folder = "./B100/dynunet3d_v2_step2_pretrain_d4f32/"
+root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
 # dataset_folder = "tsv1_ct/"
 data_division_file = "tsv1_ct_over128.json"
-device = torch.device("cuda:1")
 train_ratio = 0.7
 val_ratio = 0.2
 test_ratio = 0.1
@@ -55,8 +56,20 @@ if not os.path.exists(root_folder):
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
 
-kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]
-strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
+if mode == "d4f32":
+    kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]
+    strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
+    filters = (32, 64, 128, 256)
+    device = torch.device("cuda:1")
+    batch_size = 3
+    train_case = 0
+elif mode == "d3f64":
+    kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
+    strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2]]
+    filters = (64, 128, 256)
+    device = torch.device("cuda:0")
+    batch_size = 2
+    train_case = 650
 
 model = DynUNet(
     spatial_dims=3,
@@ -65,7 +78,7 @@ model = DynUNet(
     kernel_size=kernels,
     strides=strides,
     upsample_kernel_size=strides[1:],
-    filters=(32, 64, 128, 256),
+    filters=filters,
     dropout=0.,
     norm_name=('INSTANCE', {'affine': True}), 
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
