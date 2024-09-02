@@ -388,7 +388,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
             plt.title("input STEP1")
         plt.yscale("log")
         # plt.axis("off")
-        plt.xlim(-1, 1)
+        plt.xlim(0, 1)
 
         plt.subplot(n_row, n_col, i * n_col + 7)
         # img_CT = np.clip(img_CT, 0, 1)
@@ -398,7 +398,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
             plt.title("input STEP2")
         plt.yscale("log")
         # plt.axis("off")
-        plt.xlim(-1, 1)
+        plt.xlim(0, 1)
 
         plt.subplot(n_row, n_col, i * n_col + 8)
         # img_pred = np.clip(img_pred, 0, 1)
@@ -428,7 +428,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
             plt.title("yhat")
         plt.yscale("log")
         # plt.axis("off")
-        plt.xlim(-1, 1)
+        plt.xlim(0, 1)
 
     plt.tight_layout()
     plt.savefig(os.path.join(root_folder, f"epoch_{idx_epoch}.png"))
