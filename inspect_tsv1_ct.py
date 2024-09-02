@@ -17,11 +17,11 @@ for path in data_list:
     nii_file = nib.load(path)
     nii_data = nii_file.get_fdata()
     print("Data shape:", nii_data.shape)
-    if nii_data.shape[0] > 128:
+    if nii_data.shape[0] >= 128 and nii_data.shape[1] >= 128 and nii_data.shape[2] >= 128:
         dataset_over128.append(path)
-    if nii_data.shape[0] > 96:
+    if nii_data.shape[0] >= 96 and nii_data.shape[1] >= 96 and nii_data.shape[2] >= 96:
         dataset_over96.append(path)
-    if nii_data.shape[0] > 64:
+    if nii_data.shape[0] >= 64 and nii_data.shape[1] >= 64 and nii_data.shape[2] >= 64:
         dataset_over64.append(path)
 
 print("Over 128:", len(dataset_over128))
