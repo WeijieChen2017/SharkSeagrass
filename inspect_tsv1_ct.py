@@ -13,6 +13,9 @@ dataset_over64 = []
 
 for path in data_list:
     print("<"*18)
+    if "s0864" in path:
+        print("Skipping", path)
+        continue
     print("Processing", path)
     nii_file = nib.load(path)
     nii_data = nii_file.get_fdata()
