@@ -343,14 +343,14 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         # first three and hist
         plt.subplot(n_row, n_col, i * n_col + 1)
-        plt.imshow(img_PET, cmap="gray") # x
+        plt.imshow(img_PET, cmap="gray", vmin=0, vmax=0.5) # x
         # plt.title("input PET")
         if i == 0:
             plt.title("input STEP1")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 2)
-        plt.imshow(img_CT, cmap="gray") # y
+        plt.imshow(img_CT, cmap="gray", vmin=0, vmax=0.5) # y
         # plt.title("label CT")
         if i == 0:
             plt.title("input STEP2")
@@ -358,7 +358,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 3)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        plt.imshow(yhat_x, cmap="bwr") # yhat = f(x) + x, img_pred = f(x) = yhat - x
+        plt.imshow(yhat_x, cmap="bwr", vmin=0.25, vmax=0.75) # yhat = f(x) + x, img_pred = f(x) = yhat - x
         # plt.title("output CT")
         plt.colorbar()
         if i == 0:
@@ -367,7 +367,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 4)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        plt.imshow(y_x, cmap="bwr") # y = x + (y - x), (y - x) = y - x
+        plt.imshow(y_x, cmap="bwr", vmin=0.25, vmax=0.75) # y = x + (y - x), (y - x) = y - x
         plt.colorbar()
         if i == 0:
             plt.title("gt=y-x")
@@ -376,7 +376,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 5)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        plt.imshow(img_pred, cmap="gray") # yhat
+        plt.imshow(img_pred, cmap="gray", vmin=0, vmax=0.5) # yhat
         if i == 0:
             plt.title("yhat")
         # plt.title("output CT")
