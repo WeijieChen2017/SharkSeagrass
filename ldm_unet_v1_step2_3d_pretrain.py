@@ -40,9 +40,9 @@ CT_NORM = 5000
 CT_MIN = -1024
 CT_MAX = 3976
 cache_rate = 0.05
-train_case = 60
-val_case = 20
-test_case = 10
+train_case = 0
+val_case = 0
+test_case = 0
 root_folder = "./B100/dynunet3d_v2_step2_pretrain/"
 # dataset_folder = "tsv1_ct/"
 data_division_file = "tsv1_ct_over128.json"
@@ -313,7 +313,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
     n_block = 8
     if inputs.shape[0] < n_block:
         n_block = inputs.shape[0]
-    plt.figure(figsize=(12, n_block*1.), dpi=300)
+    plt.figure(figsize=(12, n_block*1.2), dpi=300)
 
     n_row = n_block
     n_col = 10
