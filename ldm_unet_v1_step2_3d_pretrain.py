@@ -30,7 +30,7 @@ img_size = 400
 cube_size = 128
 in_channels = 1
 out_channels = 1
-batch_size = 1
+batch_size = 3
 num_epoch = 10000
 debug_file_num = 0
 save_per_epoch = 10
@@ -164,7 +164,7 @@ test_transforms = Compose(
                          random_center=True, random_size=False),
         RandGaussianSmoothd(keys="STEP1", prob=1.),
         # RandGaussianSharpend(keys="STEP1", prob=1.),
-        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.1),
+        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.01),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -313,39 +313,55 @@ def plot_results(inputs, labels, outputs, idx_epoch):
     n_block = 8
     if inputs.shape[0] < n_block:
         n_block = inputs.shape[0]
-    plt.figure(figsize=(12, n_block*1.5), dpi=300)
+    plt.figure(figsize=(12, n_block*2.5), dpi=300)
 
     n_row = n_block
-    n_col = 6
+    n_col = 10
 
     for i in range(n_block):
-        # first three and hist
-        plt.subplot(n_row, n_col, i * n_col + 1)
+
         img_PET = np.rot90(inputs[i, :, :, :, cube_size // 2].detach().cpu().numpy())
         img_PET = np.squeeze(np.clip(img_PET, -1, 1))
         img_PET = (img_PET + 1) / 2
-        plt.imshow(img_PET, cmap="gray")
+
+        img_CT = np.rot90(labels[i, :, :, :, cube_size // 2].detach().cpu().numpy())
+        img_CT = np.squeeze(np.clip(img_CT, -1, 1))
+        img_CT = (img_CT + 1) / 2
+
+        img_pred = np.rot90(outputs[i, 0, :, :, :, cube_size // 2].detach().cpu().numpy())
+        img_pred = np.squeeze(np.clip(img_pred, -1, 1))
+        img_pred = (img_pred + 1) / 2
+
+        # first three and hist
+        plt.subplot(n_row, n_col, i * n_col + 1)
+        plt.imshow(img_PET, cmap="gray") # x
         # plt.title("input PET")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 2)
-        img_CT = np.rot90(labels[i, :, :, :, cube_size // 2].detach().cpu().numpy())
-        img_CT = np.squeeze(np.clip(img_CT, -1, 1))
-        img_CT = (img_CT + 1) / 2
-        plt.imshow(img_CT, cmap="gray")
+        plt.imshow(img_CT, cmap="gray") # y
         # plt.title("label CT")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 3)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        img_pred = np.rot90(outputs[i, 0, :, :, :, cube_size // 2].detach().cpu().numpy())
-        img_pred = np.squeeze(np.clip(img_pred, -1, 1))
-        img_pred = (img_pred + 1) / 2
-        plt.imshow(img_pred, cmap="gray")
+        plt.imshow(img_pred-img_PET, cmap="gray") # yhat = f(x) + x, img_pred = f(x) = yhat - x
         # plt.title("output CT")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 4)
+        # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
+        plt.imshow(img_CT-img_PET, cmap="gray") # y = x + (y - x), (y - x) = y - x
+        # plt.title("output CT")
+        plt.axis("off")
+
+        plt.subplot(n_row, n_col, i * n_col + 5)
+        # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
+        plt.imshow(img_pred, cmap="gray") # yhat
+        # plt.title("output CT")
+        plt.axis("off")
+
+        plt.subplot(n_row, n_col, i * n_col + 6)
         # img_PET = np.clip(img_PET, 0, 1)
         plt.hist(img_PET.flatten(), bins=100)
         # plt.title("input PET")
@@ -353,7 +369,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         plt.axis("off")
         plt.xlim(-1, 1)
 
-        plt.subplot(n_row, n_col, i * n_col + 5)
+        plt.subplot(n_row, n_col, i * n_col + 7)
         # img_CT = np.clip(img_CT, 0, 1)
         plt.hist(img_CT.flatten(), bins=100)
         # plt.title("label CT")
@@ -361,9 +377,25 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         plt.axis("off")
         plt.xlim(-1, 1)
 
-        plt.subplot(n_row, n_col, i * n_col + 6)
+        plt.subplot(n_row, n_col, i * n_col + 8)
         # img_pred = np.clip(img_pred, 0, 1)
-        plt.hist(img_pred.flatten(), bins=100)
+        plt.hist((img_pred-img_PET).flatten(), bins=100)
+        # plt.title("output CT")
+        plt.yscale("log")
+        plt.axis("off")
+        plt.xlim(-1, 1)
+
+        plt.subplot(n_row, n_col, i * n_col + 9)
+        # img_pred = np.clip(img_pred, 0, 1)
+        plt.hist((img_CT-img_PET).flatten(), bins=100)
+        # plt.title("output CT")
+        plt.yscale("log")
+        plt.axis("off")
+        plt.xlim(-1, 1)
+
+        plt.subplot(n_row, n_col, i * n_col + 10)
+        # img_pred = np.clip(img_pred, 0, 1)
+        plt.hist((img_pred).flatten(), bins=100)
         # plt.title("output CT")
         plt.yscale("log")
         plt.axis("off")
