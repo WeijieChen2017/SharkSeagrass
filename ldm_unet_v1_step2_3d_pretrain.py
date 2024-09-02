@@ -30,7 +30,7 @@ img_size = 400
 cube_size = 128
 in_channels = 1
 out_channels = 1
-batch_size = 2
+batch_size = 3
 num_epoch = 10000
 debug_file_num = 0
 save_per_epoch = 10
@@ -43,7 +43,7 @@ cache_rate = 0.125
 train_case = 0
 val_case = 0
 test_case = 0
-root_folder = "./B100/dynunet3d_v2_step2_pretrain_d3f64/"
+root_folder = "./B100/dynunet3d_v2_step2_pretrain_d4f32/"
 # dataset_folder = "tsv1_ct/"
 data_division_file = "tsv1_ct_over128.json"
 device = torch.device("cuda:0")
@@ -55,8 +55,8 @@ if not os.path.exists(root_folder):
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
 
-kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
-strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2]]
+kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]
+strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
 
 model = DynUNet(
     spatial_dims=3,
