@@ -39,7 +39,7 @@ plot_per_epoch = 1
 CT_NORM = 5000
 CT_MIN = -1024
 CT_MAX = 3976
-cache_rate = 0.05
+cache_rate = 0.125
 train_case = 0
 val_case = 0
 test_case = 0
@@ -89,9 +89,10 @@ train_transforms = Compose(
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
-        RandGaussianSmoothd(keys="STEP1", prob=1.),
+        RandGaussianSmoothd(keys="STEP1", prob=1.,
+                            sigma_x=(0.5, 2.5), sigma_y=(0.5, 2.5), sigma_z=(0.5, 2.5)),
         # RandGaussianSharpend(keys="STEP1", prob=1.),
-        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.1),
+        # RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -136,9 +137,10 @@ val_transforms = Compose(
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
-        RandGaussianSmoothd(keys="STEP1", prob=1.),
+        RandGaussianSmoothd(keys="STEP1", prob=1.,
+                            sigma_x=(0.5, 2.5), sigma_y=(0.5, 2.5), sigma_z=(0.5, 2.5)),
         # RandGaussianSharpend(keys="STEP1", prob=1.),
-        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.1),
+        # RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -162,9 +164,10 @@ test_transforms = Compose(
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
-        RandGaussianSmoothd(keys="STEP1", prob=1.),
+        RandGaussianSmoothd(keys="STEP1", prob=1.,
+                            sigma_x=(0.5, 2.5), sigma_y=(0.5, 2.5), sigma_z=(0.5, 2.5)),
         # RandGaussianSharpend(keys="STEP1", prob=1.),
-        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.01),
+        # RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.01),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
