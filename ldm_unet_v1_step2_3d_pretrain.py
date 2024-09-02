@@ -25,7 +25,7 @@ from monai.transforms import (
 from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
-mode = "d4f32"
+# mode = "d4f32"
 mode = "d3f64"
 
 input_modality = ["STEP1", "STEP2"]
