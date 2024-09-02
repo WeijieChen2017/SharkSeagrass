@@ -81,14 +81,14 @@ train_transforms = Compose(
         # EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
-        ScaleIntensityRanged(keys=input_modality, a_min=CT_MIN, a_max=CT_MAX, b_min=0.0, b_max=1.0, clip=True),
+        ScaleIntensityRanged(keys=input_modality, a_min=CT_MIN, a_max=CT_MAX, b_min=-1.0, b_max=1.0, clip=True),
         NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
         RandGaussianSmoothd(keys="STEP1", prob=1.),
         RandGaussianSharpend(keys="STEP1", prob=1.),
-        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.15),
+        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -120,7 +120,7 @@ val_transforms = Compose(
         LoadImaged(keys=input_modality, image_only=True),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
-        ScaleIntensityRanged(keys=input_modality, a_min=CT_MIN, a_max=CT_MAX, b_min=0.0, b_max=1.0, clip=True),
+        ScaleIntensityRanged(keys=input_modality, a_min=CT_MIN, a_max=CT_MAX, b_min=-1.0, b_max=1.0, clip=True),
         NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
@@ -135,7 +135,7 @@ val_transforms = Compose(
                          random_center=True, random_size=False),
         RandGaussianSmoothd(keys="STEP1", prob=1.),
         RandGaussianSharpend(keys="STEP1", prob=1.),
-        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.15),
+        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -154,14 +154,14 @@ test_transforms = Compose(
         LoadImaged(keys=input_modality, image_only=True),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
-        ScaleIntensityRanged(keys=input_modality, a_min=CT_MIN, a_max=CT_MAX, b_min=0.0, b_max=1.0, clip=True),
+        ScaleIntensityRanged(keys=input_modality, a_min=CT_MIN, a_max=CT_MAX, b_min=-1.0, b_max=1.0, clip=True),
         NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
         RandGaussianSmoothd(keys="STEP1", prob=1.),
         RandGaussianSharpend(keys="STEP1", prob=1.),
-        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.15),
+        RandGaussianNoised(keys="STEP1", prob=1., mean=0.0, std=0.1),
         # RandSpatialCropd(keys="PET",
         #                  roi_size=(cube_size, cube_size, cube_size),
         #                  random_center=True, random_size=False),
@@ -312,14 +312,16 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         # first three and hist
         plt.subplot(n_row, n_col, i * n_col + 1)
         img_PET = np.rot90(inputs[i, :, :, :, cube_size // 2].detach().cpu().numpy())
-        img_PET = np.squeeze(np.clip(img_PET, 0, 1))
+        img_PET = np.squeeze(np.clip(img_PET, -1, 1))
+        img_PET = (img_PET + 1) / 2
         plt.imshow(img_PET, cmap="gray")
         # plt.title("input PET")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 2)
         img_CT = np.rot90(labels[i, :, :, :, cube_size // 2].detach().cpu().numpy())
-        img_CT = np.squeeze(np.clip(img_CT, 0, 1))
+        img_CT = np.squeeze(np.clip(img_CT, -1, 1))
+        img_CT = (img_CT + 1) / 2
         plt.imshow(img_CT, cmap="gray")
         # plt.title("label CT")
         plt.axis("off")
@@ -327,7 +329,8 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         plt.subplot(n_row, n_col, i * n_col + 3)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
         img_pred = np.rot90(outputs[i, 0, :, :, :, cube_size // 2].detach().cpu().numpy())
-        img_pred = np.squeeze(np.clip(img_pred, 0, 1))
+        img_pred = np.squeeze(np.clip(img_pred, -1, 1))
+        img_pred = (img_pred + 1) / 2
         plt.imshow(img_pred, cmap="gray")
         # plt.title("output CT")
         plt.axis("off")
@@ -338,7 +341,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         # plt.title("input PET")
         plt.yscale("log")
         plt.axis("off")
-        plt.xlim(0, 1)
+        plt.xlim(-1, 1)
 
         plt.subplot(n_row, n_col, i * n_col + 5)
         # img_CT = np.clip(img_CT, 0, 1)
@@ -346,7 +349,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         # plt.title("label CT")
         plt.yscale("log")
         plt.axis("off")
-        plt.xlim(0, 1)
+        plt.xlim(-1, 1)
 
         plt.subplot(n_row, n_col, i * n_col + 6)
         # img_pred = np.clip(img_pred, 0, 1)
@@ -354,7 +357,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         # plt.title("output CT")
         plt.yscale("log")
         plt.axis("off")
-        plt.xlim(0, 1)
+        plt.xlim(-1, 1)
 
     plt.tight_layout()
     plt.savefig(os.path.join(root_folder, f"epoch_{idx_epoch}.png"))
