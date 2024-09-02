@@ -313,7 +313,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
     n_block = 8
     if inputs.shape[0] < n_block:
         n_block = inputs.shape[0]
-    plt.figure(figsize=(15, n_block*1.), dpi=300)
+    plt.figure(figsize=(12, n_block*1.), dpi=300)
 
     n_row = n_block
     n_col = 10
@@ -336,28 +336,38 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         plt.subplot(n_row, n_col, i * n_col + 1)
         plt.imshow(img_PET, cmap="gray") # x
         # plt.title("input PET")
+        if i == 0:
+            plt.title("input STEP1")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 2)
         plt.imshow(img_CT, cmap="gray") # y
         # plt.title("label CT")
+        if i == 0:
+            plt.title("input STEP2")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 3)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
         plt.imshow(img_pred-img_PET, cmap="gray") # yhat = f(x) + x, img_pred = f(x) = yhat - x
         # plt.title("output CT")
+        if i == 0:
+            plt.title("f(x)=yhat-x")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 4)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
         plt.imshow(img_CT-img_PET, cmap="gray") # y = x + (y - x), (y - x) = y - x
+        if i == 0:
+            plt.title("gt=y-x")
         # plt.title("output CT")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 5)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
         plt.imshow(img_pred, cmap="gray") # yhat
+        if i == 0:
+            plt.title("yhat")
         # plt.title("output CT")
         plt.axis("off")
 
@@ -365,6 +375,8 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         # img_PET = np.clip(img_PET, 0, 1)
         plt.hist(img_PET.flatten(), bins=100)
         # plt.title("input PET")
+        if i == 0:
+            plt.title("input STEP1")
         plt.yscale("log")
         plt.axis("off")
         plt.xlim(-1, 1)
@@ -373,6 +385,8 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         # img_CT = np.clip(img_CT, 0, 1)
         plt.hist(img_CT.flatten(), bins=100)
         # plt.title("label CT")
+        if i == 0:
+            plt.title("input STEP2")
         plt.yscale("log")
         plt.axis("off")
         plt.xlim(-1, 1)
@@ -381,6 +395,8 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         # img_pred = np.clip(img_pred, 0, 1)
         plt.hist((img_pred-img_PET).flatten(), bins=100)
         # plt.title("output CT")
+        if i == 0:
+            plt.title("f(x)=yhat-x")
         plt.yscale("log")
         plt.axis("off")
         plt.xlim(-1, 1)
@@ -389,6 +405,8 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         # img_pred = np.clip(img_pred, 0, 1)
         plt.hist((img_CT-img_PET).flatten(), bins=100)
         # plt.title("output CT")
+        if i == 0:
+            plt.title("gt=y-x")
         plt.yscale("log")
         plt.axis("off")
         plt.xlim(-1, 1)
@@ -397,6 +415,8 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         # img_pred = np.clip(img_pred, 0, 1)
         plt.hist((img_pred).flatten(), bins=100)
         # plt.title("output CT")
+        if i == 0:
+            plt.title("yhat")
         plt.yscale("log")
         plt.axis("off")
         plt.xlim(-1, 1)
