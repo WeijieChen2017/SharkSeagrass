@@ -378,7 +378,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         if i == 0:
             plt.title("input STEP1")
         plt.yscale("log")
-        plt.axis("off")
+        # plt.axis("off")
         plt.xlim(-1, 1)
 
         plt.subplot(n_row, n_col, i * n_col + 7)
@@ -388,7 +388,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         if i == 0:
             plt.title("input STEP2")
         plt.yscale("log")
-        plt.axis("off")
+        # plt.axis("off")
         plt.xlim(-1, 1)
 
         plt.subplot(n_row, n_col, i * n_col + 8)
@@ -398,7 +398,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         if i == 0:
             plt.title("f(x)=yhat-x")
         plt.yscale("log")
-        plt.axis("off")
+        # plt.axis("off")
         plt.xlim(-1, 1)
 
         plt.subplot(n_row, n_col, i * n_col + 9)
@@ -408,7 +408,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         if i == 0:
             plt.title("gt=y-x")
         plt.yscale("log")
-        plt.axis("off")
+        # plt.axis("off")
         plt.xlim(-1, 1)
 
         plt.subplot(n_row, n_col, i * n_col + 10)
@@ -418,7 +418,7 @@ def plot_results(inputs, labels, outputs, idx_epoch):
         if i == 0:
             plt.title("yhat")
         plt.yscale("log")
-        plt.axis("off")
+        # plt.axis("off")
         plt.xlim(-1, 1)
 
     plt.tight_layout()
