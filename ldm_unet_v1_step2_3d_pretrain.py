@@ -33,13 +33,16 @@ out_channels = 1
 batch_size = 1
 num_epoch = 10000
 debug_file_num = 0
-save_per_epoch = 100
+save_per_epoch = 10
 eval_per_epoch = 10
-plot_per_epoch = 10
+plot_per_epoch = 1
 CT_NORM = 5000
 CT_MIN = -1024
 CT_MAX = 3976
 cache_rate = 0.05
+train_case = 100
+val_case = 20
+test_case = 10
 root_folder = "./B100/dynunet3d_v2_step2_pretrain/"
 # dataset_folder = "tsv1_ct/"
 data_division_file = "tsv1_ct_over128.json"
@@ -82,7 +85,7 @@ train_transforms = Compose(
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
         ScaleIntensityRanged(keys=input_modality, a_min=CT_MIN, a_max=CT_MAX, b_min=-1.0, b_max=1.0, clip=True),
-        NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
+        # NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
@@ -121,7 +124,7 @@ val_transforms = Compose(
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
         ScaleIntensityRanged(keys=input_modality, a_min=CT_MIN, a_max=CT_MAX, b_min=-1.0, b_max=1.0, clip=True),
-        NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
+        # NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=batch_size,
@@ -155,7 +158,7 @@ test_transforms = Compose(
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
         ScaleIntensityRanged(keys=input_modality, a_min=CT_MIN, a_max=CT_MAX, b_min=-1.0, b_max=1.0, clip=True),
-        NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
+        # NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
@@ -199,6 +202,13 @@ with open(data_division_file, "r") as f:
 train_list = data_pairs[:int(len(data_pairs)*train_ratio)]
 val_list = data_pairs[int(len(data_pairs)*train_ratio):int(len(data_pairs)*(train_ratio+val_ratio))]
 test_list = data_pairs[int(len(data_pairs)*(train_ratio+val_ratio)):]
+
+if train_case > 0:
+    train_list = train_list[:train_case]
+if val_case > 0:
+    val_list = val_list[:val_case]
+if test_case > 0:
+    test_list = test_list[:test_case]
 
 num_train_files = len(train_list)
 num_val_files = len(val_list)
