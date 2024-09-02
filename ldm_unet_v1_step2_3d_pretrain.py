@@ -40,7 +40,8 @@ CT_MIN = -1024
 CT_MAX = 3976
 cache_rate = 0.05
 root_folder = "./B100/dynunet3d_v2_step2_pretrain/"
-dataset_folder = "tsv1_ct/"
+# dataset_folder = "tsv1_ct/"
+data_division_file = "tsv1_ct_over128.json"
 device = torch.device("cuda:1")
 train_ratio = 0.7
 val_ratio = 0.2
@@ -182,12 +183,14 @@ test_transforms = Compose(
 # num_train_files = len(train_list)
 # num_val_files = len(val_list)
 # num_test_files = len(test_list)
-print(f"The data search path is: ", dataset_folder+"*.nii.gz")
-dataset_folder = "tsv1_ct"
-datalist = sorted(glob.glob(dataset_folder+"/*.nii.gz"))
-random.shuffle(datalist)
-print(f"{len(datalist)} files are found in the dataset folder")
-data_pairs = [{"STEP1": item, "STEP2": item,} for item in datalist]
+# print(f"The data search path is: ", dataset_folder+"*.nii.gz")
+# dataset_folder = "tsv1_ct"
+# datalist = sorted(glob.glob(dataset_folder+"/*.nii.gz"))
+# random.shuffle(datalist)
+# print(f"{len(datalist)} files are found in the dataset folder")
+# data_pairs = [{"STEP1": item, "STEP2": item,} for item in datalist]
+with open(data_division_file, "r") as f:
+    data_pairs = json.load(f)
 
 train_list = data_pairs[:int(len(data_pairs)*train_ratio)]
 val_list = data_pairs[int(len(data_pairs)*train_ratio):int(len(data_pairs)*(train_ratio+val_ratio))]
