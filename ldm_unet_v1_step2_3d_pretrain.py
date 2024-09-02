@@ -43,7 +43,7 @@ cache_rate = 0.125
 train_case = 0
 val_case = 0
 test_case = 0
-root_folder = "./B100/dynunet3d_v2_step2_pretrain/"
+root_folder = "./B100/dynunet3d_v2_step2_pretrain_d4f32/"
 # dataset_folder = "tsv1_ct/"
 data_division_file = "tsv1_ct_over128.json"
 device = torch.device("cuda:1")
@@ -358,15 +358,17 @@ def plot_results(inputs, labels, outputs, idx_epoch):
 
         plt.subplot(n_row, n_col, i * n_col + 3)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        plt.imshow(yhat_x, cmap="gray") # yhat = f(x) + x, img_pred = f(x) = yhat - x
+        plt.imshow(yhat_x, cmap="bwr") # yhat = f(x) + x, img_pred = f(x) = yhat - x
         # plt.title("output CT")
+        plt.colorbar()
         if i == 0:
             plt.title("f(x)=yhat-x")
         plt.axis("off")
 
         plt.subplot(n_row, n_col, i * n_col + 4)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        plt.imshow(y_x, cmap="gray") # y = x + (y - x), (y - x) = y - x
+        plt.imshow(y_x, cmap="bwr") # y = x + (y - x), (y - x) = y - x
+        plt.colorbar()
         if i == 0:
             plt.title("gt=y-x")
         # plt.title("output CT")
