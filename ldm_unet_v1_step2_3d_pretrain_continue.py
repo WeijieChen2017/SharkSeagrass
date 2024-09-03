@@ -339,12 +339,15 @@ def check_whether_full_batch(batch_data):
 
 def check_whether_batch_meaningful(batch_data):
     # given a batch, check whether the batch is meaningful
+    cube_means_list = []
+    is_meaningful = True
     for key in batch_data.keys():
         # across all the axis,
         cube_mean = torch.abs(torch.mean(batch_data[key]))
+        cube_means_list.append(cube_mean)
         if cube_mean < meaningful_batch_th:
-            return cube_mean, False
-    return cube_mean, True
+            is_meaningful = False
+    return cube_means_list, is_meaningful
 
 model.to(device)
 
