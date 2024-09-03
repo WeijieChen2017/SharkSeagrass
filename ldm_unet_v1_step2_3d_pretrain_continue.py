@@ -461,10 +461,10 @@ for idx_epoch in range(num_epoch):
                 idx_bigger_batch += 1
 
     train_loss /= valid_batch
-    print(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}")
+    print(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f} in {valid_batch} batches")
     # log the results
     with open(log_file, "a") as f:
-        f.write(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}\n")
+        f.write(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f} in {valid_batch} batches\n")
 
     if idx_epoch % plot_per_epoch == 0:
         plot_results(plot_inputs, plot_labels, plot_outputs, idx_epoch, root_folder, cube_size)
@@ -505,9 +505,9 @@ for idx_epoch in range(num_epoch):
                         idx_bigger_batch += 1
 
             val_loss /= valid_batch
-            print(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f}")
+            print(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f} in {valid_batch} batches")
             with open(log_file, "a") as f:
-                f.write(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f}\n")
+                f.write(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f} in {valid_batch} batches\n")
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 torch.save(model.state_dict(), os.path.join(root_folder, "best_model.pth"))
@@ -549,9 +549,9 @@ for idx_epoch in range(num_epoch):
                                 idx_bigger_batch += 1
                             
                     test_loss /= valid_batch
-                    print(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f}")
+                    print(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f} in {valid_batch} batches")
                     with open(log_file, "a") as f:
-                        f.write(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f}\n")
+                        f.write(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f} in {valid_batch} batches\n")
 
     # save the model
     if idx_epoch % save_per_epoch == 0:
