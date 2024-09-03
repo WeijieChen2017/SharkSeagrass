@@ -425,7 +425,7 @@ for idx_epoch in range(num_epoch):
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
         optimizer.step()
-        print(f"Epoch {idx_epoch}, batch [{idx_batch}]/[{n_train_batches}], loss: {loss.item()*CT_NORM:.4f}")
+        print(f"Epoch {idx_epoch}, batch [{idx_batch}]/[{n_train_batches}], loss: {loss.item()*CT_NORM:.4f}, and cube_mean: {cube_mean}")
         train_loss += loss.item()
     train_loss /= valid_batch
     print(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}")
