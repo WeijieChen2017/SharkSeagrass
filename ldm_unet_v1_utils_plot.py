@@ -11,10 +11,14 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
     n_block = 8
     if inputs.shape[0] < n_block:
         n_block = inputs.shape[0]
-    plt.figure(figsize=(12, n_block*3.6), dpi=300)
+    fig = plt.figure(figsize=(12, n_block*3.6), dpi=300)
 
     n_row = n_block * 3
     n_col = 10
+
+    # compute mean for img_PET
+    img_PET_mean = np.mean(inputs.detach().cpu().numpy(), axis=(1, 2, 3, 4))
+    fig.suptitle(f"Epoch {idx_epoch}, mean PET: {img_PET_mean}", fontsize=16)
 
     # for axial view
 
