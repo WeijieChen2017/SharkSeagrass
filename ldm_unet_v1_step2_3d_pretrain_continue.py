@@ -456,13 +456,13 @@ for idx_epoch in range(num_epoch):
             val_loss = 0
             for idx_batch, batch_data in enumerate(val_loader):
                 if check_batch_cube_size(batch_data, cube_size) is False:
-                    print("The batch size is not correct")
+                    # print("The batch size is not correct")
                     continue
 
                 cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
                 if is_meaningful is False:
-                    print("The batch is not meaningful")
-                    print("The cube_mean is: ", cube_mean)
+                    # print("The batch is not meaningful")
+                    # print("The cube_mean is: ", cube_mean)
                     continue
 
                 valid_batch += 1
@@ -494,13 +494,13 @@ for idx_epoch in range(num_epoch):
                     valid_batch = 0
                     for idx_batch, batch_data in enumerate(test_loader):
                         if check_batch_cube_size(batch_data, cube_size) is False:
-                            print("The batch size is not correct")
+                            # print("The batch size is not correct")
                             continue
                         
                         cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
                         if is_meaningful is False:
-                            print("The batch is not meaningful")
-                            print("The cube_mean is: ", cube_mean)
+                            # print("The batch is not meaningful")
+                            # print("The cube_mean is: ", cube_mean)
                             continue
 
                         valid_batch += 1
