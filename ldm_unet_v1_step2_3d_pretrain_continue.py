@@ -54,7 +54,7 @@ train_case = 0
 val_case = 0
 test_case = 0
 learning_rate = 1e-5
-meaningful_batch_th = -0.9
+meaningful_batch_th = -0.95
 train_bigger_batch = 5
 val_bigger_batch = 10
 test_bigger_batch = 10
@@ -449,7 +449,7 @@ for idx_epoch in range(num_epoch):
             loss = ds_loss(torch.unbind(outputs, 1), labels)
             loss.backward()
             optimizer.step()
-            print(f"Epoch {idx_epoch}, batch [{idx_batch + idx_bigger_batch*n_train_batches}]/[{total_batch}], loss: {loss.item()*CT_NORM:.4f}")
+            print(f">>> Epoch {idx_epoch}, training batch [{idx_batch + idx_bigger_batch*n_train_batches}]/[{n_train_batches*train_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}")
             train_loss += loss.item()
 
             # successful batch, save this batch for plotting
@@ -457,8 +457,8 @@ for idx_epoch in range(num_epoch):
             plot_labels = labels
             plot_outputs = outputs
             
-            if valid_batch > 0:
-                idx_bigger_batch += 1
+        if valid_batch > 0:
+            idx_bigger_batch += 1
 
     train_loss /= valid_batch
     print(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f} in {valid_batch} batches")
@@ -501,8 +501,10 @@ for idx_epoch in range(num_epoch):
                     outputs = model(inputs)+inputs
                     loss = output_loss(outputs, labels)
                     val_loss += loss.item()
-                    if valid_batch > 0:
-                        idx_bigger_batch += 1
+                    print(f">>> Epoch {idx_epoch}, validation batch [{idx_batch + idx_bigger_batch*n_val_batches}]/[{n_val_batches*val_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}")
+                
+                if valid_batch > 0:
+                    idx_bigger_batch += 1
 
             val_loss /= valid_batch
             print(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f} in {valid_batch} batches")
@@ -545,8 +547,10 @@ for idx_epoch in range(num_epoch):
                             outputs = model(inputs) + inputs
                             loss = output_loss(outputs, labels)
                             test_loss += loss.item()
-                            if valid_batch > 0:
-                                idx_bigger_batch += 1
+                            print(f">>> Epoch {idx_epoch}, test batch [{idx_batch + idx_bigger_batch*n_test_batches}]/[{n_test_batches*test_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}")
+
+                        if valid_batch > 0:
+                            idx_bigger_batch += 1
                             
                     test_loss /= valid_batch
                     print(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f} in {valid_batch} batches")
