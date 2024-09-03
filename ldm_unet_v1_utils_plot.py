@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-
+CT_NORM = 5000
+CT_MIN = -1024
+CT_MAX = 3976
 
 
 
@@ -18,6 +20,8 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
 
     # compute mean for img_PET
     img_PET_mean = np.mean(inputs.detach().cpu().numpy(), axis=(1, 2, 3, 4))
+    img_PET_mean = (img_PET_mean + 1) / 2
+    img_PET_mean = img_PET_mean * CT_NORM + CT_MIN
     fig.suptitle(f"Epoch {idx_epoch}, mean PET: {img_PET_mean}", fontsize=16)
 
     # for axial view

@@ -63,10 +63,14 @@ pretrain_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
 # data_division_file = "tsv1_ct_over128.json"
 data_division_file = "./B100/step1step2_0822_vanila.json"
 if "tsv1_ct" in data_division_file:
-    cache_rate = 0.125
+    cache_rate_train = 0.125
+    cache_rate_val = 0.125
+    cache_rate_test = 0.125
     eval_per_epoch = 10
 elif "step1step2" in data_division_file:
-    cache_rate = 0.5
+    cache_rate_train = 0.3
+    cache_rate_val = 1
+    cache_rate_test = 1
     eval_per_epoch = 1
 else:
     cache_rate = 0.05
@@ -283,7 +287,7 @@ train_ds = CacheDataset(
     data=train_list,
     transform=train_transforms,
     cache_num=num_train_files,
-    cache_rate=cache_rate,
+    cache_rate=cache_rate_train,
     num_workers=6,
 )
 
@@ -291,7 +295,7 @@ val_ds = CacheDataset(
     data=val_list,
     transform=val_transforms, 
     cache_num=num_val_files,
-    cache_rate=cache_rate,
+    cache_rate=cache_rate_val,
     num_workers=2,
 )
 
@@ -299,7 +303,7 @@ test_ds = CacheDataset(
     data=test_list,
     transform=test_transforms,
     cache_num=num_test_files,
-    cache_rate=cache_rate,
+    cache_rate=cache_rate_test,
     num_workers=2,
 )
 
