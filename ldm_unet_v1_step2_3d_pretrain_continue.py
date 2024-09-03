@@ -51,6 +51,7 @@ CT_MAX = 3976
 train_case = 0
 val_case = 0
 test_case = 0
+learning_rate = 1e-5
 meaningful_batch_th = 0.157 * 0.3
 root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue/"
 pretrain_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
@@ -347,7 +348,6 @@ def check_whether_batch_meaningful(batch_data):
 model.to(device)
 
 # set the optimizer and loss
-learning_rate = 1e-4
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 loss_function = torch.nn.L1Loss()
 # loss: main loss instance, e.g DiceLoss().
