@@ -518,6 +518,7 @@ for idx_epoch in range(num_epoch):
         if is_meaningful is False:
             print("The batch is not meaningful")
             print("The cube_mean is: ", cube_mean)
+            continue
 
         valid_batch += 1
         inputs = batch_data["STEP1"].to(device)
@@ -573,6 +574,7 @@ for idx_epoch in range(num_epoch):
                 if is_meaningful is False:
                     print("The batch is not meaningful")
                     print("The cube_mean is: ", cube_mean)
+                    continue
 
                 valid_batch += 1
                 inputs = batch_data["STEP1"].to(device)
@@ -610,6 +612,7 @@ for idx_epoch in range(num_epoch):
                         if is_meaningful is False:
                             print("The batch is not meaningful")
                             print("The cube_mean is: ", cube_mean)
+                            continue
 
                         valid_batch += 1
                         inputs = batch_data["STEP1"].to(device)
