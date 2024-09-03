@@ -6,6 +6,15 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
+random_seed = 42
+random.seed(random_seed)
+np.random.seed(random_seed)
+torch.manual_seed(random_seed)
+torch.cuda.manual_seed(random_seed)
+torch.cuda.manual_seed_all(random_seed)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+
 from monai.networks.nets import DynUNet
 from monai.transforms import (
     Compose, 
@@ -24,6 +33,7 @@ from monai.losses import DeepSupervisionLoss
 
 mode = "d4f32"
 # mode = "d3f64"
+
 
 input_modality = ["STEP1", "STEP2"]
 img_size = 400
