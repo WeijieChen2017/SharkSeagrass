@@ -390,16 +390,16 @@ for idx_epoch in range(num_epoch):
     plot_outputs = None
     for idx_batch, batch_data in enumerate(train_loader):
         if check_batch_cube_size(batch_data, cube_size) is False:
-            print("The batch size is not correct")
+            # print("The batch size is not correct")
             continue
 
         if check_whether_full_batch(batch_data) is False:
-            print("The batch is not full")
+            # print("The batch is not full")
             continue
         
         cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
         if is_meaningful is False:
-            print("The batch is not meaningful")
+            # print("The batch is not meaningful")
             # print("The cube_mean is: ", cube_mean)
             continue
 
@@ -435,6 +435,10 @@ for idx_epoch in range(num_epoch):
         train_loss += loss.item()
 
         # successful batch, save this batch for plotting
+        plot_inputs = inputs
+        plot_labels = labels
+        plot_outputs = outputs
+
     train_loss /= valid_batch
     print(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}")
     # log the results
