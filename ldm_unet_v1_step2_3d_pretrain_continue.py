@@ -33,8 +33,8 @@ from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
 from ldm_unet_v1_utils_plot import plot_results
-# mode = "d4f32"
-mode = "d3f64"
+mode = "d4f32"
+# mode = "d3f64"
 
 
 input_modality = ["STEP1", "STEP2"]
@@ -85,7 +85,7 @@ log_file = os.path.join(root_folder, "log.txt")
 # log the openning:
 current_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 with open(log_file, "w") as f:
-    print(f"\n"*3)
+    f.write(f"\n"*3)
     f.write(f"Start the training with mode: {mode} at {current_time_str}\n")
 
 if mode == "d4f32":
