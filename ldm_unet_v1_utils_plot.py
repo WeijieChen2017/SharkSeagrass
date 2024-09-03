@@ -134,7 +134,7 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
 
     for ii in range(n_block):
         
-        i = ii + n_block * n_col
+        i = ii + n_block
         img_PET = np.rot90(inputs[ii, :, :, cube_size // 2, :].detach().cpu().numpy())
         img_PET = np.squeeze(np.clip(img_PET, -1, 1))
         img_PET = (img_PET + 1) / 2
@@ -249,7 +249,7 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
 
     for iii in range(n_block):
         
-        i = iii + n_block * n_col * 2
+        i = iii + n_block * 2
         img_PET = np.rot90(inputs[iii, :, cube_size // 2, :, :].detach().cpu().numpy())
         img_PET = np.squeeze(np.clip(img_PET, -1, 1))
         img_PET = (img_PET + 1) / 2
