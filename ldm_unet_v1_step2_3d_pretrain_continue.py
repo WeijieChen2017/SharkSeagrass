@@ -51,6 +51,7 @@ CT_MAX = 3976
 train_case = 0
 val_case = 0
 test_case = 0
+meaningful_batch_th = 0.157 * 0.3
 root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue/"
 pretrain_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
 # dataset_folder = "tsv1_ct/"
@@ -334,6 +335,14 @@ def check_whether_full_batch(batch_data):
             return False
     return True
 
+def check_whether_batch_meaningful(batch_data):
+    # given a batch, check whether the batch is meaningful
+    for key in batch_data.keys():
+        # across all the axis,
+        if torch.mean(batch_data[key]) < meaningful_batch_th:
+            return torch.mean(batch_data[key]), False
+    return torch.mean(batch_data[key]), True
+
 model.to(device)
 
 # set the optimizer and loss
@@ -504,6 +513,11 @@ for idx_epoch in range(num_epoch):
             print("The batch is not full")
             continue
         
+        cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
+        if is_meaningful is False:
+            print("The batch is not meaningful")
+            print("The cube_mean is: ", cube_mean)
+
         valid_batch += 1
         inputs = batch_data["STEP1"].to(device)
         labels = batch_data["STEP2"].to(device)
@@ -554,6 +568,11 @@ for idx_epoch in range(num_epoch):
                     print("The batch size is not correct")
                     continue
 
+                cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
+                if is_meaningful is False:
+                    print("The batch is not meaningful")
+                    print("The cube_mean is: ", cube_mean)
+
                 valid_batch += 1
                 inputs = batch_data["STEP1"].to(device)
                 labels = batch_data["STEP2"].to(device)
@@ -586,6 +605,11 @@ for idx_epoch in range(num_epoch):
                             print("The batch size is not correct")
                             continue
                         
+                        cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
+                        if is_meaningful is False:
+                            print("The batch is not meaningful")
+                            print("The cube_mean is: ", cube_mean)
+
                         valid_batch += 1
                         inputs = batch_data["STEP1"].to(device)
                         labels = batch_data["STEP2"].to(device)
