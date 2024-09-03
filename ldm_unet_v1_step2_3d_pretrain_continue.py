@@ -38,7 +38,6 @@ plot_per_epoch = 1
 CT_NORM = 5000
 CT_MIN = -1024
 CT_MAX = 3976
-cache_rate = 0.125
 train_case = 0
 val_case = 0
 test_case = 0
@@ -47,6 +46,13 @@ pretrain_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
 # dataset_folder = "tsv1_ct/"
 # data_division_file = "tsv1_ct_over128.json"
 data_division_file = "./B100/step1step2_0822_vanila.json"
+if "tsv1_ct" in data_division_file:
+    cache_rate = 0.125
+elif "step1step2" in data_division_file:
+    cache_rate = 0.5
+else:
+    cache_rate = 0.05
+
 train_ratio = 0.7
 val_ratio = 0.2
 test_ratio = 0.1
@@ -300,12 +306,19 @@ test_loader = DataLoader(test_ds,
                         pin_memory=True,
 )
 
-def check_batch_size(batch_data, check_size):
+def check_batch_cube_size(batch_data, check_size):
     # given a batch, N, C, D, H, W, check wither D, H, W are the same as check_size
     for key in batch_data.keys():
         if key == "label":
             continue
         if batch_data[key].shape[2] != check_size or batch_data[key].shape[3] != check_size or batch_data[key].shape[4] != check_size:
+            return False
+    return True
+
+def check_whether_full_batch(batch_data):
+    # given a batch, check whether the batch is full
+    for key in batch_data.keys():
+        if batch_data[key].shape[0] != batch_size:
             return False
     return True
 
@@ -470,8 +483,12 @@ for idx_epoch in range(num_epoch):
     model.train()
     train_loss = 0
     for idx_batch, batch_data in enumerate(train_loader):
-        if check_batch_size(batch_data, cube_size) is False:
+        if check_batch_cube_size(batch_data, cube_size) is False:
             print("The batch size is not correct")
+            continue
+
+        if check_whether_full_batch(batch_data) is False:
+            print("The batch is not full")
             continue
         
         inputs = batch_data["STEP1"].to(device)
