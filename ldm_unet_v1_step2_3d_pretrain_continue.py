@@ -69,9 +69,9 @@ if "tsv1_ct" in data_division_file:
     cache_rate_test = 0.125
     eval_per_epoch = 10
 elif "step1step2" in data_division_file:
-    cache_rate_train = 0.3
-    cache_rate_val = 5
-    cache_rate_test = 5
+    cache_rate_train = 1
+    cache_rate_val = 0.
+    cache_rate_test = 0.
     eval_per_epoch = 1
 else:
     cache_rate = 0.05
