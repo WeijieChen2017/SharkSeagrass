@@ -313,25 +313,25 @@ test_ds = CacheDataset(
 train_loader = DataLoader(train_ds, 
                         batch_size=batch_size,
                         shuffle=True, 
-                        num_workers=4,
-                        persistent_workers=True,
-                        pin_memory=True,
+                        num_workers=8,
+                        # persistent_workers=True,
+                        # pin_memory=True,
 
 )
 val_loader = DataLoader(val_ds, 
                         batch_size=batch_size, 
                         shuffle=True, 
-                        num_workers=4,
-                        persistent_workers=True,
-                        pin_memory=True,
+                        num_workers=2,
+                        # persistent_workers=True,
+                        # pin_memory=True,
 )
 
 test_loader = DataLoader(test_ds,
                         batch_size=batch_size,
                         shuffle=True,
-                        num_workers=4,
-                        persistent_workers=True,
-                        pin_memory=True,
+                        num_workers=2,
+                        # persistent_workers=True,
+                        # pin_memory=True,
 )
 
 def check_batch_cube_size(batch_data, check_size):
