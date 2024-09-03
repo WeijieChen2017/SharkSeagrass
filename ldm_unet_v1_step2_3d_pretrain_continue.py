@@ -1,4 +1,5 @@
 import os
+import time
 import json
 import torch
 import glob
@@ -75,6 +76,11 @@ if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
 log_file = os.path.join(root_folder, "log.txt")
+# log the openning:
+current_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+with open(log_file, "w") as f:
+    print(f"\n"*3)
+    f.write(f"Start the training with mode: {mode} at {current_time_str}\n")
 
 if mode == "d4f32":
     kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]
@@ -341,11 +347,12 @@ def check_whether_batch_meaningful(batch_data):
     # given a batch, check whether the batch is meaningful
     cube_means_list = []
     is_meaningful = True
-    for key in batch_data.keys():
-        # across all the axis,
-        cube_mean = torch.mean(batch_data[key])
-        cube_means_list.append(cube_mean)
-        if cube_mean < meaningful_batch_th:
+    key = "STEP1"
+    # across all the axis,
+    cube_mean = torch.mean(batch_data[key], dim=(1, 2, 3, 4))
+    for i in range(cube_mean.shape[0]):
+        cube_means_list.append(cube_mean[i].item())
+        if cube_mean[i] < meaningful_batch_th:
             is_meaningful = False
     return cube_means_list, is_meaningful
 
