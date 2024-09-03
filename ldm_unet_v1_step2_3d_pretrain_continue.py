@@ -45,7 +45,7 @@ out_channels = 1
 num_epoch = 10000
 debug_file_num = 0
 save_per_epoch = 10
-eval_per_epoch = 10
+# eval_per_epoch = 5
 plot_per_epoch = 1
 CT_NORM = 5000
 CT_MIN = -1024
@@ -72,7 +72,7 @@ elif "step1step2" in data_division_file:
     cache_rate_train = 1
     cache_rate_val = 0.
     cache_rate_test = 0.
-    eval_per_epoch = 1
+    eval_per_epoch = 5
 else:
     cache_rate = 0.05
 
