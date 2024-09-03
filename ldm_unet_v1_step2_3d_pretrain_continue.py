@@ -54,7 +54,8 @@ train_case = 0
 val_case = 0
 test_case = 0
 learning_rate = 1e-5
-meaningful_batch_th = -0.85
+meaningful_batch_th = -0.88
+train_bigger_batch = 5
 val_bigger_batch = 10
 test_bigger_batch = 10
 root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue/"
@@ -401,56 +402,63 @@ for idx_epoch in range(num_epoch):
     plot_inputs = None
     plot_labels = None
     plot_outputs = None
-    for idx_batch, batch_data in enumerate(train_loader):
-        if check_batch_cube_size(batch_data, cube_size) is False:
-            # print("The batch size is not correct")
-            continue
+    total_batch = train_bigger_batch * n_train_batches
+    # for idx_bigger_batch in range(train_bigger_batch):
+    idx_bigger_batch = 0
+    while idx_bigger_batch < train_bigger_batch:
+        for idx_batch, batch_data in enumerate(train_loader):
+            if check_batch_cube_size(batch_data, cube_size) is False:
+                # print("The batch size is not correct")
+                continue
 
-        if check_whether_full_batch(batch_data) is False:
-            # print("The batch is not full")
-            continue
-        
-        cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
-        if is_meaningful is False:
-            # print("The batch is not meaningful")
-            # print("The cube_mean is: ", cube_mean)
-            continue
+            if check_whether_full_batch(batch_data) is False:
+                # print("The batch is not full")
+                continue
+            
+            cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
+            if is_meaningful is False:
+                # print("The batch is not meaningful")
+                # print("The cube_mean is: ", cube_mean)
+                continue
 
-        valid_batch += 1
-        inputs = batch_data["STEP1"].to(device)
-        labels = batch_data["STEP2"].to(device)
+            valid_batch += 1
+            inputs = batch_data["STEP1"].to(device)
+            labels = batch_data["STEP2"].to(device)
 
-        # for inputs and labels, clip the values to CT_MIN and CT_MAX
-        # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
-        # labels = torch.clamp(labels, CT_MIN, CT_MAX)
-        # then normalize the values to 0 and 1
-        # inputs = (inputs - CT_MIN) / CT_NORM
-        # labels = (labels - CT_MIN) / CT_NORM
-        # # 0 to 1 to -1 to 1
-        # inputs = inputs * 2 - 1
-        # labels = labels * 2 - 1
-        res_inputs = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
-        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        # print("res_inputs.shape: ", res_inputs.shape)
-        # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
-        # inputs.shape:  torch.Size([2, 1, 128, 128, 128]) labels.shape:  torch.Size([2, 1, 128, 128, 128])
-        # res_inputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
-        # outputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        # print("outputs.shape: ", outputs.shape)
-        outputs = outputs + res_inputs
-        # loss = loss_function(outputs, labels)
-        loss = ds_loss(torch.unbind(outputs, 1), labels)
-        loss.backward()
-        optimizer.step()
-        print(f"Epoch {idx_epoch}, batch [{idx_batch}]/[{n_train_batches}], loss: {loss.item()*CT_NORM:.4f}")
-        train_loss += loss.item()
+            # for inputs and labels, clip the values to CT_MIN and CT_MAX
+            # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
+            # labels = torch.clamp(labels, CT_MIN, CT_MAX)
+            # then normalize the values to 0 and 1
+            # inputs = (inputs - CT_MIN) / CT_NORM
+            # labels = (labels - CT_MIN) / CT_NORM
+            # # 0 to 1 to -1 to 1
+            # inputs = inputs * 2 - 1
+            # labels = labels * 2 - 1
+            res_inputs = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
+            # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
+            # print("res_inputs.shape: ", res_inputs.shape)
+            # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
+            # inputs.shape:  torch.Size([2, 1, 128, 128, 128]) labels.shape:  torch.Size([2, 1, 128, 128, 128])
+            # res_inputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
+            # outputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            # print("outputs.shape: ", outputs.shape)
+            outputs = outputs + res_inputs
+            # loss = loss_function(outputs, labels)
+            loss = ds_loss(torch.unbind(outputs, 1), labels)
+            loss.backward()
+            optimizer.step()
+            print(f"Epoch {idx_epoch}, batch [{idx_batch + idx_bigger_batch*n_train_batches}]/[{total_batch}], loss: {loss.item()*CT_NORM:.4f}")
+            train_loss += loss.item()
 
-        # successful batch, save this batch for plotting
-        plot_inputs = inputs
-        plot_labels = labels
-        plot_outputs = outputs
+            # successful batch, save this batch for plotting
+            plot_inputs = inputs
+            plot_labels = labels
+            plot_outputs = outputs
+            
+            if valid_batch > 0:
+                idx_bigger_batch += 1
 
     train_loss /= valid_batch
     print(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}")
@@ -466,8 +474,10 @@ for idx_epoch in range(num_epoch):
         model.eval()
         valid_batch = 0
         val_loss = 0
+        idx_bigger_batch = 0
         with torch.no_grad():
-            for idx_bigger_batch in range(val_bigger_batch):
+            # for idx_bigger_batch in range(val_bigger_batch):
+            while idx_bigger_batch < val_bigger_batch:
                 for idx_batch, batch_data in enumerate(val_loader):
                     if check_batch_cube_size(batch_data, cube_size) is False:
                         # print("The batch size is not correct")
@@ -491,6 +501,9 @@ for idx_epoch in range(num_epoch):
                     outputs = model(inputs)+inputs
                     loss = output_loss(outputs, labels)
                     val_loss += loss.item()
+                    if valid_batch > 0:
+                        idx_bigger_batch += 1
+
             val_loss /= valid_batch
             print(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f}")
             with open(log_file, "a") as f:
@@ -506,7 +519,9 @@ for idx_epoch in range(num_epoch):
                 with torch.no_grad():
                     test_loss = 0
                     valid_batch = 0
-                    for idx_bigger_batch in range(test_bigger_batch):
+                    idx_bigger_batch = 0
+                    # for idx_bigger_batch in range(test_bigger_batch):
+                    while idx_bigger_batch < test_bigger_batch:
                         for idx_batch, batch_data in enumerate(test_loader):
                             if check_batch_cube_size(batch_data, cube_size) is False:
                                 # print("The batch size is not correct")
@@ -530,6 +545,9 @@ for idx_epoch in range(num_epoch):
                             outputs = model(inputs) + inputs
                             loss = output_loss(outputs, labels)
                             test_loss += loss.item()
+                            if valid_batch > 0:
+                                idx_bigger_batch += 1
+                            
                     test_loss /= valid_batch
                     print(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f}")
                     with open(log_file, "a") as f:
