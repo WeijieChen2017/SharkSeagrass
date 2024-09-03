@@ -385,6 +385,9 @@ for idx_epoch in range(num_epoch):
     model.train()
     train_loss = 0
     valid_batch = 0
+    plot_inputs = None
+    plot_labels = None
+    plot_outputs = None
     for idx_batch, batch_data in enumerate(train_loader):
         if check_batch_cube_size(batch_data, cube_size) is False:
             print("The batch size is not correct")
@@ -397,7 +400,7 @@ for idx_epoch in range(num_epoch):
         cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
         if is_meaningful is False:
             print("The batch is not meaningful")
-            print("The cube_mean is: ", cube_mean)
+            # print("The cube_mean is: ", cube_mean)
             continue
 
         valid_batch += 1
@@ -428,8 +431,10 @@ for idx_epoch in range(num_epoch):
         loss = ds_loss(torch.unbind(outputs, 1), labels)
         loss.backward()
         optimizer.step()
-        print(f"Epoch {idx_epoch}, batch [{idx_batch}]/[{n_train_batches}], loss: {loss.item()*CT_NORM:.4f}, and cube_mean: {cube_mean}")
+        print(f"Epoch {idx_epoch}, batch [{idx_batch}]/[{n_train_batches}], loss: {loss.item()*CT_NORM:.4f}")
         train_loss += loss.item()
+
+        # successful batch, save this batch for plotting
     train_loss /= valid_batch
     print(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}")
     # log the results
@@ -437,7 +442,7 @@ for idx_epoch in range(num_epoch):
         f.write(f"Epoch {idx_epoch}, train_loss: {train_loss*CT_NORM:.4f}\n")
 
     if idx_epoch % plot_per_epoch == 0:
-        plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size)
+        plot_results(plot_inputs, plot_labels, plot_outputs, idx_epoch, root_folder, cube_size)
 
     # evaluate the model
     if idx_epoch % eval_per_epoch == 0:
