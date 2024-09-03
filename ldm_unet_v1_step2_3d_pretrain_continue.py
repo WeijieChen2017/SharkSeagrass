@@ -48,8 +48,10 @@ pretrain_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
 data_division_file = "./B100/step1step2_0822_vanila.json"
 if "tsv1_ct" in data_division_file:
     cache_rate = 0.125
+    eval_per_epoch = 10
 elif "step1step2" in data_division_file:
     cache_rate = 0.5
+    eval_per_epoch = 1
 else:
     cache_rate = 0.05
 
