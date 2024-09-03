@@ -55,6 +55,8 @@ val_case = 0
 test_case = 0
 learning_rate = 1e-5
 meaningful_batch_th = -0.85
+val_bigger_batch = 10
+test_bigger_batch = 10
 root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue/"
 pretrain_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
 # dataset_folder = "tsv1_ct/"
@@ -459,31 +461,32 @@ for idx_epoch in range(num_epoch):
     if idx_epoch % eval_per_epoch == 0:
         model.eval()
         valid_batch = 0
+        val_loss = 0
         with torch.no_grad():
-            val_loss = 0
-            for idx_batch, batch_data in enumerate(val_loader):
-                if check_batch_cube_size(batch_data, cube_size) is False:
-                    # print("The batch size is not correct")
-                    continue
+            for idx_bigger_batch in range(val_bigger_batch):
+                for idx_batch, batch_data in enumerate(val_loader):
+                    if check_batch_cube_size(batch_data, cube_size) is False:
+                        # print("The batch size is not correct")
+                        continue
 
-                cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
-                if is_meaningful is False:
-                    # print("The batch is not meaningful")
-                    # print("The cube_mean is: ", cube_mean)
-                    continue
+                    cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
+                    if is_meaningful is False:
+                        # print("The batch is not meaningful")
+                        # print("The cube_mean is: ", cube_mean)
+                        continue
 
-                valid_batch += 1
-                inputs = batch_data["STEP1"].to(device)
-                labels = batch_data["STEP2"].to(device)
-                # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
-                # labels = torch.clamp(labels, CT_MIN, CT_MAX)
-                # inputs = (inputs - CT_MIN) / CT_NORM
-                # labels = (labels - CT_MIN) / CT_NORM
-                # inputs = inputs * 2 - 1
-                # labels = labels * 2 - 1
-                outputs = model(inputs)+inputs
-                loss = output_loss(outputs, labels)
-                val_loss += loss.item()
+                    valid_batch += 1
+                    inputs = batch_data["STEP1"].to(device)
+                    labels = batch_data["STEP2"].to(device)
+                    # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
+                    # labels = torch.clamp(labels, CT_MIN, CT_MAX)
+                    # inputs = (inputs - CT_MIN) / CT_NORM
+                    # labels = (labels - CT_MIN) / CT_NORM
+                    # inputs = inputs * 2 - 1
+                    # labels = labels * 2 - 1
+                    outputs = model(inputs)+inputs
+                    loss = output_loss(outputs, labels)
+                    val_loss += loss.item()
             val_loss /= valid_batch
             print(f"Epoch {idx_epoch}, val_loss: {val_loss*CT_NORM:.4f}")
             with open(log_file, "a") as f:
@@ -499,29 +502,30 @@ for idx_epoch in range(num_epoch):
                 with torch.no_grad():
                     test_loss = 0
                     valid_batch = 0
-                    for idx_batch, batch_data in enumerate(test_loader):
-                        if check_batch_cube_size(batch_data, cube_size) is False:
-                            # print("The batch size is not correct")
-                            continue
-                        
-                        cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
-                        if is_meaningful is False:
-                            # print("The batch is not meaningful")
-                            # print("The cube_mean is: ", cube_mean)
-                            continue
+                    for idx_bigger_batch in range(test_bigger_batch):
+                        for idx_batch, batch_data in enumerate(test_loader):
+                            if check_batch_cube_size(batch_data, cube_size) is False:
+                                # print("The batch size is not correct")
+                                continue
+                            
+                            cube_mean, is_meaningful = check_whether_batch_meaningful(batch_data)
+                            if is_meaningful is False:
+                                # print("The batch is not meaningful")
+                                # print("The cube_mean is: ", cube_mean)
+                                continue
 
-                        valid_batch += 1
-                        inputs = batch_data["STEP1"].to(device)
-                        labels = batch_data["STEP2"].to(device)
-                        # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
-                        # labels = torch.clamp(labels, CT_MIN, CT_MAX)
-                        # inputs = (inputs - CT_MIN) / CT_NORM
-                        # labels = (labels - CT_MIN) / CT_NORM
-                        # inputs = inputs * 2 - 1
-                        # labels = labels * 2 - 1
-                        outputs = model(inputs) + inputs
-                        loss = output_loss(outputs, labels)
-                        test_loss += loss.item()
+                            valid_batch += 1
+                            inputs = batch_data["STEP1"].to(device)
+                            labels = batch_data["STEP2"].to(device)
+                            # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
+                            # labels = torch.clamp(labels, CT_MIN, CT_MAX)
+                            # inputs = (inputs - CT_MIN) / CT_NORM
+                            # labels = (labels - CT_MIN) / CT_NORM
+                            # inputs = inputs * 2 - 1
+                            # labels = labels * 2 - 1
+                            outputs = model(inputs) + inputs
+                            loss = output_loss(outputs, labels)
+                            test_loss += loss.item()
                     test_loss /= valid_batch
                     print(f"Epoch {idx_epoch}, test_loss: {test_loss*CT_NORM:.4f}")
                     with open(log_file, "a") as f:
