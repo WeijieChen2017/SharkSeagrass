@@ -53,7 +53,7 @@ train_case = 0
 val_case = 0
 test_case = 0
 learning_rate = 1e-5
-meaningful_batch_th = 0.157
+meaningful_batch_th = -0.85
 root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue/"
 pretrain_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
 # dataset_folder = "tsv1_ct/"
@@ -343,7 +343,7 @@ def check_whether_batch_meaningful(batch_data):
     is_meaningful = True
     for key in batch_data.keys():
         # across all the axis,
-        cube_mean = torch.abs(torch.mean(batch_data[key]))
+        cube_mean = torch.mean(batch_data[key])
         cube_means_list.append(cube_mean)
         if cube_mean < meaningful_batch_th:
             is_meaningful = False
