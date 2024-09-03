@@ -134,16 +134,16 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
 
     for ii in range(n_block):
         
-        i = ii + n_block
-        img_PET = np.rot90(inputs[i, :, :, cube_size // 2, :].detach().cpu().numpy())
+        i = ii + n_block * n_col
+        img_PET = np.rot90(inputs[ii, :, :, cube_size // 2, :].detach().cpu().numpy())
         img_PET = np.squeeze(np.clip(img_PET, -1, 1))
         img_PET = (img_PET + 1) / 2
 
-        img_CT = np.rot90(labels[i, :, :, cube_size // 2, :].detach().cpu().numpy())
+        img_CT = np.rot90(labels[ii, :, :, cube_size // 2, :].detach().cpu().numpy())
         img_CT = np.squeeze(np.clip(img_CT, -1, 1))
         img_CT = (img_CT + 1) / 2
 
-        img_pred = np.rot90(outputs[i, 0, :, :, cube_size // 2, :].detach().cpu().numpy())
+        img_pred = np.rot90(outputs[ii, 0, :, :, cube_size // 2, :].detach().cpu().numpy())
         img_pred = np.squeeze(np.clip(img_pred, -1, 1))
         img_pred = (img_pred + 1) / 2
 
@@ -249,16 +249,16 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
 
     for iii in range(n_block):
         
-        i = iii + n_block * 2
-        img_PET = np.rot90(inputs[i, :, cube_size // 2, :, :].detach().cpu().numpy())
+        i = iii + n_block * n_col * 2
+        img_PET = np.rot90(inputs[iii, :, cube_size // 2, :, :].detach().cpu().numpy())
         img_PET = np.squeeze(np.clip(img_PET, -1, 1))
         img_PET = (img_PET + 1) / 2
 
-        img_CT = np.rot90(labels[i, :, cube_size // 2, :, :].detach().cpu().numpy())
+        img_CT = np.rot90(labels[iii, :, cube_size // 2, :, :].detach().cpu().numpy())
         img_CT = np.squeeze(np.clip(img_CT, -1, 1))
         img_CT = (img_CT + 1) / 2
 
-        img_pred = np.rot90(outputs[i, 0, :, cube_size // 2, :, :].detach().cpu().numpy())
+        img_pred = np.rot90(outputs[iii, 0, :, cube_size // 2, :, :].detach().cpu().numpy())
         img_pred = np.squeeze(np.clip(img_pred, -1, 1))
         img_pred = (img_pred + 1) / 2
 
