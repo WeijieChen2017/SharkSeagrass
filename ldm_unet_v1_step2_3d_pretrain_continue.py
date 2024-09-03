@@ -94,14 +94,14 @@ if mode == "d4f32":
     strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
     filters = (32, 64, 128, 256)
     device = torch.device("cuda:1")
-    batch_size = 3
+    batch_size = 1
     train_case = 0
 elif mode == "d3f64":
     kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
     strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2]]
     filters = (64, 128, 256)
     device = torch.device("cuda:0")
-    batch_size = 2
+    batch_size = 1
     train_case = 650
 
 model = DynUNet(
