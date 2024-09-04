@@ -126,9 +126,16 @@ pretrain_path = os.path.join(pretrain_folder, "best_model.pth")
 model.load_state_dict(torch.load(pretrain_path))
 print("Load the pretrain model from: ", pretrain_path)
 
+# output the model structure
+model_state_dict = model.state_dict()
+for key in model_state_dict.keys():
+    print(f"The key is: {key}, the shape is: {model_state_dict[key].shape}")
+
+exit()
+
 # freeze model encoder
-for param in model.encoder.parameters():
-    param.requires_grad = False
+# for param in model.encoder.parameters():
+#     param.requires_grad = False
 
 model.to(device)
 
