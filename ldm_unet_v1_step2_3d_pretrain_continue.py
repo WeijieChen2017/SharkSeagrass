@@ -211,13 +211,13 @@ pretrain_path = os.path.join(pretrain_folder, "best_model.pth")
 keyname_list_to_load = ["input_block", "downsample", "bottleneck"]
 new_state_dict = {}
 pretrain_state_dict = torch.load(pretrain_path)
-model.apply(DynUNet.init_weights)
+# model.apply(DynUNet.init_weights)
 for key in pretrain_state_dict.keys():
     for keyname in keyname_list_to_load:
         if keyname in key:
             new_state_dict[key] = pretrain_state_dict[key]
             break
-# model.load_state_dict(new_state_dict, strict=False)
+model.load_state_dict(new_state_dict, strict=False)
 print(f"Load the pretrain model from: {pretrain_path}, and with the keyname_list_to_load: {keyname_list_to_load}")
 
 # freeze model encoder
