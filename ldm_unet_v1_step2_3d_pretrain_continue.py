@@ -59,7 +59,7 @@ meaningful_batch_th = -0.95
 train_bigger_batch = 5
 val_bigger_batch = 10
 test_bigger_batch = 10
-root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue_wloss/"
+root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue_wloss_iceEnc/"
 pretrain_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
 # dataset_folder = "tsv1_ct/"
 # data_division_file = "tsv1_ct_over128.json"
@@ -125,6 +125,12 @@ model = DynUNet(
 pretrain_path = os.path.join(pretrain_folder, "best_model.pth")
 model.load_state_dict(torch.load(pretrain_path))
 print("Load the pretrain model from: ", pretrain_path)
+
+# freeze model encoder
+for param in model.encoder.parameters():
+    param.requires_grad = False
+
+model.to(device)
 
 # set the data transform
 train_transforms = Compose(
@@ -364,7 +370,6 @@ def check_whether_batch_meaningful(batch_data):
             is_meaningful = False
     return cube_means_list, is_meaningful
 
-model.to(device)
 
 # set the optimizer and loss
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
