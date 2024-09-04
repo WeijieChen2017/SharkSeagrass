@@ -426,10 +426,14 @@ for idx_epoch in range(num_epoch):
             inputs = batch_data["STEP1"].to(device)
             labels = batch_data["STEP2"].to(device)
 
-            loss_weight = torch.abs(torch.mean(labels-inputs)) # -1 to 1
+            # loss_weight = torch.abs(torch.mean(labels-inputs)) # -1 to 1
+            # loss_weight = (loss_weight + 1) / 2 # 0 to 1
+            # loss_weight = loss_weight * 10 # 0.45 to 0.55
+            # # convert label_magn as the weights to adjust the loss
+            # loss_weight = loss_weight.item()
+
+            loss_weight = torch.abs(torch.mean(labels)) # -1 to 1
             loss_weight = (loss_weight + 1) / 2 # 0 to 1
-            loss_weight = loss_weight * 10 # 0.45 to 0.55
-            # convert label_magn as the weights to adjust the loss
             loss_weight = loss_weight.item()
 
             # for inputs and labels, clip the values to CT_MIN and CT_MAX
