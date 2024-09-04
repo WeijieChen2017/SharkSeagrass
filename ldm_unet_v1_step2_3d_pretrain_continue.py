@@ -33,8 +33,8 @@ from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
 from ldm_unet_v1_utils_plot import plot_results
-mode = "d4f32"
-# mode = "d3f64"
+# mode = "d4f32"
+mode = "d3f64"
 
 
 input_modality = ["STEP1", "STEP2"]
@@ -58,7 +58,7 @@ meaningful_batch_th = -0.95
 train_bigger_batch = 5
 val_bigger_batch = 10
 test_bigger_batch = 10
-root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue/"
+root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue_wloss/"
 pretrain_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
 # dataset_folder = "tsv1_ct/"
 # data_division_file = "tsv1_ct_over128.json"
