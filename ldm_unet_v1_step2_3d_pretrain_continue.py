@@ -211,21 +211,12 @@ pretrain_path = os.path.join(pretrain_folder, "best_model.pth")
 keyname_list_to_load = ["input_block", "downsample", "bottleneck"]
 new_state_dict = {}
 pretrain_state_dict = torch.load(pretrain_path)
+model.init_weights()
 for key in pretrain_state_dict.keys():
     for keyname in keyname_list_to_load:
         if keyname in key:
             new_state_dict[key] = pretrain_state_dict[key]
             break
-        else:
-            # init the weights using KaiMing He's method
-            if "conv" in key:
-                new_state_dict[key] = torch.nn.init.kaiming_normal_(pretrain_state_dict[key], mode='fan_out', nonlinearity='relu')
-            elif "norm" in key:
-                new_state_dict[key] = torch.nn.init.constant_(pretrain_state_dict[key], 1)
-            elif "bias" in key:
-                new_state_dict[key] = torch.nn.init.constant_(pretrain_state_dict[key], 0)
-            else:
-                new_state_dict[key] = pretrain_state_dict[key]
 model.load_state_dict(new_state_dict, strict=False)
 print(f"Load the pretrain model from: {pretrain_path}, and with the keyname_list_to_load: {keyname_list_to_load}")
 
