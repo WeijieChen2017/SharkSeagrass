@@ -425,6 +425,11 @@ for idx_epoch in range(num_epoch):
             inputs = batch_data["STEP1"].to(device)
             labels = batch_data["STEP2"].to(device)
 
+            label_magn = torch.mean(labels) # -1 to 1
+            label_magn = (label_magn + 1) / 2 # 0 to 1
+            # convert label_magn as the weights to adjust the loss
+            loss_weight = label_magn.item()
+
             # for inputs and labels, clip the values to CT_MIN and CT_MAX
             # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
             # labels = torch.clamp(labels, CT_MIN, CT_MAX)
@@ -446,7 +451,7 @@ for idx_epoch in range(num_epoch):
             # print("outputs.shape: ", outputs.shape)
             outputs = outputs + res_inputs
             # loss = loss_function(outputs, labels)
-            loss = ds_loss(torch.unbind(outputs, 1), labels)
+            loss = ds_loss(torch.unbind(outputs, 1), labels) * loss_weight
             loss.backward()
             optimizer.step()
             print(f">>> Epoch {idx_epoch}, training batch [{idx_batch + idx_bigger_batch*n_train_batches}]/[{n_train_batches*train_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}")
