@@ -454,7 +454,7 @@ for idx_epoch in range(num_epoch):
             loss = ds_loss(torch.unbind(outputs, 1), labels) * loss_weight
             loss.backward()
             optimizer.step()
-            print(f">>> Epoch {idx_epoch}, training batch [{idx_batch + idx_bigger_batch*n_train_batches}]/[{n_train_batches*train_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}")
+            print(f">>> Epoch {idx_epoch}, training batch [{idx_batch + idx_bigger_batch*n_train_batches}]/[{n_train_batches*train_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}, label_magn: {label_magn:.4f}")
             train_loss += loss.item()
 
             # successful batch, save this batch for plotting
