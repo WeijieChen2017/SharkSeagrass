@@ -534,25 +534,37 @@ for idx_epoch in range(num_epoch):
             # # 0 to 1 to -1 to 1
             # inputs = inputs * 2 - 1
             # labels = labels * 2 - 1
-            res_inputs = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
+
             # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
             # print("res_inputs.shape: ", res_inputs.shape)
             # print("inputs.shape: ", inputs.shape, "labels.shape: ", labels.shape)
             # inputs.shape:  torch.Size([2, 1, 128, 128, 128]) labels.shape:  torch.Size([2, 1, 128, 128, 128])
             # res_inputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
             # outputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
+
+            # res_inputs = torch.repeat_interleave(inputs, 2, dim=1).unsqueeze(2)
+            # optimizer.zero_grad()
+            # outputs = model(inputs) * OUTPUT_FACTOR
+            # outputs = outputs + res_inputs
+            # loss = ds_loss(torch.unbind(outputs, 1), labels)
+            # loss_to_show = loss.item()
+            # loss = loss * loss_weight
+            # loss.backward()
+            # optimizer.step()
+            # print(f">>> Epoch {idx_epoch}, training batch [{idx_batch + idx_bigger_batch*n_train_batches}]/[{n_train_batches*train_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}, loss_weight: {loss_weight:.4f}")
+            # train_loss += loss_to_show
+
             optimizer.zero_grad()
             outputs = model(inputs) * OUTPUT_FACTOR
-            # print("outputs.shape: ", outputs.shape)
-            outputs = outputs + res_inputs
-            # loss = loss_function(outputs, labels)
-            loss = ds_loss(torch.unbind(outputs, 1), labels)
-            loss_to_show = loss.item()
+            loss = ds_loss(torch.unbind(outputs, 1), labels-inputs)
             loss = loss * loss_weight
             loss.backward()
             optimizer.step()
             print(f">>> Epoch {idx_epoch}, training batch [{idx_batch + idx_bigger_batch*n_train_batches}]/[{n_train_batches*train_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}, loss_weight: {loss_weight:.4f}")
-            train_loss += loss_to_show
+            train_loss += loss.item()
+
+
+
 
             # successful batch, save this batch for plotting
             plot_inputs = inputs
@@ -600,8 +612,8 @@ for idx_epoch in range(num_epoch):
                     # labels = (labels - CT_MIN) / CT_NORM
                     # inputs = inputs * 2 - 1
                     # labels = labels * 2 - 1
-                    outputs = model(inputs) * OUTPUT_FACTOR + inputs
-                    loss = output_loss(outputs, labels)
+                    outputs = model(inputs) * OUTPUT_FACTOR
+                    loss = output_loss(outputs, labels - inputs)
                     val_loss += loss.item()
                     print(f">>> Epoch {idx_epoch}, validation batch [{idx_batch + idx_bigger_batch*n_val_batches}]/[{n_val_batches*val_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}")
                 
@@ -646,8 +658,8 @@ for idx_epoch in range(num_epoch):
                             # labels = (labels - CT_MIN) / CT_NORM
                             # inputs = inputs * 2 - 1
                             # labels = labels * 2 - 1
-                            outputs = model(inputs) * OUTPUT_FACTOR + inputs
-                            loss = output_loss(outputs, labels)
+                            outputs = model(inputs) * OUTPUT_FACTOR
+                            loss = output_loss(outputs, labels-inputs)
                             test_loss += loss.item()
                             print(f">>> Epoch {idx_epoch}, test batch [{idx_batch + idx_bigger_batch*n_test_batches}]/[{n_test_batches*test_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}")
 
