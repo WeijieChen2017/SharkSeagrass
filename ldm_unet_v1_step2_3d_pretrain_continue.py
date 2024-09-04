@@ -216,7 +216,7 @@ for key in pretrain_state_dict.keys():
         if keyname in key:
             new_state_dict[key] = pretrain_state_dict[key]
             break
-model.load_state_dict(new_state_dict)
+model.load_state_dict(new_state_dict, strict=False)
 print(f"Load the pretrain model from: {pretrain_path}, and with the keyname_list_to_load: {keyname_list_to_load}")
 
 # freeze model encoder
