@@ -41,7 +41,8 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
         img_pred = (img_pred + 1) / 2
 
         yhat_x = img_pred # -1 to 1
-        y_x = img_CT
+        y_x = img_CT - img_PET
+        y_x = (y_x + 1) / 2
 
 
 
@@ -161,9 +162,13 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
         img_pred = np.squeeze(np.clip(img_pred, -1, 1))
         img_pred = (img_pred + 1) / 2
 
-        yhat_x = img_pred - img_PET # -1 to 1
-        yhat_x = (yhat_x + 1) / 2 # 0 to 1
+        # yhat_x = img_pred - img_PET # -1 to 1
+        # yhat_x = (yhat_x + 1) / 2 # 0 to 1
 
+        # y_x = img_CT - img_PET
+        # y_x = (y_x + 1) / 2
+
+        yhat_x = img_pred # -1 to 1
         y_x = img_CT - img_PET
         y_x = (y_x + 1) / 2
 
@@ -276,9 +281,13 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
         img_pred = np.squeeze(np.clip(img_pred, -1, 1))
         img_pred = (img_pred + 1) / 2
 
-        yhat_x = img_pred - img_PET # -1 to 1
-        yhat_x = (yhat_x + 1) / 2 # 0 to 1
+        # yhat_x = img_pred - img_PET # -1 to 1
+        # yhat_x = (yhat_x + 1) / 2 # 0 to 1
 
+        # y_x = img_CT - img_PET
+        # y_x = (y_x + 1) / 2
+
+        yhat_x = img_pred # -1 to 1
         y_x = img_CT - img_PET
         y_x = (y_x + 1) / 2
 
