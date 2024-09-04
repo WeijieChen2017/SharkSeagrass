@@ -50,10 +50,11 @@ plot_per_epoch = 1
 CT_NORM = 5000
 CT_MIN = -1024
 CT_MAX = 3976
+OUTPUT_FACTOR = 10
 train_case = 0
 val_case = 0
 test_case = 0
-learning_rate = 1e-5
+learning_rate = 1e-4
 meaningful_batch_th = -0.95
 train_bigger_batch = 5
 val_bigger_batch = 10
@@ -425,10 +426,11 @@ for idx_epoch in range(num_epoch):
             inputs = batch_data["STEP1"].to(device)
             labels = batch_data["STEP2"].to(device)
 
-            label_magn = torch.mean(labels) # -1 to 1
-            label_magn = (label_magn + 1) / 2 # 0 to 1
+            loss_weight = torch.abs(torch.mean(labels-inputs)) # -1 to 1
+            loss_weight = (loss_weight + 1) / 2 # 0 to 1
+            loss_weight = loss_weight * 10 # 0.45 to 0.55
             # convert label_magn as the weights to adjust the loss
-            loss_weight = label_magn.item()
+            loss_weight = loss_weight.item()
 
             # for inputs and labels, clip the values to CT_MIN and CT_MAX
             # inputs = torch.clamp(inputs, CT_MIN, CT_MAX)
@@ -447,15 +449,17 @@ for idx_epoch in range(num_epoch):
             # res_inputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
             # outputs.shape:  torch.Size([2, 2, 1, 128, 128, 128])
             optimizer.zero_grad()
-            outputs = model(inputs)
+            outputs = model(inputs) * OUTPUT_FACTOR
             # print("outputs.shape: ", outputs.shape)
             outputs = outputs + res_inputs
             # loss = loss_function(outputs, labels)
-            loss = ds_loss(torch.unbind(outputs, 1), labels) * loss_weight
+            loss = ds_loss(torch.unbind(outputs, 1), labels)
+            loss_to_show = loss.item()
+            loss = loss * loss_weight
             loss.backward()
             optimizer.step()
             print(f">>> Epoch {idx_epoch}, training batch [{idx_batch + idx_bigger_batch*n_train_batches}]/[{n_train_batches*train_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}, label_magn: {label_magn:.4f}")
-            train_loss += loss.item()
+            train_loss += loss_to_show
 
             # successful batch, save this batch for plotting
             plot_inputs = inputs
@@ -503,7 +507,7 @@ for idx_epoch in range(num_epoch):
                     # labels = (labels - CT_MIN) / CT_NORM
                     # inputs = inputs * 2 - 1
                     # labels = labels * 2 - 1
-                    outputs = model(inputs)+inputs
+                    outputs = model(inputs) * OUTPUT_FACTOR + inputs
                     loss = output_loss(outputs, labels)
                     val_loss += loss.item()
                     print(f">>> Epoch {idx_epoch}, validation batch [{idx_batch + idx_bigger_batch*n_val_batches}]/[{n_val_batches*val_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}")
@@ -549,7 +553,7 @@ for idx_epoch in range(num_epoch):
                             # labels = (labels - CT_MIN) / CT_NORM
                             # inputs = inputs * 2 - 1
                             # labels = labels * 2 - 1
-                            outputs = model(inputs) + inputs
+                            outputs = model(inputs) * OUTPUT_FACTOR + inputs
                             loss = output_loss(outputs, labels)
                             test_loss += loss.item()
                             print(f">>> Epoch {idx_epoch}, test batch [{idx_batch + idx_bigger_batch*n_test_batches}]/[{n_test_batches*test_bigger_batch}], loss: {loss.item()*CT_NORM:.4f}")
