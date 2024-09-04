@@ -50,8 +50,8 @@ plot_per_epoch = 1
 CT_MIN = -1024
 # CT_MAX = 3976
 CT_MAX = 1976
-CT_NORM = = CT_MAX - CT_MIN
-OUTPUT_FACTOR = 10
+CT_NORM = CT_MAX - CT_MIN
+OUTPUT_FACTOR = 1.
 train_case = 0
 val_case = 0
 test_case = 0
