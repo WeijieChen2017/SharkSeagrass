@@ -123,10 +123,6 @@ model = DynUNet(
     trans_bias=False,
 )
 
-pretrain_path = os.path.join(pretrain_folder, "best_model.pth")
-model.load_state_dict(torch.load(pretrain_path))
-print("Load the pretrain model from: ", pretrain_path)
-
 # output the model structure
 # model_state_dict = model.state_dict()
 # for key in model_state_dict.keys():
@@ -205,6 +201,23 @@ print("Load the pretrain model from: ", pretrain_path)
 # The key is: skip_layers.upsample.conv_block.norm2.weight, the shape is: torch.Size([64])
 # The key is: skip_layers.upsample.conv_block.norm2.bias, the shape is: torch.Size([64])
 
+
+# pretrain_path = os.path.join(pretrain_folder, "best_model.pth")
+# model.load_state_dict(torch.load(pretrain_path))
+# print("Load the pretrain model from: ", pretrain_path)
+
+# only load the encoder part
+pretrain_path = os.path.join(pretrain_folder, "best_model.pth")
+keyname_list_to_load = ["input_block", "downsample", "bottleneck"]
+new_state_dict = {}
+pretrain_state_dict = torch.load(pretrain_path)
+for key in pretrain_state_dict.keys():
+    for keyname in keyname_list_to_load:
+        if keyname in key:
+            new_state_dict[key] = pretrain_state_dict[key]
+            break
+model.load_state_dict(new_state_dict)
+print(f"Load the pretrain model from: {pretrain_path}, and with the keyname_list_to_load: {keyname_list_to_load}")
 
 # freeze model encoder
 keyname_list_to_freeze = ["input_block", "downsample", "bottleneck"]
