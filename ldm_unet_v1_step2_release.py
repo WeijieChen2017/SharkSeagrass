@@ -7,6 +7,7 @@
 
 import argparse
 import os
+import json
 import torch
 import glob
 import time
@@ -23,7 +24,7 @@ def main():
     # here I will use argparse to parse the arguments
     parser = argparse.ArgumentParser(description='Synthetic CT from TOFNAC PET Model')
     parser.add_argument('--root_folder', type=str, default="./B100/ldm_unet_v1_release_3d/", help='The root folder to save the model and log file')
-    parser.add_argument('--data_target_folder', type=str, default="./B100/f4noattn_step1_volume_vanila/", help='The folder to save the PET files')
+    parser.add_argument('--data_div_json', type=str, default="./B100/step1step2_0822_vanila.json", help='The folder to save the data division files')
     parser.add_argument('--mode', type=str, default="d3f64", help='The mode of the model, train or test')
     args = parser.parse_args()
 
@@ -137,92 +138,106 @@ def main():
 
     # process the PET files
 
-    step1_file_list = sorted(glob.glob(data_target_folder + "STEP1*.nii.gz"))
-    print(f"Detected {len(step1_file_list)} PET files in {data_target_folder}")
+    with open(args.data_div_json, "r") as f:
+        data_div = json.load(f)
+    train_list = data_div["train"]
+    val_list = data_div["val"]
+    test_list = data_div["test"]
 
-    for idx_PET, step1_file_path in enumerate(step1_file_list):
-        
-        tik = time.time()
+    num_train = len(train_list)
+    num_val = len(val_list)
+    num_test = len(test_list)
 
-        step2_file_path = step1_file_path.replace("STEP1", "STPE2")
-        # check whether the CT file exists
-        if os.path.exists(step2_file_path):
-            to_COMPUTE_LOSS = True
-            print(f"[{idx_PET+1}]/[{len(step1_file_list)}] Processing {step1_file_path} with CT {step2_file_path}")
-        else:
-            to_COMPUTE_LOSS = False
-            print(f"[{idx_PET+1}]/[{len(step1_file_list)}] Processing {step1_file_path} without CT")
-        
-        # load the PET file
-        step1_file = nib.load(step1_file_path)
-        step1_data = step1_file.get_fdata()
+    print(f"Detected {num_train} training files")
+    print(f"Detected {num_val} validation files")
+    print(f"Detected {num_test} testing files")
 
-        step1_data = np.clip(step1_data, MIN_CT, MAX_CT)
-        # step1_data = two_segment_scale(step1_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET) # (arr, MIN, MID, MAX, MIQ)
-        step1_data = (step1_data - MIN_CT) / RANGE_CT # 0 to 1
-        norm_step1_data = step1_data * 2 - 1 # -1 to 1
-        
-        # now it is using slide_window to process the 3d data
-        # synthetic_CT_data_step_1 # 400, 400, z
-        # convert to 1, 1, 400, 400, z
-        norm_step1_data = np.expand_dims(np.expand_dims(norm_step1_data, axis=0), axis=0)
-        norm_step1_data = torch.from_numpy(norm_step1_data).float().to(device)
-        synthetic_step2_data = sliding_window_inference(
-            inputs = norm_step1_data, 
-            roi_size = model_step2_params["cube_size"],
-            sw_batch_size = 1,
-            predictor = model_step_2,
-            overlap=0.25, 
-            mode="gaussian", 
-            sigma_scale=0.125, 
-            padding_mode="constant", 
-            cval=0.0,
-            device=device,
-        ) # f(x) -> y-x
-        synthetic_CT_data = norm_step1_data + synthetic_step2_data # -1 to 1
-        synthetic_CT_data = (synthetic_CT_data + 1) / 2 # 0 to 1
-        synthetic_CT_data = synthetic_CT_data.squeeze().detach().cpu().numpy() # 400, 400, z
-        synthetic_CT_data = synthetic_CT_data * RANGE_CT + MIN_CT # MIN_CT to MAX_CT
-        
-        # save the synthetic CT data
-        synthetic_CT_file = nib.Nifti1Image(synthetic_CT_data, affine=step1_file.affine, header=step1_file.header)
-        synthetic_CT_path = step1_file_path.replace("TOFNAC", "SYNTHCT3D")
-        nib.save(synthetic_CT_file, synthetic_CT_path)
-        print("Saved to", synthetic_CT_path)
+    for data_list in [train_list, val_list, test_list]:
 
-        if to_COMPUTE_LOSS:
-            CT_file = nib.load(step2_file_path)
-            CT_data = CT_file.get_fdata() # 467, 467, z
-            CT_data = CT_data[33:433, 33:433, :] # 400, 400, z
-            mask_CT = CT_data > -MIN_CT
-            masked_loss = np.mean(np.abs(synthetic_CT_data[mask_CT] - CT_data[mask_CT]))
-            print(f"Masked Loss: {masked_loss}")
+        for idx_PET, pair in enumerate(data_list):
+            
+            tik = time.time()
+
+            step1_path = pair["STEP1"]
+            step2_path = pair["STEP2"]
+            # check whether the CT file exists
+            if os.path.exists(step2_path):
+                to_COMPUTE_LOSS = True
+                print(f"[{idx_PET+1}]/[{len(data_list)}] Processing {step1_path} with CT {step2_path}")
+            else:
+                to_COMPUTE_LOSS = False
+                print(f"[{idx_PET+1}]/[{len(data_list)}] Processing {step1_path} without CT")
+            
+            # load the PET file
+            step1_file = nib.load(step1_path)
+            step1_data = step1_file.get_fdata()
+
+            step1_data = np.clip(step1_data, MIN_CT, MAX_CT)
+            # step1_data = two_segment_scale(step1_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET) # (arr, MIN, MID, MAX, MIQ)
+            step1_data = (step1_data - MIN_CT) / RANGE_CT # 0 to 1
+            norm_step1_data = step1_data * 2 - 1 # -1 to 1
+            
+            # now it is using slide_window to process the 3d data
+            # synthetic_CT_data_step_1 # 400, 400, z
+            # convert to 1, 1, 400, 400, z
+            norm_step1_data = np.expand_dims(np.expand_dims(norm_step1_data, axis=0), axis=0)
+            norm_step1_data = torch.from_numpy(norm_step1_data).float().to(device)
+            synthetic_step2_data = sliding_window_inference(
+                inputs = norm_step1_data, 
+                roi_size = model_step2_params["cube_size"],
+                sw_batch_size = 1,
+                predictor = model_step_2,
+                overlap=0.25, 
+                mode="gaussian", 
+                sigma_scale=0.125, 
+                padding_mode="constant", 
+                cval=0.0,
+                device=device,
+            ) # f(x) -> y-x
+            synthetic_CT_data = norm_step1_data + synthetic_step2_data # -1 to 1
+            synthetic_CT_data = (synthetic_CT_data + 1) / 2 # 0 to 1
+            synthetic_CT_data = synthetic_CT_data.squeeze().detach().cpu().numpy() # 400, 400, z
+            synthetic_CT_data = synthetic_CT_data * RANGE_CT + MIN_CT # MIN_CT to MAX_CT
+            
+            # save the synthetic CT data
+            synthetic_CT_file = nib.Nifti1Image(synthetic_CT_data, affine=step1_file.affine, header=step1_file.header)
+            synthetic_CT_path = step1_file_path.replace("TOFNAC", "SYNTHCT3D")
+            nib.save(synthetic_CT_file, synthetic_CT_path)
+            print("Saved to", synthetic_CT_path)
+
+            if to_COMPUTE_LOSS:
+                CT_file = nib.load(step2_file_path)
+                CT_data = CT_file.get_fdata() # 467, 467, z
+                CT_data = CT_data[33:433, 33:433, :] # 400, 400, z
+                mask_CT = CT_data > -MIN_CT
+                masked_loss = np.mean(np.abs(synthetic_CT_data[mask_CT] - CT_data[mask_CT]))
+                print(f"Masked Loss: {masked_loss}")
+                with open(log_file, "a") as f:
+                    f.write(f"{step1_file_path} Masked Loss: {masked_loss}\n")
+            else:
+                with open(log_file, "a") as f:
+                    f.write(f"{step1_file_path} No CT file found\n")
+
+            # save the step 1
+            # synthetic_CT_file_step_1 = nib.Nifti1Image(synthetic_CT_data_step_1, affine=step1_file.affine, header=step1_file.header)
+            # synthetic_CT_path_step_1 = step1_file_path.replace("TOFNAC", "SYNTHCT_STEP1")
+            # nib.save(synthetic_CT_file_step_1, synthetic_CT_path_step_1)
+            # print("Saved to", synthetic_CT_path_step_1)
+
+            # # compute the loss between the synthetic CT and the real CT
+            # if to_COMPUTE_LOSS:
+            #     masked_loss = np.mean(np.abs(synthetic_CT_data_step_1[mask_CT] - CT_data[mask_CT]))
+            #     print(f"Masked Loss after step 1: {masked_loss}")
+            #     with open(log_file, "a") as f:
+            #         f.write(f"{step1_file_path} Masked Loss after step 1: {masked_loss}\n")
+            # else:
+            #     with open(log_file, "a") as f:
+            #         f.write(f"{step1_file_path} No CT file found\n")
+
+            tok = time.time()
+            print(f"Time elapsed: {tok-tik:.2f} seconds")
             with open(log_file, "a") as f:
-                f.write(f"{step1_file_path} Masked Loss: {masked_loss}\n")
-        else:
-            with open(log_file, "a") as f:
-                f.write(f"{step1_file_path} No CT file found\n")
-
-        # save the step 1
-        # synthetic_CT_file_step_1 = nib.Nifti1Image(synthetic_CT_data_step_1, affine=step1_file.affine, header=step1_file.header)
-        # synthetic_CT_path_step_1 = step1_file_path.replace("TOFNAC", "SYNTHCT_STEP1")
-        # nib.save(synthetic_CT_file_step_1, synthetic_CT_path_step_1)
-        # print("Saved to", synthetic_CT_path_step_1)
-
-        # # compute the loss between the synthetic CT and the real CT
-        # if to_COMPUTE_LOSS:
-        #     masked_loss = np.mean(np.abs(synthetic_CT_data_step_1[mask_CT] - CT_data[mask_CT]))
-        #     print(f"Masked Loss after step 1: {masked_loss}")
-        #     with open(log_file, "a") as f:
-        #         f.write(f"{step1_file_path} Masked Loss after step 1: {masked_loss}\n")
-        # else:
-        #     with open(log_file, "a") as f:
-        #         f.write(f"{step1_file_path} No CT file found\n")
-
-        tok = time.time()
-        print(f"Time elapsed: {tok-tik:.2f} seconds")
-        with open(log_file, "a") as f:
-            f.write(f"Time elapsed: {tok-tik:.2f} seconds\n")
+                f.write(f"Time elapsed: {tok-tik:.2f} seconds\n")
 
 if __name__ == "__main__":
     main()
