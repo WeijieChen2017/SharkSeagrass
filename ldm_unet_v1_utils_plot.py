@@ -25,29 +25,23 @@ def inputs_labels_outputs_to_imgs(inputs, labels, outputs, cube_size, cut_index,
     elif cut_index == "y":
         img_PET = np.rot90(inputs[i, :, :, cube_size // 2, :].detach().cpu().numpy())
         img_PET = np.squeeze(np.clip(img_PET, -1, 1))
-        img_PET = (img_PET + 1) / 2
 
         img_CT = np.rot90(labels[i, :, :, cube_size // 2, :].detach().cpu().numpy())
         img_CT = np.squeeze(np.clip(img_CT, -1, 1))
-        img_CT = (img_CT + 1) / 2
 
         img_pred = np.rot90(outputs[i, 0, :, :, cube_size // 2, :].detach().cpu().numpy())
         img_pred = np.squeeze(np.clip(img_pred, -1, 1))
-        img_pred = (img_pred + 1) / 2
 
     elif cut_index == "x":
 
         img_PET = np.rot90(inputs[i, :, cube_size // 2, :, :].detach().cpu().numpy())
         img_PET = np.squeeze(np.clip(img_PET, -1, 1))
-        img_PET = (img_PET + 1) / 2
 
         img_CT = np.rot90(labels[i, :, cube_size // 2, :, :].detach().cpu().numpy())
         img_CT = np.squeeze(np.clip(img_CT, -1, 1))
-        img_CT = (img_CT + 1) / 2
 
         img_pred = np.rot90(outputs[i, 0, :, cube_size // 2, :, :].detach().cpu().numpy())
         img_pred = np.squeeze(np.clip(img_pred, -1, 1))
-        img_pred = (img_pred + 1) / 2
     
     else:
         raise ValueError("cut_index must be either x, y, or z")
