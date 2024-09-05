@@ -178,7 +178,7 @@ def main():
             # synthetic_CT_data_step_1 # 400, 400, z
             # convert to 1, 1, 400, 400, z
             norm_step1_data = np.expand_dims(np.expand_dims(norm_step1_data, axis=0), axis=0)
-            norm_step1_data = torch.from_numpy(norm_step1_data).float()
+            norm_step1_data = torch.from_numpy(norm_step1_data).float().cpu()
             # the sliding window method takes 
             # sw_device and device arguments for 
             # the window data and the output volume respectively. 
