@@ -44,6 +44,7 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
         y_x = img_CT - img_PET
         y_x = (y_x + 1) / 2
 
+        yhat = img_pred + img_PET
 
 
 
@@ -88,7 +89,7 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
 
         plt.subplot(n_row, n_col, i * n_col + 5)
         # outputs.shape:  torch.Size([16, 2, 1, 400, 400])
-        plt.imshow(img_pred, cmap="gray", vmin=0, vmax=0.5) # yhat
+        plt.imshow(yhat, cmap="gray", vmin=0, vmax=0.5) # yhat
         if i == 0:
             plt.title("yhat")
         # plt.title("output CT")
@@ -136,7 +137,7 @@ def plot_results(inputs, labels, outputs, idx_epoch, root_folder, cube_size):
 
         plt.subplot(n_row, n_col, i * n_col + 10)
         # img_pred = np.clip(img_pred, 0, 1)
-        plt.hist((img_pred).flatten(), bins=100)
+        plt.hist((yhat).flatten(), bins=100)
         # plt.title("output CT")
         if i == 0:
             plt.title("yhat")
