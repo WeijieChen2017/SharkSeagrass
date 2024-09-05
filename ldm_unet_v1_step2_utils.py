@@ -230,7 +230,8 @@ def sliding_window_inference(
             print(f"win_data.shape: {win_data.shape}")
             print(f"waiting for 15 seconds")
             time.sleep(15)
-            seg_prob_out = predictor(win_data, *args, **kwargs)  # batched patch
+            with torch.no_grad():
+                seg_prob_out = predictor(win_data, *args, **kwargs)  # batched patch
 
         # convert seg_prob_out to tuple seg_tuple, this does not allocate new memory.
         dict_keys, seg_tuple = _flatten_struct(seg_prob_out)
