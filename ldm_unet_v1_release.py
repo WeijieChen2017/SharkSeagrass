@@ -22,7 +22,7 @@ from monai.inferers import sliding_window_inference
 def main():
     # here I will use argparse to parse the arguments
     parser = argparse.ArgumentParser(description='Synthetic CT from TOFNAC PET Model')
-    parser.add_argument('--root_folder', type=str, default="./B100/ldm_unet_v1_release/", help='The root folder to save the model and log file')
+    parser.add_argument('--root_folder', type=str, default="./B100/ldm_unet_v1_release_3d/", help='The root folder to save the model and log file')
     parser.add_argument('--data_target_folder', type=str, default="./B100/TOFNAC_resample/", help='The folder to save the PET files')
     parser.add_argument('--mode', type=str, default="d3f64", help='The mode of the model, train or test')
     args = parser.parse_args()
@@ -220,7 +220,7 @@ def main():
         
         # save the synthetic CT data
         synthetic_CT_file = nib.Nifti1Image(synthetic_CT_data, affine=PET_file.affine, header=PET_file.header)
-        synthetic_CT_path = PET_file_path.replace("TOFNAC", "SYNTHCT")
+        synthetic_CT_path = PET_file_path.replace("TOFNAC", "SYNTHCT3D")
         nib.save(synthetic_CT_file, synthetic_CT_path)
         print("Saved to", synthetic_CT_path)
 
@@ -238,20 +238,20 @@ def main():
                 f.write(f"{PET_file_path} No CT file found\n")
 
         # save the step 1
-        synthetic_CT_file_step_1 = nib.Nifti1Image(synthetic_CT_data_step_1, affine=PET_file.affine, header=PET_file.header)
-        synthetic_CT_path_step_1 = PET_file_path.replace("TOFNAC", "SYNTHCT_STEP1")
-        nib.save(synthetic_CT_file_step_1, synthetic_CT_path_step_1)
-        print("Saved to", synthetic_CT_path_step_1)
+        # synthetic_CT_file_step_1 = nib.Nifti1Image(synthetic_CT_data_step_1, affine=PET_file.affine, header=PET_file.header)
+        # synthetic_CT_path_step_1 = PET_file_path.replace("TOFNAC", "SYNTHCT_STEP1")
+        # nib.save(synthetic_CT_file_step_1, synthetic_CT_path_step_1)
+        # print("Saved to", synthetic_CT_path_step_1)
 
-        # compute the loss between the synthetic CT and the real CT
-        if to_COMPUTE_LOSS:
-            masked_loss = np.mean(np.abs(synthetic_CT_data_step_1[mask_CT] - CT_data[mask_CT]))
-            print(f"Masked Loss after step 1: {masked_loss}")
-            with open(log_file, "a") as f:
-                f.write(f"{PET_file_path} Masked Loss after step 1: {masked_loss}\n")
-        else:
-            with open(log_file, "a") as f:
-                f.write(f"{PET_file_path} No CT file found\n")
+        # # compute the loss between the synthetic CT and the real CT
+        # if to_COMPUTE_LOSS:
+        #     masked_loss = np.mean(np.abs(synthetic_CT_data_step_1[mask_CT] - CT_data[mask_CT]))
+        #     print(f"Masked Loss after step 1: {masked_loss}")
+        #     with open(log_file, "a") as f:
+        #         f.write(f"{PET_file_path} Masked Loss after step 1: {masked_loss}\n")
+        # else:
+        #     with open(log_file, "a") as f:
+        #         f.write(f"{PET_file_path} No CT file found\n")
 
         tok = time.time()
         print(f"Time elapsed: {tok-tik:.2f} seconds")
