@@ -188,9 +188,9 @@ def main():
             # sw_device and device arguments for 
            # the window data and the output volume respectively. 
             print("Processing step 1 in the shape of ", norm_step1_data.shape)
-            print("Please prepare the data and press enter to continue")
-            time.sleep(30)
-            print("Continuing...")
+            # print("Please prepare the data and press enter to continue")
+            # time.sleep(30)
+            # print("Continuing...")
             synthetic_step2_data = sliding_window_inference(
                 inputs = norm_step1_data, 
                 roi_size = model_step2_params["cube_size"],
