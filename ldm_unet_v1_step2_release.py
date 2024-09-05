@@ -196,7 +196,7 @@ def main():
                 synthetic_step2_data = sliding_window_inference(
                     inputs = norm_step1_data, 
                     roi_size = model_step2_params["cube_size"],
-                    sw_batch_size = 1,
+                    sw_batch_size = 8,
                     predictor = model_step_2,
                     overlap=0.25, 
                     mode="gaussian", 
