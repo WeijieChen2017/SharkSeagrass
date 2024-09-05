@@ -22,6 +22,7 @@ def main():
     parser = argparse.ArgumentParser(description='Synthetic CT from TOFNAC PET Model')
     parser.add_argument('--root_folder', type=str, default="./B100/ldm_unet_v1_release/", help='The root folder to save the model and log file')
     parser.add_argument('--data_target_folder', type=str, default="./B100/TOFNAC_resample/", help='The folder to save the PET files')
+    parser.add_argument('--mode', type=str, default="d3f64", help='The mode of the model, train or test')
     args = parser.parse_args()
 
     root_folder = args.root_folder
@@ -63,21 +64,33 @@ def main():
         }
     }
 
+    if args.mode == "d4f32":
+        kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]
+        strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
+        filters = (32, 64, 128, 256)
+        # device = torch.device("cuda:1")
+    elif args.mode == "d3f64":
+        kernels = [[3, 3, 3], [3, 3, 3], [3, 3, 3]]
+        strides = [[1, 1, 1], [2, 2, 2], [2, 2, 2]]
+        filters = (64, 128, 256)
+        # device = torch.device("cuda:0")
+
     model_step2_params = {
-        "spatial_dims": 2,
+        "spatial_dims": 3,
         "in_channels": 1,
         "out_channels": 1,
-        "kernels": [[3, 3], [3, 3], [3, 3], [3, 3]],
-        "strides": [[1, 1], [2, 2], [2, 2], [2, 2]],
-        "filters": (64, 128, 256, 512),
+        "kernels": kernels,
+        "strides": strides,
+        "filters": filters,
+        "upsample_kernel_size": strides[1:],
         "dropout": 0.0,
         "norm_name": ('INSTANCE', {'affine': True}),
         "act_name": ('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
         "deep_supervision": True,
         "deep_supr_num": 1,
-        "res_block": True,
+        "res_block": False,
         "trans_bias": False,
-        "ckpt_path": root_folder+"model_step_2.pth",
+        "ckpt_path": root_folder+f"model_step_2_{args.mode}.pth",
     }
 
     # load step 1 model and step 2 model
