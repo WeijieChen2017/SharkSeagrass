@@ -33,8 +33,8 @@ from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
 from ldm_unet_v1_utils_plot import plot_results
-mode = "d4f32"
-# mode = "d3f64"
+# mode = "d4f32"
+mode = "d3f64"
 
 
 input_modality = ["STEP1", "STEP2"]
@@ -60,7 +60,7 @@ meaningful_batch_th = -0.9
 train_bigger_batch = 5
 val_bigger_batch = 10
 test_bigger_batch = 10
-root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue_wloss_iceEnc/"
+root_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}_continue_wloss_iceEnc_res/"
 pretrain_folder = f"./B100/dynunet3d_v2_step2_pretrain_{mode}/"
 # dataset_folder = "tsv1_ct/"
 # data_division_file = "tsv1_ct_over128.json"
@@ -119,7 +119,7 @@ model = DynUNet(
     act_name=('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
     deep_supervision=True,
     deep_supr_num=1,
-    res_block=False,
+    res_block=True,
     trans_bias=False,
 )
 
@@ -212,21 +212,21 @@ keyname_list_to_load = ["input_block", "downsample", "bottleneck"]
 new_state_dict = {}
 pretrain_state_dict = torch.load(pretrain_path)
 # model.apply(DynUNet.init_weights)
-for key in pretrain_state_dict.keys():
-    for keyname in keyname_list_to_load:
-        if keyname in key:
-            new_state_dict[key] = pretrain_state_dict[key]
-            break
-model.load_state_dict(new_state_dict, strict=False)
-print(f"Load the pretrain model from: {pretrain_path}, and with the keyname_list_to_load: {keyname_list_to_load}")
+# for key in pretrain_state_dict.keys():
+#     for keyname in keyname_list_to_load:
+#         if keyname in key:
+#             new_state_dict[key] = pretrain_state_dict[key]
+#             break
+# model.load_state_dict(new_state_dict, strict=False)
+# print(f"Load the pretrain model from: {pretrain_path}, and with the keyname_list_to_load: {keyname_list_to_load}")
 
-# freeze model encoder
-keyname_list_to_freeze = ["input_block", "downsample", "bottleneck"]
-for keyname in keyname_list_to_freeze:
-    for name, param in model.named_parameters():
-        if keyname in name:
-            param.requires_grad = False
-            print(f"Freeze the layer: {name}")
+# # freeze model encoder
+# keyname_list_to_freeze = ["input_block", "downsample", "bottleneck"]
+# for keyname in keyname_list_to_freeze:
+#     for name, param in model.named_parameters():
+#         if keyname in name:
+#             param.requires_grad = False
+#             print(f"Freeze the layer: {name}")
 
 model.to(device)
 

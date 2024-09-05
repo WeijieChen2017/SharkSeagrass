@@ -34,7 +34,7 @@ eval_per_epoch = 10
 plot_per_epoch = 10
 CT_NORM = 5000
 cache_rate = 1.0
-root_folder = "./B100/dynunet3d_v2_norm"
+root_folder = "./B100/dynunet3d_v2_nodropout"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 print("The root folder is: ", root_folder)
@@ -107,7 +107,6 @@ val_transforms = Compose(
         LoadImaged(keys=input_modality, image_only=True),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
-        NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         # RandSpatialCropSamplesd(keys="PET",
         #                         roi_size=(img_size, img_size, in_channels),
         #                         num_samples=batch_size,
@@ -137,7 +136,6 @@ test_transforms = Compose(
         LoadImaged(keys=input_modality, image_only=True),
         # EnsureChannelFirstd(keys="PET", channel_dim=-1),
         EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
-        NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
         RandSpatialCropd(keys=input_modality,
                          roi_size=(cube_size, cube_size, cube_size),
                          random_center=True, random_size=False),
