@@ -16,7 +16,8 @@ import nibabel as nib
 
 from monai.networks.nets import DynUNet # step 2 model
 
-from monai.inferers import sliding_window_inference
+# from monai.inferers import sliding_window_inference
+from ldm_unet_v1_step2_utils import sliding_window_inference
 
 def main():
     # here I will use argparse to parse the arguments
@@ -185,7 +186,7 @@ def main():
             norm_step1_data = torch.from_numpy(norm_step1_data).float().cpu()
             # the sliding window method takes 
             # sw_device and device arguments for 
-            # the window data and the output volume respectively. 
+           # the window data and the output volume respectively. 
             print("Processing step 1 in the shape of ", norm_step1_data.shape)
             print("Please prepare the data and press enter to continue")
             time.sleep(30)
