@@ -35,7 +35,7 @@ def main():
     log_file = os.path.join(root_folder, "log.txt")
     with open(log_file, "w") as f:
         f.write("\n")
-    device = torch.device('cuda:0')
+    device = torch.device('cuda:1')
 
     MID_PET = 5000
     MIQ_PET = 0.9
