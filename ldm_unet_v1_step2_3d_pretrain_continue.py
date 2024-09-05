@@ -33,8 +33,8 @@ from monai.data import CacheDataset, DataLoader
 from monai.losses import DeepSupervisionLoss
 
 from ldm_unet_v1_utils_plot import plot_results
-# mode = "d4f32"
-mode = "d3f64"
+mode = "d4f32"
+# mode = "d3f64"
 
 
 input_modality = ["STEP1", "STEP2"]
