@@ -136,7 +136,7 @@ def main():
     # process the PET files
     # pause 60 seconds for the user to prepare the data
     print("Please prepare the data and press enter to continue")
-    time.sleep(60)
+    time.sleep(30)
     print("Continuing...")
 
     with open(args.data_div_json, "r") as f:
@@ -198,6 +198,7 @@ def main():
                 cval=0.0,
                 device=torch.device('cpu'),
                 sw_device=device,
+                buffer_steps=None,
             ) # f(x) -> y-x
             synthetic_CT_data = norm_step1_data + synthetic_step2_data # -1 to 1
             synthetic_CT_data = (synthetic_CT_data + 1) / 2 # 0 to 1
