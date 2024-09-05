@@ -14,9 +14,7 @@ import time
 import numpy as np
 import nibabel as nib
 
-from ldm_unet_v1_release_util import VQModel # step 1 model
 from monai.networks.nets import DynUNet # step 2 model
-from ldm_unet_v1_release_util import two_segment_scale
 
 from monai.inferers import sliding_window_inference
 
@@ -191,7 +189,8 @@ def main():
                 sigma_scale=0.125, 
                 padding_mode="constant", 
                 cval=0.0,
-                device=device,
+                device=torch.device('cpu'),
+                sw_device=device,
             ) # f(x) -> y-x
             synthetic_CT_data = norm_step1_data + synthetic_step2_data # -1 to 1
             synthetic_CT_data = (synthetic_CT_data + 1) / 2 # 0 to 1
