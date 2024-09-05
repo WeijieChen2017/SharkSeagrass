@@ -193,7 +193,7 @@ def main():
                 padding_mode="constant", 
                 cval=0.0,
                 device=torch.device('cpu'),
-                sw_device=device,
+                sw_device=torch.device('cuda:1'),
             ) # f(x) -> y-x
             synthetic_CT_data = norm_step1_data + synthetic_step2_data # -1 to 1
             synthetic_CT_data = (synthetic_CT_data + 1) / 2 # 0 to 1
