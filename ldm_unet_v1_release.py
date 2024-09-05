@@ -17,6 +17,8 @@ from ldm_unet_v1_release_util import VQModel # step 1 model
 from monai.networks.nets import DynUNet # step 2 model
 from ldm_unet_v1_release_util import two_segment_scale
 
+from monai.inferers import sliding_window_inference
+
 def main():
     # here I will use argparse to parse the arguments
     parser = argparse.ArgumentParser(description='Synthetic CT from TOFNAC PET Model')
@@ -76,6 +78,7 @@ def main():
         # device = torch.device("cuda:0")
 
     model_step2_params = {
+        "cube_size": 128,
         "spatial_dims": 3,
         "in_channels": 1,
         "out_channels": 1,
@@ -88,9 +91,9 @@ def main():
         "act_name": ('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
         "deep_supervision": True,
         "deep_supr_num": 1,
-        "res_block": False,
+        "res_block": True,
         "trans_bias": False,
-        "ckpt_path": root_folder+f"model_step_2_{args.mode}.pth",
+        "ckpt_path":f"./B100/dynunet3d_v2_step2_pretrain_{args.mode}_continue_wloss_iceEnc_res/best_model.pth",
     }
 
     # load step 1 model and step 2 model
@@ -177,20 +180,43 @@ def main():
             PET_slice = np.expand_dims(PET_slice, axis=0)
             PET_slice = torch.from_numpy(PET_slice).float().to(device)
 
-            output_step_1 = model_step_1(PET_slice)
-            output_step_2 = model_step_2(output_step_1)
-            synthetic_CT_slice = output_step_1 + output_step_2
+            # 2d model inference
+            # output_step_1 = model_step_1(PET_slice)
+            # output_step_2 = model_step_2(output_step_1)
+            # synthetic_CT_slice = output_step_1 + output_step_2
             
-            synthetic_CT_slice = synthetic_CT_slice.detach().cpu().numpy()
-            synthetic_CT_slice = np.squeeze(np.clip(synthetic_CT_slice, 0, 1))
-            synthetic_CT_slice = synthetic_CT_slice * RANGE_CT + MIN_CT
-            synthetic_CT_data[:, :, idz] = synthetic_CT_slice
+            # synthetic_CT_slice = synthetic_CT_slice.detach().cpu().numpy()
+            # synthetic_CT_slice = np.squeeze(np.clip(synthetic_CT_slice, 0, 1))
+            # synthetic_CT_slice = synthetic_CT_slice * RANGE_CT + MIN_CT
+            # synthetic_CT_data[:, :, idz] = synthetic_CT_slice
 
-            synthetic_CT_slice_1 = output_step_1.detach().cpu().numpy()
-            synthetic_CT_slice_1 = np.squeeze(np.clip(synthetic_CT_slice_1, 0, 1))
-            synthetic_CT_slice_1 = synthetic_CT_slice_1 * RANGE_CT + MIN_CT
-            synthetic_CT_data_step_1[:, :, idz] = synthetic_CT_slice_1
+            # synthetic_CT_slice_1 = output_step_1.detach().cpu().numpy()
+            # synthetic_CT_slice_1 = np.squeeze(np.clip(synthetic_CT_slice_1, 0, 1))
+            # synthetic_CT_slice_1 = synthetic_CT_slice_1 * RANGE_CT + MIN_CT
+            # synthetic_CT_data_step_1[:, :, idz] = synthetic_CT_slice_1
 
+            # 3d model inference
+            synthetic_step1_CT_slice = model_step_1(PET_slice)
+            synthetic_step1_CT_slice = synthetic_step1_CT_slice.detach().cpu().numpy()
+            synthetic_step1_CT_slice = np.squeeze(np.clip(synthetic_step1_CT_slice, 0, 1))
+            synthetic_step1_CT_slice = synthetic_step1_CT_slice * RANGE_CT + MIN_CT
+            synthetic_CT_data_step_1[:, :, idz] = synthetic_step1_CT_slice
+
+        # now it is using slide_window to process the 3d data
+        # synthetic_CT_data_step_1 # 400, 400, z
+
+        synthetic_CT_data_step_2 = sliding_window_inference(
+            inputs = synthetic_CT_data_step_1, 
+            roi_size = model_step2_params["cube_size"],
+            sw_batch_size = 1,
+            predictor = model_step_2,
+            overlap=0.25, 
+            mode="gaussian", 
+            sigma_scale=0.125, 
+            padding_mode="constant", 
+            cval=0.0,
+        ) # f(x) -> y-x
+        synthetic_CT_data = synthetic_CT_data_step_1 + synthetic_CT_data_step_2
         
         # save the synthetic CT data
         synthetic_CT_file = nib.Nifti1Image(synthetic_CT_data, affine=PET_file.affine, header=PET_file.header)
