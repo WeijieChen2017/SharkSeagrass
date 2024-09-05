@@ -215,6 +215,7 @@ def main():
             sigma_scale=0.125, 
             padding_mode="constant", 
             cval=0.0,
+            device=device,
         ) # f(x) -> y-x
         synthetic_CT_data = synthetic_CT_data_step_1 + synthetic_CT_data_step_2
         
