@@ -29,7 +29,6 @@ def main():
     args = parser.parse_args()
 
     root_folder = args.root_folder
-    data_target_folder = args.data_target_folder
     if not os.path.exists(root_folder):
         os.makedirs(root_folder)
     print("The root folder is: ", root_folder)
@@ -201,22 +200,22 @@ def main():
             
             # save the synthetic CT data
             synthetic_CT_file = nib.Nifti1Image(synthetic_CT_data, affine=step1_file.affine, header=step1_file.header)
-            synthetic_CT_path = step1_file_path.replace("TOFNAC", "SYNTHCT3D")
+            synthetic_CT_path = step1_path.replace("STEP1", "STEP3")
             nib.save(synthetic_CT_file, synthetic_CT_path)
             print("Saved to", synthetic_CT_path)
 
             if to_COMPUTE_LOSS:
-                CT_file = nib.load(step2_file_path)
+                CT_file = nib.load(step2_path)
                 CT_data = CT_file.get_fdata() # 467, 467, z
                 CT_data = CT_data[33:433, 33:433, :] # 400, 400, z
                 mask_CT = CT_data > -MIN_CT
                 masked_loss = np.mean(np.abs(synthetic_CT_data[mask_CT] - CT_data[mask_CT]))
                 print(f"Masked Loss: {masked_loss}")
                 with open(log_file, "a") as f:
-                    f.write(f"{step1_file_path} Masked Loss: {masked_loss}\n")
+                    f.write(f"{step1_path} Masked Loss: {masked_loss}\n")
             else:
                 with open(log_file, "a") as f:
-                    f.write(f"{step1_file_path} No CT file found\n")
+                    f.write(f"{step1_path} No CT file found\n")
 
             # save the step 1
             # synthetic_CT_file_step_1 = nib.Nifti1Image(synthetic_CT_data_step_1, affine=step1_file.affine, header=step1_file.header)
