@@ -227,7 +227,7 @@ def sliding_window_inference(
         if with_coord:
             seg_prob_out = predictor(win_data, unravel_slice, *args, **kwargs)  # batched patch
         else:
-            print(f"win_data.shape: {win_data.shape}")
+            # print(f"win_data.shape: {win_data.shape}")
             # print(f"waiting for 15 seconds")
             # time.sleep(15)
             with torch.no_grad():
