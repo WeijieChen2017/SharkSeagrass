@@ -204,6 +204,8 @@ def main():
 
         # now it is using slide_window to process the 3d data
         # synthetic_CT_data_step_1 # 400, 400, z
+        # convert to 1, 1, 400, 400, z
+        synthetic_CT_data_step_1 = np.expand_dims(np.expand_dims(synthetic_CT_data_step_1, axis=0), axis=0)
         synthetic_CT_data_step_1 = torch.from_numpy(synthetic_CT_data_step_1).float().to(device)
         synthetic_CT_data_step_2 = sliding_window_inference(
             inputs = synthetic_CT_data_step_1, 
