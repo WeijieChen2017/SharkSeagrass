@@ -179,6 +179,9 @@ def main():
             # convert to 1, 1, 400, 400, z
             norm_step1_data = np.expand_dims(np.expand_dims(norm_step1_data, axis=0), axis=0)
             norm_step1_data = torch.from_numpy(norm_step1_data).float().to(device)
+            # the sliding window method takes 
+            # sw_device and device arguments for 
+            # the window data and the output volume respectively. 
             synthetic_step2_data = sliding_window_inference(
                 inputs = norm_step1_data, 
                 roi_size = model_step2_params["cube_size"],
