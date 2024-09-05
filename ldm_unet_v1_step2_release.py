@@ -23,7 +23,7 @@ def main():
     parser = argparse.ArgumentParser(description='Synthetic CT from TOFNAC PET Model')
     parser.add_argument('--root_folder', type=str, default="./B100/ldm_unet_v1_release_3d/", help='The root folder to save the model and log file')
     parser.add_argument('--data_div_json', type=str, default="./B100/step1step2_0822_vanila.json", help='The folder to save the data division files')
-    parser.add_argument('--mode', type=str, default="d3f64", help='The mode of the model, train or test')
+    parser.add_argument('--mode', type=str, default="d4f32", help='The mode of the model, train or test')
     args = parser.parse_args()
 
     root_folder = args.root_folder
@@ -119,21 +119,25 @@ def main():
         deep_supr_num=model_step2_params["deep_supr_num"],
         res_block=model_step2_params["res_block"],
         trans_bias=model_step2_params["trans_bias"],
-    )
+    ).to(device)
 
-    model_step_2_pretrained_dict = torch.load(model_step2_params["ckpt_path"], map_location="cpu")
+    model_step_2_pretrained_dict = torch.load(model_step2_params["ckpt_path"])
     model_step_2.load_state_dict(model_step_2_pretrained_dict)
 
     # print("Model step 1 loaded from", model_step1_params["ckpt_path"])
     print("Model step 2 loaded from", model_step2_params["ckpt_path"])
 
     # model_step_1.to(device)
-    model_step_2.to(device)
+    # model_step_2.to(device)
 
     # model_step_1.eval()
     model_step_2.eval()
 
     # process the PET files
+    # pause 60 seconds for the user to prepare the data
+    print("Please prepare the data and press enter to continue")
+    time.sleep(60)
+    print("Continuing...")
 
     with open(args.data_div_json, "r") as f:
         data_div = json.load(f)
