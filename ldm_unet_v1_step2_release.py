@@ -16,15 +16,15 @@ import nibabel as nib
 
 from monai.networks.nets import DynUNet # step 2 model
 
-# from monai.inferers import sliding_window_inference
-from ldm_unet_v1_step2_utils import sliding_window_inference
+from monai.inferers import sliding_window_inference
+# from ldm_unet_v1_step2_utils import sliding_window_inference
 
 def main():
     # here I will use argparse to parse the arguments
     parser = argparse.ArgumentParser(description='Synthetic CT from TOFNAC PET Model')
     parser.add_argument('--root_folder', type=str, default="./B100/ldm_unet_v1_release_3d/", help='The root folder to save the model and log file')
     parser.add_argument('--data_div_json', type=str, default="./B100/step1step2_0822_vanila.json", help='The folder to save the data division files')
-    parser.add_argument('--mode', type=str, default="d4f32", help='The mode of the model, train or test')
+    parser.add_argument('--mode', type=str, default="d3f64", help='The mode of the model, train or test')
     args = parser.parse_args()
 
     root_folder = args.root_folder
@@ -163,12 +163,13 @@ def main():
             step1_path = pair["STEP1"]
             step2_path = pair["STEP2"]
             # check whether the CT file exists
+            print(f"[{idx_PET+1}]/[{len(data_list)}] Processing {step1_path}")
             if os.path.exists(step2_path):
                 to_COMPUTE_LOSS = True
-                print(f"[{idx_PET+1}]/[{len(data_list)}] Processing {step1_path} with CT {step2_path}")
+                print(f">>> Found CT file {step2_path}")
             else:
                 to_COMPUTE_LOSS = False
-                print(f"[{idx_PET+1}]/[{len(data_list)}] Processing {step1_path} without CT")
+                print(f">>> No CT file found")
             
             # load the PET file
             step1_file = nib.load(step1_path)
@@ -187,24 +188,25 @@ def main():
             # the sliding window method takes 
             # sw_device and device arguments for 
            # the window data and the output volume respectively. 
-            print("Processing step 1 in the shape of ", norm_step1_data.shape)
+            # print("Processing step 1 in the shape of ", norm_step1_data.shape)
             # print("Please prepare the data and press enter to continue")
             # time.sleep(30)
             # print("Continuing...")
-            synthetic_step2_data = sliding_window_inference(
-                inputs = norm_step1_data, 
-                roi_size = model_step2_params["cube_size"],
-                sw_batch_size = 1,
-                predictor = model_step_2,
-                overlap=0.25, 
-                mode="gaussian", 
-                sigma_scale=0.125, 
-                padding_mode="constant", 
-                cval=0.0,
-                device=torch.device('cpu'),
-                sw_device=device,
-                buffer_steps=None,
-            ) # f(x) -> y-x
+            with torch.no_grad():
+                synthetic_step2_data = sliding_window_inference(
+                    inputs = norm_step1_data, 
+                    roi_size = model_step2_params["cube_size"],
+                    sw_batch_size = 1,
+                    predictor = model_step_2,
+                    overlap=0.25, 
+                    mode="gaussian", 
+                    sigma_scale=0.125, 
+                    padding_mode="constant", 
+                    cval=0.0,
+                    device=torch.device('cpu'),
+                    sw_device=device,
+                    buffer_steps=None,
+                ) # f(x) -> y-x
             synthetic_CT_data = norm_step1_data + synthetic_step2_data # -1 to 1
             synthetic_CT_data = (synthetic_CT_data + 1) / 2 # 0 to 1
             synthetic_CT_data = synthetic_CT_data.squeeze().detach().cpu().numpy() # 400, 400, z
@@ -212,9 +214,9 @@ def main():
             
             # save the synthetic CT data
             synthetic_CT_file = nib.Nifti1Image(synthetic_CT_data, affine=step1_file.affine, header=step1_file.header)
-            synthetic_CT_path = step1_path.replace("STEP1", "STEP3")
+            synthetic_CT_path = step1_path.replace("STEP1", f"STEP3_{args.mode}")
             nib.save(synthetic_CT_file, synthetic_CT_path)
-            print("Saved to", synthetic_CT_path)
+            print(">>> Saved to", synthetic_CT_path)
 
             if to_COMPUTE_LOSS:
                 CT_file = nib.load(step2_path)
@@ -222,12 +224,12 @@ def main():
                 # CT_data = CT_data[33:433, 33:433, :] # 400, 400, z
                 mask_CT = CT_data > -MIN_CT
                 masked_loss = np.mean(np.abs(synthetic_CT_data[mask_CT] - CT_data[mask_CT]))
-                print(f"Masked Loss: {masked_loss}")
+                print(f">>> Masked Loss: {masked_loss}")
                 with open(log_file, "a") as f:
-                    f.write(f"{step1_path} Masked Loss: {masked_loss}\n")
+                    f.write(f">>> {step1_path} Masked Loss: {masked_loss}\n")
             else:
                 with open(log_file, "a") as f:
-                    f.write(f"{step1_path} No CT file found\n")
+                    f.write(f">>> {step1_path} No CT file found\n")
 
             # save the step 1
             # synthetic_CT_file_step_1 = nib.Nifti1Image(synthetic_CT_data_step_1, affine=step1_file.affine, header=step1_file.header)
@@ -246,9 +248,9 @@ def main():
             #         f.write(f"{step1_file_path} No CT file found\n")
 
             tok = time.time()
-            print(f"Time elapsed: {tok-tik:.2f} seconds")
+            print(f">>> Time elapsed: {tok-tik:.2f} seconds")
             with open(log_file, "a") as f:
-                f.write(f"Time elapsed: {tok-tik:.2f} seconds\n")
+                f.write(f">>> Time elapsed: {tok-tik:.2f} seconds\n")
 
 if __name__ == "__main__":
     main()
