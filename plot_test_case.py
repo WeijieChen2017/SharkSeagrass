@@ -50,9 +50,9 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
             x_img = x_data[:, :, cut_index_list[idx_cut]]
             y_img = y_data[:, :, cut_index_list[idx_cut]]
             z_img = z_data[:, :, cut_index_list[idx_cut]]
-            # x_img = np.rot90(x_img, 2)
-            # x_img = np.rot90(x_img, 2)
-            # x_img = np.rot90(x_img, 2)
+            x_img = np.rot90(x_img, 3)
+            x_img = np.rot90(x_img, 3)
+            x_img = np.rot90(x_img, 3)
         elif cut_view == "sagittal":
             x_img = x_data[cut_index_list[idx_cut], :, :]
             y_img = y_data[cut_index_list[idx_cut], :, :]
@@ -60,6 +60,10 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
             x_img = np.rot90(x_img, 1)
             y_img = np.rot90(y_img, 1)
             z_img = np.rot90(z_img, 1)
+            # horizontal flip
+            x_img = np.fliplr(x_img)
+            y_img = np.fliplr(y_img)
+            z_img = np.fliplr(z_img)
         elif cut_view == "coronal":
             x_img = x_data[:, cut_index_list[idx_cut], :]
             y_img = y_data[:, cut_index_list[idx_cut], :]
@@ -76,17 +80,17 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
         z_img = (z_img - MIN_CT) / (MAX_CT - MIN_CT)
 
         plt.subplot(n_row, n_col, idx_cut * n_col + 1)
-        plt.imshow(x_img, cmap="gray", vmin=0, vmax=0.5)
+        plt.imshow(x_img, cmap="gray", vmin=0, vmax=1.)
         plt.title("TOFNAC") if idx_cut == 0 else None
         plt.axis("off")
 
         plt.subplot(n_row, n_col, idx_cut * n_col + 2)
-        plt.imshow(y_img, cmap="gray", vmin=0, vmax=0.5)
+        plt.imshow(y_img, cmap="gray", vmin=0, vmax=1.)
         plt.title("CTAC") if idx_cut == 0 else None
         plt.axis("off")
 
         plt.subplot(n_row, n_col, idx_cut * n_col + 3)
-        plt.imshow(z_img, cmap="gray", vmin=0, vmax=0.5)
+        plt.imshow(z_img, cmap="gray", vmin=0, vmax=1.)
         plt.title("PRED") if idx_cut == 0 else None
         plt.axis("off")
 
