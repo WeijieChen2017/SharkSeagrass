@@ -33,4 +33,9 @@ for test_pair in test_list:
     print(f">>> TOFNAC_path: {x_path}")
     print(f">>> CTAC_path: {y_path}")
     print(f">>> PRED_path: {z_path}")
-    
+
+    x_data = nib.load(x_path).get_fdata()
+    y_data = nib.load(y_path).get_fdata()
+    z_data = nib.load(z_path).get_fdata()
+
+    print(f">>> TOFNAC_shape: {x_data.shape}, CTAC_shape: {y_data.shape}, PRED_shape: {z_data.shape}")
