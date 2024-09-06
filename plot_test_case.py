@@ -12,6 +12,10 @@ import matplotlib.pyplot as plt
 
 def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view, index_list):
 
+    start_plot_axis_q = 20
+    end_plot_axis_q = 80
+    
+
     # build index list for cut
     if cut_view == "axial": 
         len_axis = x_data.shape[2]
@@ -25,7 +29,10 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
     else:
         raise ValueError("cut_view must be either axial, sagittal, or coronal")
     if index_list is None:
-        cut_index_list = [len_axis // (num_cut + 1) * (i + 1) for i in range(num_cut)]
+        start_plot_axis_index = int(start_plot_axis_q / 100 * len_axis)
+        end_plot_axis_index = int(end_plot_axis_q / 100 * len_axis)
+        cut_index_list = np.linspace(start_plot_axis_index, end_plot_axis_index, num_cut, dtype=int)
+        # cut_index_list = [len_axis // (num_cut + 1) * (i + 1) for i in range(num_cut)]
     else:
         cut_index_list = index_list
     
@@ -41,23 +48,23 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
             x_img = x_data[:, :, cut_index_list[idx_cut]]
             y_img = y_data[:, :, cut_index_list[idx_cut]]
             z_img = z_data[:, :, cut_index_list[idx_cut]]
-            # x_img = np.rot90(x_img)
-            # x_img = np.rot90(x_img)
-            # x_img = np.rot90(x_img)
+            x_img = np.rot90(x_img, 3)
+            x_img = np.rot90(x_img, 3)
+            x_img = np.rot90(x_img, 3)
         elif cut_view == "sagittal":
             x_img = x_data[cut_index_list[idx_cut], :, :]
             y_img = y_data[cut_index_list[idx_cut], :, :]
             z_img = z_data[cut_index_list[idx_cut], :, :]
-            x_img = np.rot90(x_img, 3)
-            y_img = np.rot90(y_img, 3)
-            z_img = np.rot90(z_img, 3)
+            x_img = np.rot90(x_img, 1)
+            y_img = np.rot90(y_img, 1)
+            z_img = np.rot90(z_img, 1)
         elif cut_view == "coronal":
             x_img = x_data[:, cut_index_list[idx_cut], :]
             y_img = y_data[:, cut_index_list[idx_cut], :]
             z_img = z_data[:, cut_index_list[idx_cut], :]
-            x_img = np.rot90(x_img, 3)
-            y_img = np.rot90(y_img, 3)
-            z_img = np.rot90(z_img, 3)
+            x_img = np.rot90(x_img, 1)
+            y_img = np.rot90(y_img, 1)
+            z_img = np.rot90(z_img, 1)
         
         # norm to 0-1
         x_img = (x_img - MIN_PET) / (MAX_PET - MIN_PET)
