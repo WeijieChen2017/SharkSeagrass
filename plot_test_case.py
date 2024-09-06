@@ -128,9 +128,9 @@ save_folder = "./B100/plot_test_case_UNetUNet/"
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
-train_list = sorted(data_div["train"])
-val_list = sorted(data_div["val"])
-test_list = sorted(data_div["test"])
+train_list = data_div["train"]
+val_list = data_div["val"]
+test_list = data_div["test"]
 
 num_train = len(train_list)
 num_val = len(val_list)
