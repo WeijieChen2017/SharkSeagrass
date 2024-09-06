@@ -208,6 +208,7 @@ for test_pair in target_list:
     out_to_file(f">>> Saving to {save_name}")
 
     mae_list.append(mae)
+    unmask_mae_list.append(unmask_mae)
     mask_ratio_list.append(mask_ratio)
 
 out_to_file("")
