@@ -6,7 +6,7 @@ import os
 import nibabel as nib
 import matplotlib.pyplot as plt
 
-
+data_div_to_plot = "val"
 
 
 
@@ -130,7 +130,7 @@ data_div_json = "./B100/step1step2_0822_vanila.json"
 with open(data_div_json, "r") as f:
     data_div = json.load(f)
 
-save_folder = "./B100/plot_test_case_UNetUNet/"
+save_folder = f"./B100/plot_{data_div_to_plot}_case_UNetUNet/"
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
@@ -157,7 +157,15 @@ MIN_CT = -1024
 
 mae_list = []
 # plot the test case
-for test_pair in test_list:
+
+if data_div_to_plot == "train":
+    target_list = train_list
+elif data_div_to_plot == "val":
+    target_list = val_list
+elif data_div_to_plot == "test":
+    target_list = test_list
+
+for test_pair in target_list:
     print()
     x_path = test_pair["STEP1"] # "STEP1": "./B100/f4noattn_step1_volume/STEP1_E4078.nii.gz",
     x_path = x_path.replace("f4noattn_step1_volume_vanila", "TOFNAC_resample")
