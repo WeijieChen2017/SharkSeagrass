@@ -6,7 +6,7 @@ import os
 import nibabel as nib
 import matplotlib.pyplot as plt
 
-data_div_to_plot = "test"
+data_div_to_plot = "val"
 
 
 
@@ -16,8 +16,7 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
     mask_ratio = np.sum(y_mask) / y_mask.size
     mae = np.mean(np.abs(y_data[y_mask] - z_data[y_mask]))
     unmask_mae = np.mean(np.abs(y_data - z_data))
-    out_to_file(f"MAE: {mae:.2f} HU, unmask MAE: {unmask_mae:.2f} HU, mask ratio: {mask_ratio*100:.2f}%")
-
+    
     # build index list for cut
     if cut_view == "axial": 
         len_axis = x_data.shape[2]
@@ -207,6 +206,7 @@ for test_pair in target_list:
     _ = plot_case_from_view_cut(x_data, y_data, z_data, save_name, coronal_cut, "coronal", None)
     out_to_file(f">>> Saving to {save_name}")
 
+    out_to_file(f">>> MAE: {mae:.2f} HU, unmask MAE: {unmask_mae:.2f} HU, mask ratio: {mask_ratio*100:.2f}%")
     mae_list.append(mae)
     unmask_mae_list.append(unmask_mae)
     mask_ratio_list.append(mask_ratio)
