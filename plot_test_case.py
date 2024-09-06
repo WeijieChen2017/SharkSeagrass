@@ -6,7 +6,7 @@ import os
 import nibabel as nib
 import matplotlib.pyplot as plt
 
-data_div_to_plot = "val"
+data_div_to_plot = "train"
 
 
 
