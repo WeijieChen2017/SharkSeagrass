@@ -15,10 +15,13 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
     # build index list for cut
     if cut_view == "axial": 
         len_axis = x_data.shape[2]
+        row_len_factor = 1.5
     elif cut_view == "sagittal":
         len_axis = x_data.shape[0]
+        row_len_factor = 3
     elif cut_view == "coronal":
         len_axis = x_data.shape[1]
+        row_len_factor = 3
     else:
         raise ValueError("cut_view must be either axial, sagittal, or coronal")
     if index_list is None:
@@ -29,7 +32,7 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
     n_col = 6
     n_row = len(cut_index_list)
 
-    fig = plt.figure(figsize=(12, n_row*3.6), dpi=300)
+    fig = plt.figure(figsize=(12, n_row*row_len_factor), dpi=300)
     # super title
     fig.suptitle(f"Test case: {case_name} in {cut_view} view", fontsize=16)
     for idx_cut in range(num_cut):
@@ -38,17 +41,23 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
             x_img = x_data[:, :, cut_index_list[idx_cut]]
             y_img = y_data[:, :, cut_index_list[idx_cut]]
             z_img = z_data[:, :, cut_index_list[idx_cut]]
-            x_img = np.rot90(x_img)
-            x_img = np.rot90(x_img)
-            x_img = np.rot90(x_img)
+            # x_img = np.rot90(x_img)
+            # x_img = np.rot90(x_img)
+            # x_img = np.rot90(x_img)
         elif cut_view == "sagittal":
             x_img = x_data[cut_index_list[idx_cut], :, :]
             y_img = y_data[cut_index_list[idx_cut], :, :]
             z_img = z_data[cut_index_list[idx_cut], :, :]
+            x_img = np.rot90(x_img, 3)
+            y_img = np.rot90(y_img, 3)
+            z_img = np.rot90(z_img, 3)
         elif cut_view == "coronal":
             x_img = x_data[:, cut_index_list[idx_cut], :]
             y_img = y_data[:, cut_index_list[idx_cut], :]
             z_img = z_data[:, cut_index_list[idx_cut], :]
+            x_img = np.rot90(x_img, 3)
+            y_img = np.rot90(y_img, 3)
+            z_img = np.rot90(z_img, 3)
         
         # norm to 0-1
         x_img = (x_img - MIN_PET) / (MAX_PET - MIN_PET)
