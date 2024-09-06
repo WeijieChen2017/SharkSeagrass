@@ -12,9 +12,11 @@ import matplotlib.pyplot as plt
 
 def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view, index_list):
 
+    y_mask = y_data > -500
+    mae = np.mean(np.abs(y_data[y_mask] - z_data[y_mask]))
+
     start_plot_axis_q = 30
-    end_plot_axis_q = 70
-    
+    end_plot_axis_q = 70    
 
     # build index list for cut
     if cut_view == "axial": 
@@ -41,16 +43,16 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
 
     fig = plt.figure(figsize=(12, n_row*row_len_factor), dpi=300)
     # super title
-    fig.suptitle(f"Test case: {case_name} in {cut_view} view", fontsize=16)
+    fig.suptitle(f"Test case: {case_name} in {cut_view} view MAE = {mae:.2f} HU", fontsize=16)
     for idx_cut in range(num_cut):
 
         if cut_view == "axial":
             x_img = x_data[:, :, cut_index_list[idx_cut]]
             y_img = y_data[:, :, cut_index_list[idx_cut]]
             z_img = z_data[:, :, cut_index_list[idx_cut]]
-            x_img = np.rot90(x_img, 2)
-            x_img = np.rot90(x_img, 2)
-            x_img = np.rot90(x_img, 2)
+            # x_img = np.rot90(x_img, 2)
+            # x_img = np.rot90(x_img, 2)
+            # x_img = np.rot90(x_img, 2)
         elif cut_view == "sagittal":
             x_img = x_data[cut_index_list[idx_cut], :, :]
             y_img = y_data[cut_index_list[idx_cut], :, :]
