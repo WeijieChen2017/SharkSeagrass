@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 
 def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view, index_list):
 
-    start_plot_axis_q = 20
-    end_plot_axis_q = 80
+    start_plot_axis_q = 30
+    end_plot_axis_q = 70
     
 
     # build index list for cut
@@ -48,9 +48,9 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
             x_img = x_data[:, :, cut_index_list[idx_cut]]
             y_img = y_data[:, :, cut_index_list[idx_cut]]
             z_img = z_data[:, :, cut_index_list[idx_cut]]
-            x_img = np.rot90(x_img, 3)
-            x_img = np.rot90(x_img, 3)
-            x_img = np.rot90(x_img, 3)
+            x_img = np.rot90(x_img, 2)
+            x_img = np.rot90(x_img, 2)
+            x_img = np.rot90(x_img, 2)
         elif cut_view == "sagittal":
             x_img = x_data[cut_index_list[idx_cut], :, :]
             y_img = y_data[cut_index_list[idx_cut], :, :]
@@ -65,6 +65,8 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
             x_img = np.rot90(x_img, 1)
             y_img = np.rot90(y_img, 1)
             z_img = np.rot90(z_img, 1)
+        else
+            raise ValueError("cut_view must be either axial, sagittal, or coronal")
         
         # norm to 0-1
         x_img = (x_img - MIN_PET) / (MAX_PET - MIN_PET)
@@ -136,7 +138,7 @@ axial_cut = 8
 sagittal_cut = 4
 coronal_cut = 4
 
-MAX_PET = 20000
+MAX_PET = 5000
 MIN_PET = 0
 MAX_CT = 3976
 MIN_CT = -1024
