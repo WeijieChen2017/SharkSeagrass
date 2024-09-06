@@ -121,6 +121,7 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
     plt.savefig(save_name)
     plt.close()
     
+    return mae
 
 
 
@@ -154,6 +155,7 @@ MIN_PET = 0
 MAX_CT = 1976
 MIN_CT = -1024
 
+mae_list = []
 # plot the test case
 for test_pair in test_list:
     print()
@@ -177,16 +179,20 @@ for test_pair in test_list:
 
     # for axial:
     save_name = f"{save_folder}{case_name}_axial_cut_{axial_cut}.png"
-    plot_case_from_view_cut(x_data, y_data, z_data, save_name, axial_cut, "axial", None)
+    mae = plot_case_from_view_cut(x_data, y_data, z_data, save_name, axial_cut, "axial", None)
     print(f">>> Saving to {save_name}")
 
     # for sagittal:
     save_name = f"{save_folder}{case_name}_sagittal_cut_{sagittal_cut}.png"
-    plot_case_from_view_cut(x_data, y_data, z_data, save_name, sagittal_cut, "sagittal", None)
+    _ = plot_case_from_view_cut(x_data, y_data, z_data, save_name, sagittal_cut, "sagittal", None)
     print(f">>> Saving to {save_name}")
 
     # for coronal:
     save_name = f"{save_folder}{case_name}_coronal_cut_{coronal_cut}.png"
-    plot_case_from_view_cut(x_data, y_data, z_data, save_name, coronal_cut, "coronal", None)
+    _ = plot_case_from_view_cut(x_data, y_data, z_data, save_name, coronal_cut, "coronal", None)
     print(f">>> Saving to {save_name}")
 
+    mae_list.append(mae)
+
+print()
+print(f"The average MAE of the test cases is {np.mean(mae_list):.2f} HU")
