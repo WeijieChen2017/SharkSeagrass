@@ -123,9 +123,9 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
     
     return mae
 
-def out_to_file(file, string):
+def out_to_file(string):
     out_to_file(string)
-    with open(file, "a") as f:
+    with open(log_file, "a") as f:
         f.write(string + "\n")
 
 
