@@ -6,7 +6,7 @@ import os
 import nibabel as nib
 import matplotlib.pyplot as plt
 
-data_div_to_plot = "test"
+data_div_to_plot = "val"
 
 
 
@@ -15,8 +15,6 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
     y_mask = y_data > -500
     mask_ratio = np.sum(y_mask) / y_mask.size
     mae = np.mean(np.abs(y_data[y_mask] - z_data[y_mask]))
-
-  
 
     # build index list for cut
     if cut_view == "axial": 
@@ -211,4 +209,4 @@ for test_pair in target_list:
 
 out_to_file("")
 out_to_file(f"The average MAE of the test cases is {np.mean(mae_list):.2f} HU")
-out_to_file(f"The average mask ratio of the test cases is {np.mean(mask_ratio_list):.2f}")
+out_to_file(f"The average mask ratio of the test cases is {np.mean(mask_ratio_list)*100:.2f}%")
