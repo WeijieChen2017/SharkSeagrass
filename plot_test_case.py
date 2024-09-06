@@ -15,19 +15,24 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
     y_mask = y_data > -500
     mae = np.mean(np.abs(y_data[y_mask] - z_data[y_mask]))
 
-    start_plot_axis_q = 30
-    end_plot_axis_q = 70    
+  
 
     # build index list for cut
     if cut_view == "axial": 
         len_axis = x_data.shape[2]
         row_len_factor = 1.5
+        start_plot_axis_q = 25
+        end_plot_axis_q = 75  
     elif cut_view == "sagittal":
         len_axis = x_data.shape[0]
         row_len_factor = 3
+        start_plot_axis_q = 30
+        end_plot_axis_q = 70  
     elif cut_view == "coronal":
         len_axis = x_data.shape[1]
         row_len_factor = 3
+        start_plot_axis_q = 35
+        end_plot_axis_q = 65
     else:
         raise ValueError("cut_view must be either axial, sagittal, or coronal")
     if index_list is None:
