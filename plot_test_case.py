@@ -51,8 +51,8 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
             y_img = y_data[:, :, cut_index_list[idx_cut]]
             z_img = z_data[:, :, cut_index_list[idx_cut]]
             x_img = np.rot90(x_img, 3)
-            x_img = np.rot90(x_img, 3)
-            x_img = np.rot90(x_img, 3)
+            y_img = np.rot90(y_img, 3)
+            z_img = np.rot90(z_img, 3)
         elif cut_view == "sagittal":
             x_img = x_data[cut_index_list[idx_cut], :, :]
             y_img = y_data[cut_index_list[idx_cut], :, :]
@@ -128,9 +128,9 @@ save_folder = "./B100/plot_test_case_UNetUNet/"
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
-train_list = data_div["train"]
-val_list = data_div["val"]
-test_list = data_div["test"]
+train_list = sorted(data_div["train"])
+val_list = sorted(data_div["val"])
+test_list = sorted(data_div["test"])
 
 num_train = len(train_list)
 num_val = len(val_list)
@@ -144,9 +144,9 @@ axial_cut = 8
 sagittal_cut = 4
 coronal_cut = 4
 
-MAX_PET = 5000
+MAX_PET = 3000
 MIN_PET = 0
-MAX_CT = 3976
+MAX_CT = 1976
 MIN_CT = -1024
 
 # plot the test case
