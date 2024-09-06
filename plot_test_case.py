@@ -1,9 +1,100 @@
 import json
 import glob
+import numpy as np
 import os
 
 import nibabel as nib
-import matplotlib
+import matplotlib.pyplot as plt
+
+
+
+
+
+def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view, index_list):
+
+    # build index list for cut
+    if cut_view == "axial": 
+        len_axis = x_data.shape[2]
+    elif cut_view == "sagittal":
+        len_axis = x_data.shape[0]
+    elif cut_view == "coronal":
+        len_axis = x_data.shape[1]
+    else:
+        raise ValueError("cut_view must be either axial, sagittal, or coronal")
+    if index_list is not None:
+        cut_index_list = [len_axis // (num_cut + 1) * (i + 1) for i in range(num_cut)]
+    else:
+        cut_index_list = index_list
+    
+    n_col = 6
+    n_row = len(cut_index_list)
+
+    fig = plt.figure(figsize=(12, n_row*3.6), dpi=300)
+    # super title
+    fig.suptitle(f"Test case: {case_name} in {cut_view} view", fontsize=16)
+    for idx_cut in range(num_cut):
+
+        if cut_view == "axial":
+            x_img = x_data[:, :, cut_index_list[idx_cut]]
+            y_img = y_data[:, :, cut_index_list[idx_cut]]
+            z_img = z_data[:, :, cut_index_list[idx_cut]]
+            x_img = np.rot90(x_img)
+            x_img = np.rot90(x_img)
+            x_img = np.rot90(x_img)
+        elif cut_view == "sagittal":
+            x_img = x_data[cut_index_list[idx_cut], :, :]
+            y_img = y_data[cut_index_list[idx_cut], :, :]
+            z_img = z_data[cut_index_list[idx_cut], :, :]
+        elif cut_view == "coronal":
+            x_img = x_data[:, cut_index_list[idx_cut], :]
+            y_img = y_data[:, cut_index_list[idx_cut], :]
+            z_img = z_data[:, cut_index_list[idx_cut], :]
+        
+        # norm to 0-1
+        x_img = (x_img - MIN_PET) / (MAX_PET - MIN_PET)
+        y_img = (y_img - MIN_CT) / (MAX_CT - MIN_CT)
+        z_img = (z_img - MIN_CT) / (MAX_CT - MIN_CT)
+
+        plt.subplot(n_row, n_col, idx_cut * n_col + 1)
+        plt.imshow(x_img, cmap="gray", vmin=0, vmax=0.5)
+        plt.title("TOFNAC") if idx_cut == 0 else None
+        plt.axis("off")
+
+        plt.subplot(n_row, n_col, idx_cut * n_col + 2)
+        plt.imshow(y_img, cmap="gray", vmin=0, vmax=0.5)
+        plt.title("CTAC") if idx_cut == 0 else None
+        plt.axis("off")
+
+        plt.subplot(n_row, n_col, idx_cut * n_col + 3)
+        plt.imshow(z_img, cmap="gray", vmin=0, vmax=0.5)
+        plt.title("PRED") if idx_cut == 0 else None
+        plt.axis("off")
+
+        plt.subplot(n_row, n_col, idx_cut * n_col + 4)
+        plt.hist(x_img.flatten(), bins=100)
+        plt.title("TOFNAC") if idx_cut == 0 else None
+        plt.yscale("log")
+        plt.xlim(0, 1)
+
+        plt.subplot(n_row, n_col, idx_cut * n_col + 5)
+        plt.hist(y_img.flatten(), bins=100)
+        plt.title("CTAC") if idx_cut == 0 else None
+        plt.yscale("log")
+        plt.xlim(0, 1)
+
+        plt.subplot(n_row, n_col, idx_cut * n_col + 6)
+        plt.hist(z_img.flatten(), bins=100)
+        plt.title("PRED") if idx_cut == 0 else None
+        plt.yscale("log")
+        plt.xlim(0, 1)
+
+    plt.tight_layout()
+    plt.savefig(save_name)
+    plt.close()
+    
+
+
+
 
 data_div_json = "./B100/step1step2_0822_vanila.json"
 with open(data_div_json, "r") as f:
@@ -29,6 +120,11 @@ axial_cut = 8
 sagittal_cut = 4
 coronal_cut = 4
 
+MAX_PET = 20000
+MIN_PET = 0
+MAX_CT = 3976
+MIN_CT = -1024
+
 # plot the test case
 for test_pair in test_list:
     print()
@@ -52,12 +148,16 @@ for test_pair in test_list:
 
     # for axial:
     save_name = f"{save_folder}{case_name}_axial_cut_{axial_cut}.png"
+    plot_case_from_view_cut(x_data, y_data, z_data, save_name, axial_cut, "axial", None)
     print(f">>> Saving to {save_name}")
 
     # for sagittal:
     save_name = f"{save_folder}{case_name}_sagittal_cut_{sagittal_cut}.png"
+    plot_case_from_view_cut(x_data, y_data, z_data, save_name, sagittal_cut, "sagittal", None)
     print(f">>> Saving to {save_name}")
 
     # for coronal:
     save_name = f"{save_folder}{case_name}_coronal_cut_{coronal_cut}.png"
+    plot_case_from_view_cut(x_data, y_data, z_data, save_name, coronal_cut, "coronal", None)
     print(f">>> Saving to {save_name}")
+
