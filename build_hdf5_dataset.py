@@ -7,6 +7,8 @@ import random
 import nibabel as nib
 
 root_folder = "./B100/TOFNAC_CTAC_hdf5/"
+if not os.path.exists(root_folder):
+    os.makedirs(root_folder)
 
 TOFNAC_folder = "B100/TOFNAC_resample/"
 CTAC_folder = "B100/CTACIVV_resample/" # this need to cut file from 467, 467, z to 400, 400, z
@@ -18,42 +20,38 @@ num_TOFNAC = len(TOFNAC_list)
 num_CTAC = len(CTAC_list)
 
 n_fold = 5
-indices = list(range(num_TOFNAC))
-random.shuffle(indices)
-hdf5_list = {
-    "fold_1": [],
-    "fold_2": [],
-    "fold_3": [],
-    "fold_4": [],
-    "fold_5": [],
-}
 
-for i in range(num_TOFNAC):
-    TOFNAC_path = TOFNAC_list[i]
-    CTAC_path = CTAC_list[i]
-    print("Processing: ", TOFNAC_path, CTAC_path)
+# iterate the fold
+for i_fold in range(n_fold):
 
-    TOFNAC_data = nib.load(TOFNAC_path).get_fdata()
-    CTAC_data = nib.load(CTAC_path).get_fdata()[33:433, 33:433, :]
+    data_fold = []
 
-    print(f"TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
-    current_fold = i % n_fold
-    hdf5_list[f"fold_{current_fold + 1}"].append(
-        {
+    for i_case in range(num_TOFNAC):
+        if not i_case % n_fold == i_fold:
+            continue
+
+        TOFNAC_path = TOFNAC_list[i_case]
+        CTAC_path = CTAC_list[i_case]
+        print("Processing: ", TOFNAC_path, CTAC_path)
+
+        TOFNAC_data = nib.load(TOFNAC_path).get_fdata()
+        CTAC_data = nib.load(CTAC_path).get_fdata()[33:433, 33:433, :]
+
+        print(f">>> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
+    
+        data_fold.append({
             "TOFNAC": TOFNAC_data,
             "CTAC": CTAC_data
-        }
-    )
+        })
+    
+    random.shuffle(data_fold)
+    # save the fold
+    fold_filename = f"{root_folder}fold_{i_fold}.hdf5"
+    with h5py.File(fold_filename, "w") as f:
+        for i_case, case in enumerate(data_fold):
+            f.create_dataset(f"TOFNAC_{i_case}", data=case["TOFNAC"])
+            f.create_dataset(f"CTAC_{i_case}", data=case["CTAC"])
 
-# save to hdf5
-for fold, data_list in hdf5_list.items():
-    print(f"Saving {fold}...")
-    with h5py.File(f"{root_folder}{fold}.hdf5", "w") as f:
-        for i, data in enumerate(data_list):
-            TOFNAC_data = data["TOFNAC"]
-            CTAC_data = data["CTAC"]
-            f.create_dataset(f"TOFNAC_{i}", data=TOFNAC_data)
-            f.create_dataset(f"CTAC_{i}", data=CTAC_data)
-    print(f"Saved {fold}")
+    print(f"Fold {i_fold} saved at {fold_filename}")
 
 print("Done")
