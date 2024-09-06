@@ -13,6 +13,7 @@ data_div_to_plot = "val"
 def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view, index_list):
 
     y_mask = y_data > -500
+    mask_ratio = np.sum(y_mask) / y_mask.size
     mae = np.mean(np.abs(y_data[y_mask] - z_data[y_mask]))
 
   
@@ -121,7 +122,7 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
     plt.savefig(save_name)
     plt.close()
     
-    return mae
+    return mae, mask_ratio
 
 def out_to_file(string):
     out_to_file(string)
@@ -160,6 +161,7 @@ MAX_CT = 1976
 MIN_CT = -1024
 
 mae_list = []
+mask_ratio_list = []
 # plot the test case
 
 if data_div_to_plot == "train":
@@ -170,7 +172,7 @@ elif data_div_to_plot == "test":
     target_list = test_list
 
 for test_pair in target_list:
-    out_to_file()
+    out_to_file("")
     x_path = test_pair["STEP1"] # "STEP1": "./B100/f4noattn_step1_volume/STEP1_E4078.nii.gz",
     x_path = x_path.replace("f4noattn_step1_volume_vanila", "TOFNAC_resample")
     x_path = x_path.replace("STEP1", "PET_TOFNAC")
@@ -191,7 +193,7 @@ for test_pair in target_list:
 
     # for axial:
     save_name = f"{save_folder}{case_name}_axial_cut_{axial_cut}.png"
-    mae = plot_case_from_view_cut(x_data, y_data, z_data, save_name, axial_cut, "axial", None)
+    mae, mask_ratio = plot_case_from_view_cut(x_data, y_data, z_data, save_name, axial_cut, "axial", None)
     out_to_file(f">>> Saving to {save_name}")
 
     # for sagittal:
@@ -205,6 +207,8 @@ for test_pair in target_list:
     out_to_file(f">>> Saving to {save_name}")
 
     mae_list.append(mae)
+    mask_ratio_list.append(mask_ratio)
 
-out_to_file()
+out_to_file("")
 out_to_file(f"The average MAE of the test cases is {np.mean(mae_list):.2f} HU")
+out_to_file(f"The average mask ratio of the test cases is {np.mean(mask_ratio_list):.2f}")
