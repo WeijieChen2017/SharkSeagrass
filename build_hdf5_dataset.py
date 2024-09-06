@@ -20,3 +20,8 @@ for i in range(num_TOFNAC):
     TOFNAC_path = TOFNAC_list[i]
     CTAC_path = CTAC_list[i]
     print("Processing: ", TOFNAC_path, CTAC_path)
+
+    TOFNAC_data = nib.load(TOFNAC_path).get_fdata()
+    CTAC_data = nib.load(CTAC_path).get_fdata()[33:433, 33:433, :]
+
+    print(f"TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
