@@ -212,6 +212,6 @@ for test_pair in target_list:
     mask_ratio_list.append(mask_ratio)
 
 out_to_file("")
-out_to_file(f"The average MAE of the test cases is {np.mean(mae_list):.2f} HU")
-out_to_file(f"The average unmask MAE of the test cases is {np.mean(unmask_mae_list):.2f} HU")
-out_to_file(f"The average mask ratio of the test cases is {np.mean(mask_ratio_list)*100:.2f}%")
+out_to_file(f"The average MAE of the {data_div_to_plot} cases is {np.mean(mae_list):.2f} HU")
+out_to_file(f"The average unmask MAE of the {data_div_to_plot} cases is {np.mean(unmask_mae_list):.2f} HU")
+out_to_file(f"The average mask ratio of the {data_div_to_plot} cases is {np.mean(mask_ratio_list)*100:.2f}%")
