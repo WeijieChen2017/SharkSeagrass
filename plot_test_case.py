@@ -21,7 +21,7 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
         len_axis = x_data.shape[1]
     else:
         raise ValueError("cut_view must be either axial, sagittal, or coronal")
-    if index_list is not None:
+    if index_list is None:
         cut_index_list = [len_axis // (num_cut + 1) * (i + 1) for i in range(num_cut)]
     else:
         cut_index_list = index_list
