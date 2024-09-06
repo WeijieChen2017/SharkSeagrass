@@ -28,7 +28,7 @@ for test_pair in test_list:
     x_path = x_path.replace("f4noattn_step1_volume_vanila", "TOFNAC_resample")
     x_path = x_path.replace("STEP1", "PET_TOFNAC")
     y_path = test_pair["STEP2"] # "STEP2": "./B100/f4noattn_step2_volume/STEP2_E4078.nii.gz",
-    z_path = test_pair["STEP1"].replace("STEP1", "STEP3_f364")
+    z_path = test_pair["STEP1"].replace("STEP1", "STEP3_d3f64")
     print(f"Processing test case:")
     print(f">>> TOFNAC_path: {x_path}")
     print(f">>> CTAC_path: {y_path}")
