@@ -65,7 +65,7 @@ def plot_case_from_view_cut(x_data, y_data, z_data, save_name, num_cut, cut_view
             x_img = np.rot90(x_img, 1)
             y_img = np.rot90(y_img, 1)
             z_img = np.rot90(z_img, 1)
-        else
+        else:
             raise ValueError("cut_view must be either axial, sagittal, or coronal")
         
         # norm to 0-1
