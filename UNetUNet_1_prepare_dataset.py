@@ -30,11 +30,18 @@ def main():
     for fold in train_folder:
         print(f"Processing training fold {fold}")
         fold_filename = f"fold_{fold}.hdf5"
+        TOFNAC_data = []
+        CTAC_data = []
         with h5py.File(fold_filename, "r") as f:
-            for key in f.keys():
-                print(key)
-                print(f[key].shape)
-            
+            len_file = len(f) // 2
+            print(f"Number of cases: {len_file}")
+            for i_case in range(len_file):
+                TOFNAC = f[f"TOFNAC_{i_case}"]
+                CTAC = f[f"CTAC_{i_case}"]
+                print(f"TOFNAC shape: {TOFNAC.shape}, CTAC shape: {CTAC.shape}")
+                TOFNAC_data.append(TOFNAC)
+                CTAC_data.append(CTAC)
+        print("Done")
 
 if __name__ == "__main__":
     main()
