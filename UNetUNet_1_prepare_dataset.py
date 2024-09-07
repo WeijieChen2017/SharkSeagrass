@@ -45,123 +45,70 @@ def main():
         "test": [],
     }
 
+    data_mode_list = [
+        [train_fold_list, "train", train_folder],
+        [val_fold_list, "val", val_folder], 
+        [test_fold_list, "test", test_folder],
+    ]
+
     # for training
-    for fold in train_fold_list:
-        print()
-        print(f"Processing training fold {fold}")
-        fold_filename = f"fold_{fold}.hdf5"
-        with h5py.File(fold_filename, "r") as f:
-            len_file = len(f) // 2
-            print(f">>>Number of cases: {len_file}")
-            for i_case in range(len_file):
-                TOFNAC = f[f"TOFNAC_{i_case}"]
-                CTAC = f[f"CTAC_{i_case}"]
-                print(f">>>TOFNAC shape: {TOFNAC.shape}, CTAC shape: {CTAC.shape}")
+    for data_mode in data_mode_list:
+        fold_list = data_mode[0]
+        mode = data_mode[1]
+        save_folder = data_mode[2]
+        for fold in fold_list:
+            print()
+            print(f"Processing {mode} fold {fold}")
+            fold_filename = f"fold_{fold}.hdf5"
+            with h5py.File(fold_filename, "r") as f:
+                len_file = len(f) // 2
+                print(f">>>Number of cases: {len_file}")
+                for i_case in range(len_file):
+                    TOFNAC = f[f"TOFNAC_{i_case}"]
+                    CTAC = f[f"CTAC_{i_case}"]
+                    print(f">>>TOFNAC shape: {TOFNAC.shape}, CTAC shape: {CTAC.shape}")
 
-                # save the slice
-                len_z = TOFNAC.shape[2]
-                for i_z in range(len_z):
-                    if i_z == 0:
-                        index_list = [0, 0, 1]
-                    elif i_z == len_z - 1:
-                        index_list = [i_z - 1, i_z, i_z]
-                    else:
-                        index_list = [i_z - 1, i_z, i_z + 1]
+                    # save the slice
+                    dx, dy, len_z = TOFNAC.shape
+                    for i_z in range(len_z):
+                        
+                        slice_TOFNAC = np.zeros((dx, dy, 3))
+                        slice_CTAC = np.zeros((dx, dy, 3))
+
+                        if i_z == 0:
+                            slice_TOFNAC[:, :, 0] = TOFNAC[:, :, 0]
+                            slice_TOFNAC[:, :, 1] = TOFNAC[:, :, 0]
+                            slice_TOFNAC[:, :, 2] = TOFNAC[:, :, 1]
+                            slice_CTAC[:, :, 0] = CTAC[:, :, 0]
+                            slice_CTAC[:, :, 1] = CTAC[:, :, 0]
+                            slice_CTAC[:, :, 2] = CTAC[:, :, 1]
+                        elif i_z == len_z - 1:
+                            slice_TOFNAC[:, :, 0] = TOFNAC[:, :, i_z - 1]
+                            slice_TOFNAC[:, :, 1] = TOFNAC[:, :, i_z]
+                            slice_TOFNAC[:, :, 2] = TOFNAC[:, :, i_z]
+                            slice_CTAC[:, :, 0] = CTAC[:, :, i_z - 1]
+                            slice_CTAC[:, :, 1] = CTAC[:, :, i_z]
+                            slice_CTAC[:, :, 2] = CTAC[:, :, i_z]
+                        else:
+                            slice_TOFNAC[:, :, 0] = TOFNAC[:, :, i_z - 1]
+                            slice_TOFNAC[:, :, 1] = TOFNAC[:, :, i_z]
+                            slice_TOFNAC[:, :, 2] = TOFNAC[:, :, i_z + 1]
+                            slice_CTAC[:, :, 0] = CTAC[:, :, i_z - 1]
+                            slice_CTAC[:, :, 1] = CTAC[:, :, i_z]
+                            slice_CTAC[:, :, 2] = CTAC[:, :, i_z + 1]
                     
-                    print(index_list)
-                    slice_TOFNAC = TOFNAC[:, :, index_list]
-                    slice_CTAC = CTAC[:, :, index_list]
+                        save_filename_TOFNAC = f"{save_folder}fold_{fold}_case_{i_case}_slice_{i_z}_TOFNAC.npy"
+                        save_filename_CTAC = f"{save_folder}fold_{fold}_case_{i_case}_slice_{i_z}_CTAC.npy"
 
-                    save_filename_TOFNAC = f"{train_folder}fold_{fold}_case_{i_case}_slice_{i_z}_TOFNAC.npy"
-                    save_filename_CTAC = f"{train_folder}fold_{fold}_case_{i_case}_slice_{i_z}_CTAC.npy"
+                        np.save(save_filename_TOFNAC, slice_TOFNAC)
+                        np.save(save_filename_CTAC, slice_CTAC)
 
-                    np.save(save_filename_TOFNAC, slice_TOFNAC)
-                    np.save(save_filename_CTAC, slice_CTAC)
+                        data_div_dict[mode].append({
+                            "TOFNAC": save_filename_TOFNAC,
+                            "CTAC": save_filename_CTAC
+                        })
 
-                    data_div_dict["train"].append({
-                        "TOFNAC": save_filename_TOFNAC,
-                        "CTAC": save_filename_CTAC
-                    })
-
-                    print(f">>>[{i_z+1}]/[{len_z}]Fold {fold} case {i_case} slice {i_z} saved at {save_filename_TOFNAC} and {save_filename_CTAC}")
-
-    # for validation
-    for fold in val_fold_list:
-        print()
-        print(f">>>Processing validation fold {fold}")
-        fold_filename = f"fold_{fold}.hdf5"
-        with h5py.File(fold_filename, "r") as f:
-            len_file = len(f) // 2
-            print(f">>>Number of cases: {len_file}")
-            for i_case in range(len_file):
-                TOFNAC = f[f"TOFNAC_{i_case}"]
-                CTAC = f[f"CTAC_{i_case}"]
-                print(f">>>TOFNAC shape: {TOFNAC.shape}, CTAC shape: {CTAC.shape}")
-
-                # save the slice
-                len_z = TOFNAC.shape[2]
-                for i_z in range(len_z):
-                    if i_z == 0:
-                        index_list = [0, 0, 1]
-                    elif i_z == len_z - 1:
-                        index_list = [i_z - 1, i_z, i_z]
-                    else:
-                        index_list = [i_z - 1, i_z, i_z + 1]
-                    
-                    slice_TOFNAC = TOFNAC[:, :, index_list]
-                    slice_CTAC = CTAC[:, :, index_list]
-
-                    save_filename_TOFNAC = f"{val_folder}fold_{fold}_case_{i_case}_slice_{i_z}_TOFNAC.npy"
-                    save_filename_CTAC = f"{val_folder}fold_{fold}_case_{i_case}_slice_{i_z}_CTAC.npy"
-
-                    np.save(save_filename_TOFNAC, slice_TOFNAC)
-                    np.save(save_filename_CTAC, slice_CTAC)
-
-                    data_div_dict["val"].append({
-                        "TOFNAC": save_filename_TOFNAC,
-                        "CTAC": save_filename_CTAC
-                    })
-
-                    print(f">>>[{i_z+1}]/[{len_z}]Fold {fold} case {i_case} slice {i_z} saved at {save_filename_TOFNAC} and {save_filename_CTAC}")
-
-    # for testing
-    for fold in test_fold_list:
-        print()
-        print(f">>>Processing testing fold {fold}")
-        fold_filename = f"fold_{fold}.hdf5"
-        with h5py.File(fold_filename, "r") as f:
-            len_file = len(f) // 2
-            print(f">>>Number of cases: {len_file}")
-            for i_case in range(len_file):
-                TOFNAC = f[f"TOFNAC_{i_case}"]
-                CTAC = f[f"CTAC_{i_case}"]
-                print(f">>>TOFNAC shape: {TOFNAC.shape}, CTAC shape: {CTAC.shape}")
-
-                # save the slice
-                len_z = TOFNAC.shape[2]
-                for i_z in range(len_z):
-                    if i_z == 0:
-                        index_list = [0, 0, 1]
-                    elif i_z == len_z - 1:
-                        index_list = [i_z - 1, i_z, i_z]
-                    else:
-                        index_list = [i_z - 1, i_z, i_z + 1]
-                    
-                    slice_TOFNAC = TOFNAC[:, :, index_list]
-                    slice_CTAC = CTAC[:, :, index_list]
-
-                    save_filename_TOFNAC = f"{test_folder}fold_{fold}_case_{i_case}_slice_{i_z}_TOFNAC.npy"
-                    save_filename_CTAC = f"{test_folder}fold_{fold}_case_{i_case}_slice_{i_z}_CTAC.npy"
-
-                    np.save(save_filename_TOFNAC, slice_TOFNAC)
-                    np.save(save_filename_CTAC, slice_CTAC)
-
-                    data_div_dict["test"].append({
-                        "TOFNAC": save_filename_TOFNAC,
-                        "CTAC": save_filename_CTAC
-                    })
-
-                    print(f">>>[{i_z+1}]/[{len_z}]Fold {fold} case {i_case} slice {i_z} saved at {save_filename_TOFNAC} and {save_filename_CTAC}")
+                        print(f">>>[{i_z+1}]/[{len_z}]Fold {fold} case {i_case} slice {i_z} saved at {save_filename_TOFNAC} and {save_filename_CTAC}")
 
     # save the data_div.json
     with open(data_div_json, "w") as f:
