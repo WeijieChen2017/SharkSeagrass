@@ -68,6 +68,7 @@ def main():
                     else:
                         index_list = [i_z - 1, i_z, i_z + 1]
                     
+                    print(index_list)
                     slice_TOFNAC = TOFNAC[:, :, index_list]
                     slice_CTAC = CTAC[:, :, index_list]
 
@@ -107,7 +108,6 @@ def main():
                     else:
                         index_list = [i_z - 1, i_z, i_z + 1]
                     
-                    print(index_list)
                     slice_TOFNAC = TOFNAC[:, :, index_list]
                     slice_CTAC = CTAC[:, :, index_list]
 
