@@ -4,24 +4,49 @@ import h5py
 import json
 import os
 
+MID_PET = 5000
+MIQ_PET = 0.9
+MAX_PET = 20000
+MAX_CT = 1976
+MIN_CT = -1024
+MIN_PET = 0
+RANGE_CT = MAX_CT - MIN_CT
+RANGE_PET = MAX_PET - MIN_PET
+
+
+def two_segment_scale(arr, MIN, MID, MAX, MIQ):
+    # Create an empty array to hold the scaled results
+    scaled_arr = np.zeros_like(arr, dtype=np.float32)
+
+    # First segment: where arr <= MID
+    mask1 = arr <= MID
+    scaled_arr[mask1] = (arr[mask1] - MIN) / (MID - MIN) * MIQ
+
+    # Second segment: where arr > MID
+    mask2 = arr > MID
+    scaled_arr[mask2] = MIQ + (arr[mask2] - MID) / (MAX - MID) * (1 - MIQ)
+    
+    return scaled_arr
+
+
 def main():
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
-    argparser.add_argument('--train_folder', type=str, default="0,1,2", help='Path to the training fold')
-    argparser.add_argument('--val_folder', type=str, default="3", help='Path to the validation fold')
-    argparser.add_argument('--test_folder', type=str, default="4", help='Path to the testing fold')
+    argparser.add_argument('--train_fold', type=str, default="0,1,2", help='Path to the training fold')
+    argparser.add_argument('--val_fold', type=str, default="3", help='Path to the validation fold')
+    argparser.add_argument('--test_fold', type=str, default="4", help='Path to the testing fold')
 
     args = argparser.parse_args()
 
-    train_folder = args.train_folder
-    val_folder = args.val_folder
-    test_folder = args.test_folder
+    train_fold = args.train_fold
+    val_fold = args.val_fold
+    test_fold = args.test_fold
 
     # conver to list
-    train_fold_list = list(map(int, train_folder.split(",")))
-    val_fold_list = list(map(int, val_folder.split(",")))
-    test_fold_list = list(map(int, test_folder.split(",")))
+    train_fold_list = list(map(int, train_fold.split(",")))
+    val_fold_list = list(map(int, val_fold.split(",")))
+    test_fold_list = list(map(int, test_fold.split(",")))
 
-    print(f"train_fold:[{train_folder}], val_fold:[{val_folder}], test_fold:[{test_folder}]")
+    print(f"train_fold:[{train_fold}], val_fold:[{val_fold}], test_fold:[{test_fold}]")
 
     # the following is the way we build the dataset
     # fold_filename = f"{root_folder}fold_{i_fold}.hdf5"
@@ -64,51 +89,37 @@ def main():
                 len_file = len(f) // 2
                 print(f">>>Number of cases: {len_file}")
                 for i_case in range(len_file):
-                    TOFNAC = f[f"TOFNAC_{i_case}"]
-                    CTAC = f[f"CTAC_{i_case}"]
-                    print(f">>>TOFNAC shape: {TOFNAC.shape}, CTAC shape: {CTAC.shape}")
+                    TOFNAC_data = f[f"TOFNAC_{i_case}"]
+                    CTAC_data = f[f"CTAC_{i_case}"]
+                    print(f">>>TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
+                    print(f">>>TOFNAC min: {TOFNAC_data.min()}, TOFNAC max: {TOFNAC_data.max()}")
+                    print(f">>>CTAC min: {CTAC_data.min()}, CTAC max: {CTAC_data.max()}")
+                    print(f">>>TOFNAC mean: {TOFNAC_data.mean()}, TOFNAC std: {TOFNAC_data.std()}")
+                    print(f">>>CTAC mean: {CTAC_data.mean()}, CTAC std: {CTAC_data.std()}")
 
-                    # save the slice
-                    dx, dy, len_z = TOFNAC.shape
-                    for i_z in range(len_z):
-                        
-                        slice_TOFNAC = np.zeros((dx, dy, 3))
-                        slice_CTAC = np.zeros((dx, dy, 3))
+                    # normalize the data
+                    TOFNAC_data = two_segment_scale(TOFNAC_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
+                    CTAC_data = np.clip(CTAC_data, MIN_CT, MAX_CT)
+                    CTAC_data = (CTAC_data - MIN_CT) / RANGE_CT
 
-                        if i_z == 0:
-                            slice_TOFNAC[:, :, 0] = TOFNAC[:, :, 0]
-                            slice_TOFNAC[:, :, 1] = TOFNAC[:, :, 0]
-                            slice_TOFNAC[:, :, 2] = TOFNAC[:, :, 1]
-                            slice_CTAC[:, :, 0] = CTAC[:, :, 0]
-                            slice_CTAC[:, :, 1] = CTAC[:, :, 0]
-                            slice_CTAC[:, :, 2] = CTAC[:, :, 1]
-                        elif i_z == len_z - 1:
-                            slice_TOFNAC[:, :, 0] = TOFNAC[:, :, i_z - 1]
-                            slice_TOFNAC[:, :, 1] = TOFNAC[:, :, i_z]
-                            slice_TOFNAC[:, :, 2] = TOFNAC[:, :, i_z]
-                            slice_CTAC[:, :, 0] = CTAC[:, :, i_z - 1]
-                            slice_CTAC[:, :, 1] = CTAC[:, :, i_z]
-                            slice_CTAC[:, :, 2] = CTAC[:, :, i_z]
-                        else:
-                            slice_TOFNAC[:, :, 0] = TOFNAC[:, :, i_z - 1]
-                            slice_TOFNAC[:, :, 1] = TOFNAC[:, :, i_z]
-                            slice_TOFNAC[:, :, 2] = TOFNAC[:, :, i_z + 1]
-                            slice_CTAC[:, :, 0] = CTAC[:, :, i_z - 1]
-                            slice_CTAC[:, :, 1] = CTAC[:, :, i_z]
-                            slice_CTAC[:, :, 2] = CTAC[:, :, i_z + 1]
-                    
-                        save_filename_TOFNAC = f"{save_folder}fold_{fold}_case_{i_case}_slice_{i_z}_TOFNAC.npy"
-                        save_filename_CTAC = f"{save_folder}fold_{fold}_case_{i_case}_slice_{i_z}_CTAC.npy"
+                    print(">>>After normalization")
+                    print(f">>>TOFNAC min: {TOFNAC_data.min()}, TOFNAC max: {TOFNAC_data.max()}")
+                    print(f">>>CTAC min: {CTAC_data.min()}, CTAC max: {CTAC_data.max()}")
+                    print(f">>>TOFNAC mean: {TOFNAC_data.mean()}, TOFNAC std: {TOFNAC_data.std()}")
+                    print(f">>>CTAC mean: {CTAC_data.mean()}, CTAC std: {CTAC_data.std()}")
 
-                        np.save(save_filename_TOFNAC, slice_TOFNAC)
-                        np.save(save_filename_CTAC, slice_CTAC)
+                    save_filename_TOFNAC = f"{save_folder}fold_{fold}_case_{i_case}_TOFNAC.npy"
+                    save_filename_CTAC = f"{save_folder}fold_{fold}_case_{i_case}_CTAC.npy"
 
-                        data_div_dict[mode].append({
-                            "TOFNAC": save_filename_TOFNAC,
-                            "CTAC": save_filename_CTAC
-                        })
+                    np.save(save_filename_TOFNAC, TOFNAC_data)
+                    np.save(save_filename_CTAC, CTAC_data)
 
-                        print(f">>>[{i_z+1}]/[{len_z}]Fold {fold} case {i_case} slice {i_z} saved at {save_filename_TOFNAC} and {save_filename_CTAC}")
+                    data_div_dict[mode].append({
+                        "TOFNAC": save_filename_TOFNAC,
+                        "CTAC": save_filename_CTAC
+                    })
+
+                    print(f">>>Fold {fold} case {i_case} saved at {save_filename_TOFNAC} and {save_filename_CTAC}")
 
     # save the data_div.json
     with open(data_div_json, "w") as f:

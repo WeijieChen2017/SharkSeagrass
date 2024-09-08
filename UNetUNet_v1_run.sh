@@ -20,6 +20,7 @@ mv vq_f4-noattn.ckpt ./SharkSeagrass/
 
 cd SharkSeagrass
 ls
+pip install pytorch-lightning
 echo "============================================"
 python UNetUNet_v1_py1_prepare_dataset.py --train_fold $1, --val_fold $2, --test_fold $3
 # python UNetUNet_v1_py2_train.py
