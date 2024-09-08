@@ -67,6 +67,7 @@ def main():
         "VQ_NAME": "f4-noattn",
         "n_embed": 8192,
         "embed_dim": 3,
+        "img_size" = 400,
         "ckpt_path": "vq_f4-noattn.ckpt",
         "ddconfig": {
             "attn_type": "none",
@@ -88,14 +89,6 @@ def main():
         "val_fold": args.val_fold,
         "test_fold": args.test_fold,
         "random_seed": random_seed,
-        "MID_PET": MID_PET,
-        "MIQ_PET": MIQ_PET,
-        "MAX_PET": MAX_PET,
-        "MAX_CT": MAX_CT,
-        "MIN_CT": MIN_CT,
-        "MIN_PET": MIN_PET,
-        "RANGE_CT": RANGE_CT,
-        "RANGE_PET": RANGE_PET,
         "model_step1_params": model_step1_params,
     }
 
@@ -108,7 +101,7 @@ def main():
     global_config["wandb_run"] = wandb_run
     global_config["IS_LOGGER_WANDB"] = True
     global_config["input_modality"] = ["TOFNAC", "CTAC"]
-    global_config["input_modality"] = 400
+    global_config["model_step1_params"] = model_step1_params
 
 
     test_fold = args.test_fold
