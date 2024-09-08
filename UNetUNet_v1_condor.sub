@@ -5,7 +5,7 @@ log = job_$(Cluster)_$(Process).log
 error = job_$(Cluster)_$(Process).err
 output = job_$(Cluster)_$(Process).out
 
-executable = UNetUNet_v1.run.sh
+executable = UNetUNet_v1_run.sh
 arguments = $(train_fold) $(val_fold) $(test_fold)
 
 should_transfer_files = YES

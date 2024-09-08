@@ -30,15 +30,17 @@ def prepare_dataset(data_div_json, global_config):
 
     global_config["logger"].log(0, "dataset_info", f"num_train: {num_train}, num_val: {num_val}, num_test: {num_test}")
 
-    input_modality = global_config["input_modality"]
-    img_size = global_config["input_modality"]
+    input_modality = global_config["model_step1_params"]["input_modality"]
+    img_size = global_config["model_step1_params"]["img_size"]
+    in_channel = global_config["model_step1_params"]["ddconfig"]["in_channels"]
+    out_channel = global_config["model_step1_params"]["ddconfig"]["out_ch"]
 
     # set the data transform
     train_transforms = Compose(
         [
             LoadImaged(keys=input_modality, image_only=True),
             EnsureChannelFirstd(keys=input_modality, channel_dim="no_channel"),
-            RandSpatialCropSamplesd(keys=input_modality, roi_size=(128, 128, 128), num_samples=),
+            RandSpatialCropd(keys=input_modality, roi_size=(img_size, img_size, img_size), random_size=False),
         ]
     )
 
