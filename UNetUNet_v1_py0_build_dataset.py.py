@@ -94,12 +94,14 @@ for i_case in range(num_TOFNAC):
     print(f">>>CTAC mean: {CTAC_data.mean():.4f}, CTAC std: {CTAC_data.std():.4f}")
 
     # find the hash name
+    hash_name = None
     for name in names:
         if name in TOFNAC_path:
             hash_name = name_map[name]
             break
-        else:
-            raise ValueError(f"Name {name} not found in TOFNAC path {TOFNAC_path}")
+    if hash_name is None:
+        raise ValueError(f"Cannot find the hash name for {TOFNAC_path}")
+        
     
     # save the data
     save_filename_TOFNAC = f"{root_folder}{hash_name}_TOFNAC.nii.gz"
