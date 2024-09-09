@@ -61,13 +61,36 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    
+    data_loader_params = {
+        "train": {
+            "batch_size": 4,
+            "shuffle": True,
+            "num_workers_cache": 4,
+            "num_workers_loader": 8,
+            "cache_rate": 1.0,
+        },
+        "val": {
+            "batch_size": 4,
+            "shuffle": False,
+            "num_workers_cache": 2,
+            "num_workers_loader": 4,
+            "cache_rate": 1.0,
+        },
+        "test": {
+            "batch_size": 4,
+            "shuffle": False,
+            "num_workers_cache": 1,
+            "num_workers_loader": 2,
+            "cache_rate": 1.0,
+        },
+    }
 
     model_step1_params = {
         "VQ_NAME": "f4-noattn",
         "n_embed": 8192,
         "embed_dim": 3,
-        "img_size" = 400,
+        "img_size" : 400,
+        "input_modality" : ["TOFNAC", "CTAC"],
         "ckpt_path": "vq_f4-noattn.ckpt",
         "ddconfig": {
             "attn_type": "none",
@@ -75,7 +98,7 @@ def main():
             "z_channels": 3,
             "resolution": 256,
             "in_channels": 3,
-            "out_ch": 3,
+            "out_ch": 1,
             "ch": 128,
             "ch_mult": [1, 2, 4],
             "num_res_blocks": 2,
@@ -102,6 +125,7 @@ def main():
     global_config["IS_LOGGER_WANDB"] = True
     global_config["input_modality"] = ["TOFNAC", "CTAC"]
     global_config["model_step1_params"] = model_step1_params
+    global_config["data_loader_params"] = data_loader_params
 
 
     test_fold = args.test_fold

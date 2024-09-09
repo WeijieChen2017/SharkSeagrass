@@ -89,13 +89,13 @@ def main():
                 len_file = len(f) // 2
                 print(f">>>Number of cases: {len_file}")
                 for i_case in range(len_file):
-                    TOFNAC_data = f[f"TOFNAC_{i_case}"]
-                    CTAC_data = f[f"CTAC_{i_case}"]
+                    TOFNAC_data = f[f"TOFNAC_{i_case}"][()]
+                    CTAC_data = f[f"CTAC_{i_case}"][()]
                     print(f">>>TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
-                    print(f">>>TOFNAC min: {TOFNAC_data.min()}, TOFNAC max: {TOFNAC_data.max()}")
-                    print(f">>>CTAC min: {CTAC_data.min()}, CTAC max: {CTAC_data.max()}")
-                    print(f">>>TOFNAC mean: {TOFNAC_data.mean()}, TOFNAC std: {TOFNAC_data.std()}")
-                    print(f">>>CTAC mean: {CTAC_data.mean()}, CTAC std: {CTAC_data.std()}")
+                    print(f">>>TOFNAC min: {TOFNAC_data.min():.4f}, TOFNAC max: {TOFNAC_data.max():.4f}")
+                    print(f">>>CTAC min: {CTAC_data.min():.4f}, CTAC max: {CTAC_data.max():.4f}")
+                    print(f">>>TOFNAC mean: {TOFNAC_data.mean():.4f}, TOFNAC std: {TOFNAC_data.std():.4f}")
+                    print(f">>>CTAC mean: {CTAC_data.mean():.4f}, CTAC std: {CTAC_data.std():.4f}")
 
                     # normalize the data
                     TOFNAC_data = two_segment_scale(TOFNAC_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
@@ -103,10 +103,10 @@ def main():
                     CTAC_data = (CTAC_data - MIN_CT) / RANGE_CT
 
                     print(">>>After normalization")
-                    print(f">>>TOFNAC min: {TOFNAC_data.min()}, TOFNAC max: {TOFNAC_data.max()}")
-                    print(f">>>CTAC min: {CTAC_data.min()}, CTAC max: {CTAC_data.max()}")
-                    print(f">>>TOFNAC mean: {TOFNAC_data.mean()}, TOFNAC std: {TOFNAC_data.std()}")
-                    print(f">>>CTAC mean: {CTAC_data.mean()}, CTAC std: {CTAC_data.std()}")
+                    print(f">>>TOFNAC min: {TOFNAC_data.min():.4f}, TOFNAC max: {TOFNAC_data.max():.4f}")
+                    print(f">>>CTAC min: {CTAC_data.min():.4f}, CTAC max: {CTAC_data.max():.4f}")
+                    print(f">>>TOFNAC mean: {TOFNAC_data.mean():.4f}, TOFNAC std: {TOFNAC_data.std():.4f}")
+                    print(f">>>CTAC mean: {CTAC_data.mean():.4f}, CTAC std: {CTAC_data.std():.4f}")
 
                     save_filename_TOFNAC = f"{save_folder}fold_{fold}_case_{i_case}_TOFNAC.npy"
                     save_filename_CTAC = f"{save_folder}fold_{fold}_case_{i_case}_CTAC.npy"
