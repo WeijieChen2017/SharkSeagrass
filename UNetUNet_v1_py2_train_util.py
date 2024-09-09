@@ -10,7 +10,7 @@ from monai.transforms import (
     Compose, 
     LoadImaged, 
     EnsureChannelFirstd,
-    RandSpatialCropSamplesd,
+    RandSpatialCropd,
 )
 from monai.data import CacheDataset, DataLoader
 
@@ -31,6 +31,10 @@ def prepare_dataset(data_div_json, global_config):
     global_config["logger"].log(0, "dataset_info", f"num_train: {num_train}, num_val: {num_val}, num_test: {num_test}")
 
     input_modality = global_config["model_step1_params"]["input_modality"]
+    input_modality_dict = {
+        "x": input_modality[0],
+        "y": input_modality[1],
+    }
     img_size = global_config["model_step1_params"]["img_size"]
     in_channel = global_config["model_step1_params"]["ddconfig"]["in_channels"]
     out_channel = global_config["model_step1_params"]["ddconfig"]["out_ch"]
@@ -39,20 +43,60 @@ def prepare_dataset(data_div_json, global_config):
     train_transforms = Compose(
         [
             LoadImaged(keys=input_modality, image_only=True),
-            EnsureChannelFirstd(keys=input_modality, channel_dim="no_channel"),
-            RandSpatialCropd(keys=input_modality, roi_size=(img_size, img_size, img_size), random_size=False),
+            RandSpatialCropd(
+                keys=input_modality_dict["x"], 
+                roi_size=(img_size, img_size, in_channel), 
+                random_size=False),
+            RandSpatialCropd(
+                keys=input_modality_dict["y"],
+                roi_size=(img_size, img_size, out_channel),
+                random_size=False),
+            EnsureChannelFirstd(
+                keys=input_modality_dict["x"],
+                channel_dim=-1),
+            EnsureChannelFirstd(
+                keys=input_modality_dict["y"],
+                channel_dim="none" if out_channel == 1 else -1),
         ]
     )
 
     val_transforms = Compose(
         [
             LoadImaged(keys=input_modality, image_only=True),
+            RandSpatialCropd(
+                keys=input_modality_dict["x"], 
+                roi_size=(img_size, img_size, in_channel), 
+                random_size=False),
+            RandSpatialCropd(
+                keys=input_modality_dict["y"],
+                roi_size=(img_size, img_size, out_channel),
+                random_size=False),
+            EnsureChannelFirstd(
+                keys=input_modality_dict["x"],
+                channel_dim=-1),
+            EnsureChannelFirstd(
+                keys=input_modality_dict["y"],
+                channel_dim="none" if out_channel == 1 else -1),
         ]
     )
 
     test_transforms = Compose(
         [
             LoadImaged(keys=input_modality, image_only=True),
+            RandSpatialCropd(
+                keys=input_modality_dict["x"], 
+                roi_size=(img_size, img_size, in_channel), 
+                random_size=False),
+            RandSpatialCropd(
+                keys=input_modality_dict["y"],
+                roi_size=(img_size, img_size, out_channel),
+                random_size=False),
+            EnsureChannelFirstd(
+                keys=input_modality_dict["x"],
+                channel_dim=-1),
+            EnsureChannelFirstd(
+                keys=input_modality_dict["y"],
+                channel_dim="none" if out_channel == 1 else -1),
         ]
     )
 
@@ -60,14 +104,9 @@ def prepare_dataset(data_div_json, global_config):
     with open(data_division_file, "r") as f:
         data_division = json.load(f)
 
-    if test_file_num > 0:
-        train_list = data_division["train"][:test_file_num]
-        val_list = data_division["val"][:test_file_num]
-        test_list = data_division["test"][:test_file_num]
-    else:
-        train_list = data_division["train"]
-        val_list = data_division["val"]
-        test_list = data_division["test"]
+    train_list = data_division["train"]
+    val_list = data_division["val"]
+    test_list = data_division["test"]
 
     num_train_files = len(train_list)
     num_val_files = len(val_list)
@@ -79,56 +118,53 @@ def prepare_dataset(data_div_json, global_config):
     print()
 
     # save the data division file
-    data_division_file = os.path.join(root_folder, "data_division.json")
+    # data_division_file = os.path.join(root_folder, "data_division.json")
 
     train_ds = CacheDataset(
         data=train_list,
         transform=train_transforms,
-        cache_num=num_train_files,
-        cache_rate=cache_ratio,
-        num_workers=4,
+        # cache_num=num_train_files,
+        cache_rate=global_config["data_loader_params"]["train"]["cache_rate"],
+        num_workers=global_config["data_loader_params"]["train"]["num_workers_cache"],
     )
 
     val_ds = CacheDataset(
         data=val_list,
         transform=val_transforms, 
-        cache_num=num_val_files,
-        cache_rate=cache_ratio,
-        num_workers=4,
+        # cache_num=num_val_files,
+        cache_rate=global_config["data_loader_params"]["val"]["cache_rate"],
+        num_workers=global_config["data_loader_params"]["val"]["num_workers_cache"],
     )
 
     test_ds = CacheDataset(
         data=test_list,
         transform=test_transforms,
-        cache_num=num_test_files,
-        cache_rate=cache_ratio,
-        num_workers=4,
+        # cache_num=num_test_files,
+        cache_rate=global_config["data_loader_params"]["test"]["cache_rate"],
+        num_workers=global_config["data_loader_params"]["test"]["num_workers_cache"],
     )
 
 
 
     train_loader = DataLoader(train_ds, 
-                            batch_size=batch_size,
-                            shuffle=True, 
-                            num_workers=4,
+                            batch_size=global_config["data_loader_params"]["train"]["batch_size"],
+                            shuffle=global_config["data_loader_params"]["train"]["shuffle"],
+                            num_workers=global_config["data_loader_params"]["train"]["num_workers_loader"],
 
     )
     val_loader = DataLoader(val_ds, 
-                            batch_size=batch_size, 
-                            shuffle=True, 
-                            num_workers=4,
+                            batch_size=global_config["data_loader_params"]["val"]["batch_size"],
+                            shuffle=global_config["data_loader_params"]["val"]["shuffle"],
+                            num_workers=global_config["data_loader_params"]["val"]["num_workers_loader"],
     )
 
     test_loader = DataLoader(test_ds,
-                            batch_size=batch_size,
-                            shuffle=True,
-                            num_workers=4,
+                            batch_size=global_config["data_loader_params"]["test"]["batch_size"],
+                            shuffle=global_config["data_loader_params"]["test"]["shuffle"],
+                            num_workers=global_config["data_loader_params"]["test"]["num_workers_loader"],
     )
 
-
-
-
-
+    return train_loader, val_loader, test_loader
 
 
 class simple_logger():
