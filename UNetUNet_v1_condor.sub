@@ -15,7 +15,7 @@ transfer_input_files = SharkSeagrass.zip, fold_0.tar.gz, fold_1.tar.gz, fold_2.t
 +WantGPULab = true
 +GPUJobLength = "long"
 request_gpus = 1
-require_gpus = GlobalMemoryMb >= 20000
+require_gpus = GlobalMemoryMb >= 15000
 request_cpus = 24
 request_memory = 50GB
 request_disk = 80GB
