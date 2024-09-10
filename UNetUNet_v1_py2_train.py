@@ -87,7 +87,7 @@ def main():
         "embed_dim": 3,
         "img_size" : 400,
         "input_modality" : ["TOFNAC", "CTAC"],
-        "ckpt_path": "vq_f4-noattn.ckpt",
+        "ckpt_path": "vq_f4_noattn_nn.pth",
         "ddconfig": {
             "attn_type": "none",
             "double_z": False,

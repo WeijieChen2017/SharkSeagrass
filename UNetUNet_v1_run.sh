@@ -4,7 +4,7 @@ rm SharkSeagrass.zip
 tar -xzvf TOFNAC_CTAC_hash.tar.gz
 rm TOFNAC_CTAC_hash.tar.gz
 mv TOFNAC_CTAC_hash ./SharkSeagrass/
-mv vq_f4-noattn.ckpt ./SharkSeagrass/
+mv vq_f4_noattn_nn.pth ./SharkSeagrass/
 
 cd SharkSeagrass
 mkdir results
