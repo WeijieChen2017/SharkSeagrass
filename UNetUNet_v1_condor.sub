@@ -17,7 +17,7 @@ transfer_input_files = SharkSeagrass.zip, TOFNAC_CTAC_hash.tar.gz, vq_f4_noattn_
 request_gpus = 1
 require_gpus = GlobalMemoryMb >= 15000
 request_cpus = 24
-request_memory = 40GB
+request_memory = 50GB
 request_disk = 20GB
 
 queue cv from UNetUNet_v1_args.txt
