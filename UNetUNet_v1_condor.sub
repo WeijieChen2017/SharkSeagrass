@@ -10,7 +10,7 @@ arguments = $(cv)
 
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
-transfer_input_files = SharkSeagrass.zip, TOFNAC_CTAC_hash.tar.gz, vq_f4-noattn.ckpt
+transfer_input_files = SharkSeagrass.zip, TOFNAC_CTAC_hash.tar.gz, vq_f4_noattn_nn.ckpt
 
 +WantGPULab = true
 +GPUJobLength = "long"
