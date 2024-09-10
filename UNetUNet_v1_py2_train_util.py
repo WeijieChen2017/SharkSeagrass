@@ -96,9 +96,11 @@ def prepare_dataset(data_div_json, global_config):
     with open(data_div_json, "r") as f:
         data_div = json.load(f)
     
-    train_list = data_div[f"cv_{global_config["cross_validation"]}"]["train"]
-    val_list = data_div[f"cv_{global_config["cross_validation"]}"]["val"]
-    test_list = data_div[f"cv_{global_config["cross_validation"]}"]["test"]
+    cv = global_config["cross_validation"]
+
+    train_list = data_div[f"cv_{cv}"]["train"]
+    val_list = data_div[f"cv_{cv}"]["val"]
+    test_list = data_div[f"cv_{cv}"]["test"]
 
     # num_train = len(train_list)
     # num_val = len(val_list)
