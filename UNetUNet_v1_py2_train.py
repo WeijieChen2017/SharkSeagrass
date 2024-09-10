@@ -202,8 +202,8 @@ def main():
             
             random.shuffle(indices_list)
             for indices in indices_list:
-                x = volume_x[:, indices-1:indices+2, :, :].unsqueeze(0)
-                y = volume_y[:, indices, :, :].unsqueeze(0).unsqueeze(0) # 1x1x400x400
+                x = volume_x[:, indices-1:indices+2, :, :]
+                y = volume_y[:, indices, :, :].unsqueeze(0)
 
                 optimizer.zero_grad()
                 outputs = model(x)
@@ -234,8 +234,8 @@ def main():
 
                 random.shuffle(indices_list)
                 for indices in indices_list:
-                    x = volume_x[:, indices-1:indices+2, :, :].unsqueeze(0)
-                    y = volume_y[:, indices, :, :].unsqueeze(0).unsqueeze(0)
+                    x = volume_x[:, indices-1:indices+2, :, :]
+                    y = volume_y[:, indices, :, :].unsqueeze(0)
 
                     outputs = model(x)
                     loss = output_loss(outputs, y)
@@ -255,6 +255,7 @@ def main():
                 print(f"Save the best model with val_loss: {val_loss} at epoch {idx_epoch}")
                 logger.log(idx_epoch, "best_model_epoch", idx_epoch)
                 logger.log(idx_epoch, "best_model_val_loss", val_loss)
+                wandb_run.log_model(path=os.path.join(root_folder, "best_model.pth"), name="model_best_eval", aliases=tag+f"cv{cross_validation}")
                 
                 # test the model
                 test_loss = 0
@@ -267,8 +268,8 @@ def main():
 
                     random.shuffle(indices_list)
                     for indices in indices_list:
-                        x = volume_x[:, indices-1:indices+2, :, :].unsqueeze(0)
-                        y = volume_y[:, indices, :, :].unsqueeze(0).unsqueeze(0)
+                        x = volume_x[:, indices-1:indices+2, :, :]
+                        y = volume_y[:, indices, :, :].unsqueeze(0)
 
                         outputs = model(x)
                         loss = output_loss(outputs, y)
@@ -287,6 +288,7 @@ def main():
             torch.save(model.state_dict(), save_path)
             logger.log(idx_epoch, "save_model_path", save_path)
             print(f"Save model to {save_path}")
+            wandb_run.log_model(path=save_path, name="model_checkpoint", aliases=tag+f"cv{cross_validation}")
 
 print("Done!")
 
