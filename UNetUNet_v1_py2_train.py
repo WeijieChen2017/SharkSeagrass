@@ -197,10 +197,12 @@ def main():
             len_z = case_data["TOFNAC"].shape[0]
             volume_x = case_data["TOFNAC"].to(device)
             volume_y = case_data["CTAC"].to(device)
+            print("volume_x shape: ", volume_x.shape, "volume_y shape: ", volume_y.shape, "len_z: ", len_z)
             # create index list without the first and last slice
             indices_list = [i for i in range(1, len_z-1)]
             
             random.shuffle(indices_list)
+            print("indices_list: ", indices_list)
             for indices in indices_list:
                 x = volume_x[indices-1:indices+2, :, :].unsqueeze(0)
                 y = volume_y[indices, :, :].unsqueeze(0).unsqueeze(0) # 1x1x400x400
