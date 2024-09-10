@@ -11,7 +11,7 @@ mkdir results
 ls
 pip install pytorch-lightning
 echo "============================================"
-python UNetUNet_v1_py1_prepare_dataset.py --cross_validation $1
+python UNetUNet_v1_py2_train.py --cross_validation $1
 # python UNetUNet_v1_py2_train.py
 du -lh -d 1
 rm -r TOFNAC_CTAC_hash
