@@ -11,7 +11,11 @@ mkdir results
 echo "============================================"
 ls
 echo "============================================"
-pip install pytorch-lightning
+# Install PyTorch Lightning
+python -m pip install pytorch-lightning
+echo "============================================"
+# Check if the installation succeeded
+python -m pip show pytorch-lightning
 echo "============================================"
 pip list
 echo "============================================"
