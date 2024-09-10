@@ -745,6 +745,17 @@ class VQModel(nn.Module):
             print(f"Missing Keys: {missing}")
             print(f"Unexpected Keys: {unexpected}")
 
+    def init_random_weights(self):
+        for m in self.modules():
+            if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d)):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.GroupNorm):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+        print("Initialized model weights randomly.")
+
     def encode(self, x):
         h = self.encoder(x)
         h = self.quant_conv(h)
