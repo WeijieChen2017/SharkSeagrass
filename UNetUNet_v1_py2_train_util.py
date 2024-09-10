@@ -19,80 +19,6 @@ from monai.data import CacheDataset, DataLoader
 
 def prepare_dataset(data_div_json, global_config):
     
-    input_modality = global_config["model_step1_params"]["input_modality"]
-    input_modality_dict = {
-        "x": input_modality[0],
-        "y": input_modality[1],
-    }
-    img_size = global_config["model_step1_params"]["img_size"]
-    in_channel = global_config["model_step1_params"]["ddconfig"]["in_channels"]
-    out_channel = global_config["model_step1_params"]["ddconfig"]["out_ch"]
-
-    # set the data transform
-    train_transforms = Compose(
-        [
-            LoadImaged(keys=input_modality, image_only=True),
-            EnsureChannelFirstd(keys=input_modality_dict, channel_dim=-1),
-            # RandSpatialCropd(
-            #     keys=input_modality_dict["x"], 
-            #     roi_size=(img_size, img_size, in_channel), 
-            #     random_size=False),
-            # RandSpatialCropd(
-            #     keys=input_modality_dict["y"],
-            #     roi_size=(img_size, img_size, out_channel),
-            #     random_size=False),
-            # EnsureChannelFirstd(
-            #     keys=input_modality_dict["x"],
-            #     channel_dim=-1),
-            # EnsureChannelFirstd(
-            #     keys=input_modality_dict["y"],
-            #     channel_dim="none" if out_channel == 1 else -1),
-
-        ]
-    )
-
-    val_transforms = Compose(
-        [
-            LoadImaged(keys=input_modality, image_only=True),
-            EnsureChannelFirstd(keys=input_modality_dict, channel_dim=-1),
-            # RandSpatialCropd(
-            #     keys=input_modality_dict["x"], 
-            #     roi_size=(img_size, img_size, in_channel), 
-            #     random_size=False),
-            # RandSpatialCropd(
-            #     keys=input_modality_dict["y"],
-            #     roi_size=(img_size, img_size, out_channel),
-            #     random_size=False),
-            # EnsureChannelFirstd(
-            #     keys=input_modality_dict["x"],
-            #     channel_dim=-1),
-            # EnsureChannelFirstd(
-            #     keys=input_modality_dict["y"],
-            #     channel_dim="none" if out_channel == 1 else -1),
-        ]
-    )
-
-    test_transforms = Compose(
-        [
-            LoadImaged(keys=input_modality, image_only=True),
-            EnsureChannelFirstd(keys=input_modality_dict, channel_dim=-1),
-            # RandSpatialCropd(
-            #     keys=input_modality_dict["x"], 
-            #     roi_size=(img_size, img_size, in_channel), 
-            #     random_size=False),
-            # RandSpatialCropd(
-            #     keys=input_modality_dict["y"],
-            #     roi_size=(img_size, img_size, out_channel),
-            #     random_size=False),
-            # EnsureChannelFirstd(
-            #     keys=input_modality_dict["x"],
-            #     channel_dim=-1),
-            # EnsureChannelFirstd(
-            #     keys=input_modality_dict["y"],
-            #     channel_dim="none" if out_channel == 1 else -1),
-        ]
-    )
-
     with open(data_div_json, "r") as f:
         data_div = json.load(f)
     
@@ -147,6 +73,82 @@ def prepare_dataset(data_div_json, global_config):
     }
     with open(data_division_file, "w") as f:
         json.dump(data_division_dict, f, indent=4)
+
+    input_modality = global_config["model_step1_params"]["input_modality"]
+    # input_modality_dict = {
+    #     "x": input_modality[0],
+    #     "y": input_modality[1],
+    # }
+    # img_size = global_config["model_step1_params"]["img_size"]
+    # in_channel = global_config["model_step1_params"]["ddconfig"]["in_channels"]
+    # out_channel = global_config["model_step1_params"]["ddconfig"]["out_ch"]
+
+    # set the data transform
+    train_transforms = Compose(
+        [
+            LoadImaged(keys=input_modality, image_only=True),
+            EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["x"], 
+            #     roi_size=(img_size, img_size, in_channel), 
+            #     random_size=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["y"],
+            #     roi_size=(img_size, img_size, out_channel),
+            #     random_size=False),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["x"],
+            #     channel_dim=-1),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["y"],
+            #     channel_dim="none" if out_channel == 1 else -1),
+
+        ]
+    )
+
+    val_transforms = Compose(
+        [
+            LoadImaged(keys=input_modality, image_only=True),
+            EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["x"], 
+            #     roi_size=(img_size, img_size, in_channel), 
+            #     random_size=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["y"],
+            #     roi_size=(img_size, img_size, out_channel),
+            #     random_size=False),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["x"],
+            #     channel_dim=-1),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["y"],
+            #     channel_dim="none" if out_channel == 1 else -1),
+        ]
+    )
+
+    test_transforms = Compose(
+        [
+            LoadImaged(keys=input_modality, image_only=True),
+            EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["x"], 
+            #     roi_size=(img_size, img_size, in_channel), 
+            #     random_size=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["y"],
+            #     roi_size=(img_size, img_size, out_channel),
+            #     random_size=False),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["x"],
+            #     channel_dim=-1),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["y"],
+            #     channel_dim="none" if out_channel == 1 else -1),
+        ]
+    )
+
+    
 
     train_ds = CacheDataset(
         data=train_path_list,
