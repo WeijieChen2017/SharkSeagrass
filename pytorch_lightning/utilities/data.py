@@ -21,18 +21,18 @@ from torch import Tensor
 from torch.utils.data import BatchSampler, DataLoader, IterableDataset, RandomSampler, Sampler, SequentialSampler
 from typing_extensions import TypeGuard
 
-import lightning.pytorch as pl
-from lightning.fabric.utilities.data import (
+import pytorch_lightning as pl
+from lightning_fabric.utilities.data import (
     _reinstantiate_wrapped_cls,
     _replace_value_in_saved_args,
     has_iterable_dataset,
     sized_len,
 )
-from lightning.fabric.utilities.warnings import PossibleUserWarning
-from lightning.pytorch.overrides.distributed import _IndexBatchSamplerWrapper
-from lightning.pytorch.trainer.states import RunningStage
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.rank_zero import WarningCache, rank_zero_warn
+from lightning_fabric.utilities.warnings import PossibleUserWarning
+from pytorch_lightning.overrides.distributed import _IndexBatchSamplerWrapper
+from pytorch_lightning.trainer.states import RunningStage
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.rank_zero import WarningCache, rank_zero_warn
 
 BType = Union[Tensor, str, Mapping[Any, "BType"], Iterable["BType"]]
 

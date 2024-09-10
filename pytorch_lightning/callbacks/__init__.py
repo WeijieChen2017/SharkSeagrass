@@ -11,27 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from lightning.pytorch.callbacks.batch_size_finder import BatchSizeFinder
-from lightning.pytorch.callbacks.callback import Callback
-from lightning.pytorch.callbacks.checkpoint import Checkpoint
-from lightning.pytorch.callbacks.device_stats_monitor import DeviceStatsMonitor
-from lightning.pytorch.callbacks.early_stopping import EarlyStopping
-from lightning.pytorch.callbacks.finetuning import BackboneFinetuning, BaseFinetuning
-from lightning.pytorch.callbacks.gradient_accumulation_scheduler import GradientAccumulationScheduler
-from lightning.pytorch.callbacks.lambda_function import LambdaCallback
-from lightning.pytorch.callbacks.lr_finder import LearningRateFinder
-from lightning.pytorch.callbacks.lr_monitor import LearningRateMonitor
-from lightning.pytorch.callbacks.model_checkpoint import ModelCheckpoint
-from lightning.pytorch.callbacks.model_summary import ModelSummary
-from lightning.pytorch.callbacks.on_exception_checkpoint import OnExceptionCheckpoint
-from lightning.pytorch.callbacks.prediction_writer import BasePredictionWriter
-from lightning.pytorch.callbacks.progress import ProgressBar, RichProgressBar, TQDMProgressBar
-from lightning.pytorch.callbacks.pruning import ModelPruning
-from lightning.pytorch.callbacks.rich_model_summary import RichModelSummary
-from lightning.pytorch.callbacks.spike import SpikeDetection
-from lightning.pytorch.callbacks.stochastic_weight_avg import StochasticWeightAveraging
-from lightning.pytorch.callbacks.throughput_monitor import ThroughputMonitor
-from lightning.pytorch.callbacks.timer import Timer
+from pytorch_lightning.callbacks.batch_size_finder import BatchSizeFinder
+from pytorch_lightning.callbacks.callback import Callback
+from pytorch_lightning.callbacks.checkpoint import Checkpoint
+from pytorch_lightning.callbacks.device_stats_monitor import DeviceStatsMonitor
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks.finetuning import BackboneFinetuning, BaseFinetuning
+from pytorch_lightning.callbacks.gradient_accumulation_scheduler import GradientAccumulationScheduler
+from pytorch_lightning.callbacks.lambda_function import LambdaCallback
+from pytorch_lightning.callbacks.lr_finder import LearningRateFinder
+from pytorch_lightning.callbacks.lr_monitor import LearningRateMonitor
+from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
+from pytorch_lightning.callbacks.model_summary import ModelSummary
+from pytorch_lightning.callbacks.on_exception_checkpoint import OnExceptionCheckpoint
+from pytorch_lightning.callbacks.prediction_writer import BasePredictionWriter
+from pytorch_lightning.callbacks.progress import ProgressBar, RichProgressBar, TQDMProgressBar
+from pytorch_lightning.callbacks.pruning import ModelPruning
+from pytorch_lightning.callbacks.rich_model_summary import RichModelSummary
+from pytorch_lightning.callbacks.spike import SpikeDetection
+from pytorch_lightning.callbacks.stochastic_weight_avg import StochasticWeightAveraging
+from pytorch_lightning.callbacks.throughput_monitor import ThroughputMonitor
+from pytorch_lightning.callbacks.timer import Timer
 
 __all__ = [
     "BackboneFinetuning",

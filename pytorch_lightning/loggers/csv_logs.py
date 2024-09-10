@@ -25,14 +25,14 @@ from typing import Any, Dict, Optional, Union
 
 from typing_extensions import override
 
-from lightning.fabric.loggers.csv_logs import CSVLogger as FabricCSVLogger
-from lightning.fabric.loggers.csv_logs import _ExperimentWriter as _FabricExperimentWriter
-from lightning.fabric.loggers.logger import rank_zero_experiment
-from lightning.fabric.utilities.logger import _convert_params
-from lightning.fabric.utilities.types import _PATH
-from lightning.pytorch.core.saving import save_hparams_to_yaml
-from lightning.pytorch.loggers.logger import Logger
-from lightning.pytorch.utilities.rank_zero import rank_zero_only
+from lightning_fabric.loggers.csv_logs import CSVLogger as FabricCSVLogger
+from lightning_fabric.loggers.csv_logs import _ExperimentWriter as _FabricExperimentWriter
+from lightning_fabric.loggers.logger import rank_zero_experiment
+from lightning_fabric.utilities.logger import _convert_params
+from lightning_fabric.utilities.types import _PATH
+from pytorch_lightning.core.saving import save_hparams_to_yaml
+from pytorch_lightning.loggers.logger import Logger
+from pytorch_lightning.utilities.rank_zero import rank_zero_only
 
 
 class ExperimentWriter(_FabricExperimentWriter):
@@ -72,8 +72,8 @@ class CSVLogger(Logger, FabricCSVLogger):
     Logs are saved to ``os.path.join(save_dir, name, version)``.
 
     Example:
-        >>> from lightning.pytorch import Trainer
-        >>> from lightning.pytorch.loggers import CSVLogger
+        >>> from pytorch_lightning import Trainer
+        >>> from pytorch_lightning.loggers import CSVLogger
         >>> logger = CSVLogger("logs", name="my_exp_name")
         >>> trainer = Trainer(logger=logger)
 
@@ -153,7 +153,7 @@ class CSVLogger(Logger, FabricCSVLogger):
     @rank_zero_experiment
     def experiment(self) -> _FabricExperimentWriter:
         r"""Actual _ExperimentWriter object. To use _ExperimentWriter features in your
-        :class:`~lightning.pytorch.core.LightningModule` do the following.
+        :class:`~pytorch_lightning.core.LightningModule` do the following.
 
         Example::
 

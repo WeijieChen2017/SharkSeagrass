@@ -1,9 +1,9 @@
 import sys
 from typing import TYPE_CHECKING, Any, Literal, Optional
 
-import lightning.pytorch as pl
-from lightning.fabric.utilities.rank_zero import rank_zero_deprecation
-from lightning.pytorch.plugins.precision import (
+import pytorch_lightning as pl
+from lightning_fabric.utilities.rank_zero import rank_zero_deprecation
+from pytorch_lightning.plugins.precision import (
     BitsandbytesPrecision,
     DeepSpeedPrecision,
     DoublePrecision,
@@ -20,8 +20,8 @@ if TYPE_CHECKING:
 
 
 def _patch_sys_modules() -> None:
-    sys.modules["lightning.pytorch.plugins.precision.precision_plugin"] = sys.modules[
-        "lightning.pytorch.plugins.precision.precision"
+    sys.modules["pytorch_lightning.plugins.precision.precision_plugin"] = sys.modules[
+        "pytorch_lightning.plugins.precision.precision"
     ]
 
 
@@ -39,7 +39,7 @@ class FSDPMixedPrecisionPlugin(FSDPPrecision):
     ) -> None:
         rank_zero_deprecation(
             f"The `{type(self).__name__}` is deprecated."
-            " Use `lightning.pytorch.plugins.precision.FSDPPrecision` instead."
+            " Use `pytorch_lightning.plugins.precision.FSDPPrecision` instead."
         )
         super().__init__(precision=precision, scaler=scaler)
 
@@ -48,7 +48,7 @@ def _create_class(deprecated_name: str, new_class: type) -> type:
     def init(self: type, *args: Any, **kwargs: Any) -> None:
         rank_zero_deprecation(
             f"The `{deprecated_name}` is deprecated."
-            f" Use `lightning.pytorch.plugins.precision.{new_class.__name__}` instead."
+            f" Use `pytorch_lightning.plugins.precision.{new_class.__name__}` instead."
         )
         new_class.__init__(self, *args, **kwargs)  # type: ignore[misc]
 

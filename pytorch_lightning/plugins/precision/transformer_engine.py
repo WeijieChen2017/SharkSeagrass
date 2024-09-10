@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from lightning.fabric.plugins.precision.transformer_engine import TransformerEnginePrecision as FabricTEPrecision
-from lightning.pytorch.plugins.precision.precision import Precision
+from lightning_fabric.plugins.precision.transformer_engine import TransformerEnginePrecision as FabricTEPrecision
+from pytorch_lightning.plugins.precision.precision import Precision
 
 
 class TransformerEnginePrecision(Precision, FabricTEPrecision):

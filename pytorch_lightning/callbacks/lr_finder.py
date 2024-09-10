@@ -22,11 +22,11 @@ from typing import Optional
 
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks.callback import Callback
-from lightning.pytorch.tuner.lr_finder import _lr_find, _LRFinder
-from lightning.pytorch.utilities.exceptions import _TunerExitException
-from lightning.pytorch.utilities.seed import isolate_rng
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks.callback import Callback
+from pytorch_lightning.tuner.lr_finder import _lr_find, _LRFinder
+from pytorch_lightning.utilities.exceptions import _TunerExitException
+from pytorch_lightning.utilities.seed import isolate_rng
 
 
 class LearningRateFinder(Callback):
@@ -55,7 +55,7 @@ class LearningRateFinder(Callback):
 
         # Customize LearningRateFinder callback to run at different epochs.
         # This feature is useful while fine-tuning models.
-        from lightning.pytorch.callbacks import LearningRateFinder
+        from pytorch_lightning.callbacks import LearningRateFinder
 
 
         class FineTuneLearningRateFinder(LearningRateFinder):

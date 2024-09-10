@@ -13,4 +13,4 @@
 # limitations under the License.
 
 # For backward-compatibility
-from lightning.fabric.plugins import XLACheckpointIO  # noqa: F401
+from lightning_fabric.plugins import XLACheckpointIO  # noqa: F401

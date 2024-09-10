@@ -18,13 +18,13 @@ from lightning_utilities import apply_to_collection
 from torch import Tensor
 from typing_extensions import get_args, override
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins.precision.amp import _optimizer_handles_unscaling
-from lightning.fabric.plugins.precision.fsdp import _PRECISION_INPUT
-from lightning.fabric.plugins.precision.utils import _convert_fp_tensor, _DtypeContextManager
-from lightning.fabric.utilities.types import Optimizable
-from lightning.pytorch.plugins.precision.precision import Precision
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
+import pytorch_lightning as pl
+from lightning_fabric.plugins.precision.amp import _optimizer_handles_unscaling
+from lightning_fabric.plugins.precision.fsdp import _PRECISION_INPUT
+from lightning_fabric.plugins.precision.utils import _convert_fp_tensor, _DtypeContextManager
+from lightning_fabric.utilities.types import Optimizable
+from pytorch_lightning.plugins.precision.precision import Precision
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 if TYPE_CHECKING:
     from torch.distributed.fsdp.fully_sharded_data_parallel import MixedPrecision as TorchMixedPrecision

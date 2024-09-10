@@ -21,9 +21,9 @@ from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 from torch.utils.data import DataLoader, Dataset, IterableDataset, Subset
 
-from lightning.pytorch import LightningDataModule, LightningModule
-from lightning.pytorch.core.optimizer import LightningOptimizer
-from lightning.pytorch.utilities.types import STEP_OUTPUT
+from pytorch_lightning import LightningDataModule, LightningModule
+from pytorch_lightning.core.optimizer import LightningOptimizer
+from pytorch_lightning.utilities.types import STEP_OUTPUT
 
 
 class RandomDictDataset(Dataset):

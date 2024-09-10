@@ -14,8 +14,8 @@ from torch import Tensor
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader, Sampler
 
-from lightning.pytorch.core import LightningModule
-from lightning.pytorch.demos.transformer import WikiText2
+from pytorch_lightning.core import LightningModule
+from pytorch_lightning.demos.transformer import WikiText2
 
 
 class SimpleLSTM(nn.Module):

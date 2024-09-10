@@ -42,7 +42,7 @@ from torch.optim.lr_scheduler import LRScheduler, ReduceLROnPlateau
 from torchmetrics import Metric
 from typing_extensions import NotRequired, Required
 
-from lightning.fabric.utilities.types import ProcessGroup
+from lightning_fabric.utilities.types import ProcessGroup
 
 _NUMBER = Union[int, float]
 _METRIC = Union[Metric, Tensor, _NUMBER]

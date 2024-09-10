@@ -19,9 +19,9 @@ import torch
 from torch import Tensor
 from torch.optim.optimizer import Optimizer
 
-from lightning.pytorch.utilities import move_data_to_device
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.types import EVAL_DATALOADERS, STEP_OUTPUT, TRAIN_DATALOADERS
+from pytorch_lightning.utilities import move_data_to_device
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.types import EVAL_DATALOADERS, STEP_OUTPUT, TRAIN_DATALOADERS
 
 
 class ModelHooks:
@@ -163,7 +163,7 @@ class ModelHooks:
         """Called when the validation loop starts.
 
         The validation loop by default calls ``.eval()`` on the LightningModule before it starts. Override this hook
-        to change the behavior. See also :meth:`~lightning.pytorch.core.hooks.ModelHooks.on_validation_model_train`.
+        to change the behavior. See also :meth:`~pytorch_lightning.core.hooks.ModelHooks.on_validation_model_train`.
 
         """
         self.trainer.model.eval()
@@ -173,7 +173,7 @@ class ModelHooks:
 
         The validation loop by default restores the `training` mode of the LightningModule to what it was before
         starting validation. Override this hook to change the behavior. See also
-        :meth:`~lightning.pytorch.core.hooks.ModelHooks.on_validation_model_eval`.
+        :meth:`~pytorch_lightning.core.hooks.ModelHooks.on_validation_model_eval`.
 
         """
         # The loop won't call this hook unless it is overridden. The line below is here in case the user calls super().
@@ -183,7 +183,7 @@ class ModelHooks:
         """Called when the test loop starts.
 
         The test loop by default calls ``.eval()`` on the LightningModule before it starts. Override this hook
-        to change the behavior. See also :meth:`~lightning.pytorch.core.hooks.ModelHooks.on_test_model_train`.
+        to change the behavior. See also :meth:`~pytorch_lightning.core.hooks.ModelHooks.on_test_model_train`.
 
         """
         self.trainer.model.eval()
@@ -193,7 +193,7 @@ class ModelHooks:
 
         The test loop by default restores the `training` mode of the LightningModule to what it was before
         starting testing. Override this hook to change the behavior. See also
-        :meth:`~lightning.pytorch.core.hooks.ModelHooks.on_test_model_eval`.
+        :meth:`~pytorch_lightning.core.hooks.ModelHooks.on_test_model_eval`.
 
         """
         # The loop won't call this hook unless it is overridden. The line below is here in case the user calls super().
@@ -215,7 +215,7 @@ class ModelHooks:
         """Called in the training loop at the very end of the epoch.
 
         To access all batch outputs at the end of the epoch, you can cache step outputs as an attribute of the
-        :class:`~lightning.pytorch.LightningModule` and access them in this hook:
+        :class:`~pytorch_lightning.LightningModule` and access them in this hook:
 
         .. code-block:: python
 
@@ -299,7 +299,7 @@ class ModelHooks:
         """Called before ``optimizer.step()``.
 
         If using gradient accumulation, the hook is called once the gradients have been accumulated.
-        See: :paramref:`~lightning.pytorch.trainer.trainer.Trainer.accumulate_grad_batches`.
+        See: :paramref:`~pytorch_lightning.trainer.trainer.Trainer.accumulate_grad_batches`.
 
         If using AMP, the loss will be unscaled before calling this hook.
         See these `docs <https://pytorch.org/docs/stable/notes/amp_examples.html#working-with-unscaled-gradients>`__
@@ -325,7 +325,7 @@ class ModelHooks:
     def configure_sharded_model(self) -> None:
         """Deprecated.
 
-        Use :meth:`~lightning.pytorch.core.hooks.ModelHooks.configure_model` instead.
+        Use :meth:`~pytorch_lightning.core.hooks.ModelHooks.configure_model` instead.
 
         """
 
@@ -335,7 +335,7 @@ class ModelHooks:
         This is particularly useful for when using sharded strategies (FSDP and DeepSpeed), where we'd like to shard
         the model instantly to save memory and initialization time.
         For non-sharded strategies, you can choose to override this hook or to initialize your model under the
-        :meth:`~lightning.pytorch.trainer.trainer.Trainer.init_module` context manager.
+        :meth:`~pytorch_lightning.trainer.trainer.Trainer.init_module` context manager.
 
         This hook is called during each of fit/val/test/predict stages in the same process, so ensure that
         implementation of this hook is **idempotent**, i.e., after the first time the hook is called, subsequent calls
@@ -458,7 +458,7 @@ class DataHooks:
         For more information about multiple dataloaders, see this :ref:`section <multiple-dataloaders>`.
 
         The dataloader you return will not be reloaded unless you set
-        :paramref:`~lightning.pytorch.trainer.trainer.Trainer.reload_dataloaders_every_n_epochs` to
+        :paramref:`~pytorch_lightning.trainer.trainer.Trainer.reload_dataloaders_every_n_epochs` to
         a positive integer.
 
         For data processing use the following pattern:
@@ -470,7 +470,7 @@ class DataHooks:
 
         .. warning:: do not assign state in prepare_data
 
-        - :meth:`~lightning.pytorch.trainer.trainer.Trainer.fit`
+        - :meth:`~pytorch_lightning.trainer.trainer.Trainer.fit`
         - :meth:`prepare_data`
         - :meth:`setup`
 
@@ -496,7 +496,7 @@ class DataHooks:
         .. warning:: do not assign state in prepare_data
 
 
-        - :meth:`~lightning.pytorch.trainer.trainer.Trainer.test`
+        - :meth:`~pytorch_lightning.trainer.trainer.Trainer.test`
         - :meth:`prepare_data`
         - :meth:`setup`
 
@@ -517,13 +517,13 @@ class DataHooks:
         For more information about multiple dataloaders, see this :ref:`section <multiple-dataloaders>`.
 
         The dataloader you return will not be reloaded unless you set
-        :paramref:`~lightning.pytorch.trainer.trainer.Trainer.reload_dataloaders_every_n_epochs` to
+        :paramref:`~pytorch_lightning.trainer.trainer.Trainer.reload_dataloaders_every_n_epochs` to
         a positive integer.
 
         It's recommended that all data downloads and preparation happen in :meth:`prepare_data`.
 
-        - :meth:`~lightning.pytorch.trainer.trainer.Trainer.fit`
-        - :meth:`~lightning.pytorch.trainer.trainer.Trainer.validate`
+        - :meth:`~pytorch_lightning.trainer.trainer.Trainer.fit`
+        - :meth:`~pytorch_lightning.trainer.trainer.Trainer.validate`
         - :meth:`prepare_data`
         - :meth:`setup`
 
@@ -545,7 +545,7 @@ class DataHooks:
 
         It's recommended that all data downloads and preparation happen in :meth:`prepare_data`.
 
-        - :meth:`~lightning.pytorch.trainer.trainer.Trainer.predict`
+        - :meth:`~pytorch_lightning.trainer.trainer.Trainer.predict`
         - :meth:`prepare_data`
         - :meth:`setup`
 

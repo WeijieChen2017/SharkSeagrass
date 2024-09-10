@@ -17,30 +17,30 @@ from typing import Any, Iterator, List, Optional, Union
 import torch
 from lightning_utilities import WarningCache
 
-import lightning.pytorch as pl
-from lightning.fabric.utilities import move_data_to_device
-from lightning.pytorch.callbacks import BasePredictionWriter
-from lightning.pytorch.loops.fetchers import _DataFetcher, _DataLoaderIterDataFetcher
-from lightning.pytorch.loops.loop import _Loop
-from lightning.pytorch.loops.progress import _Progress
-from lightning.pytorch.loops.utilities import _no_grad_context, _select_data_fetcher, _verify_dataloader_idx_requirement
-from lightning.pytorch.overrides.distributed import _IndexBatchSamplerWrapper
-from lightning.pytorch.strategies.launchers import _MultiProcessingLauncher
-from lightning.pytorch.trainer import call
-from lightning.pytorch.trainer.connectors.data_connector import (
+import pytorch_lightning as pl
+from lightning_fabric.utilities import move_data_to_device
+from pytorch_lightning.callbacks import BasePredictionWriter
+from pytorch_lightning.loops.fetchers import _DataFetcher, _DataLoaderIterDataFetcher
+from pytorch_lightning.loops.loop import _Loop
+from pytorch_lightning.loops.progress import _Progress
+from pytorch_lightning.loops.utilities import _no_grad_context, _select_data_fetcher, _verify_dataloader_idx_requirement
+from pytorch_lightning.overrides.distributed import _IndexBatchSamplerWrapper
+from pytorch_lightning.strategies.launchers import _MultiProcessingLauncher
+from pytorch_lightning.trainer import call
+from pytorch_lightning.trainer.connectors.data_connector import (
     _check_dataloader_iterable,
     _DataLoaderSource,
     _parse_num_batches,
     _process_dataloader,
     _request_dataloader,
 )
-from lightning.pytorch.trainer.states import RunningStage, TrainerFn
-from lightning.pytorch.utilities.combined_loader import CombinedLoader
-from lightning.pytorch.utilities.data import has_len_all_ranks
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.model_helpers import _ModuleMode
-from lightning.pytorch.utilities.signature_utils import is_param_in_hook_signature
-from lightning.pytorch.utilities.types import _PREDICT_OUTPUT
+from pytorch_lightning.trainer.states import RunningStage, TrainerFn
+from pytorch_lightning.utilities.combined_loader import CombinedLoader
+from pytorch_lightning.utilities.data import has_len_all_ranks
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.model_helpers import _ModuleMode
+from pytorch_lightning.utilities.signature_utils import is_param_in_hook_signature
+from pytorch_lightning.utilities.types import _PREDICT_OUTPUT
 
 
 class _PredictionLoop(_Loop):
@@ -299,7 +299,7 @@ class _PredictionLoop(_Loop):
 
     def _get_batch_indices(self, dataloader: object) -> List[List[int]]:  # batches x samples
         """Returns a reference to the seen batch indices if the dataloader has a batch sampler wrapped by our
-        :class:`~lightning.pytorch.overrides.distributed._IndexBatchSamplerWrapper`."""
+        :class:`~pytorch_lightning.overrides.distributed._IndexBatchSamplerWrapper`."""
         batch_sampler = getattr(dataloader, "batch_sampler", None)
         if not isinstance(batch_sampler, _IndexBatchSamplerWrapper):
             self._warning_cache.warn(

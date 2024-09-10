@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import lightning.pytorch as pl
-from lightning.fabric.utilities.warnings import PossibleUserWarning
-from lightning.pytorch.trainer.states import TrainerFn
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.rank_zero import rank_zero_deprecation, rank_zero_warn
-from lightning.pytorch.utilities.signature_utils import is_param_in_hook_signature
+import pytorch_lightning as pl
+from lightning_fabric.utilities.warnings import PossibleUserWarning
+from pytorch_lightning.trainer.states import TrainerFn
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.model_helpers import is_overridden
+from pytorch_lightning.utilities.rank_zero import rank_zero_deprecation, rank_zero_warn
+from pytorch_lightning.utilities.signature_utils import is_param_in_hook_signature
 
 
 def _verify_loop_configurations(trainer: "pl.Trainer") -> None:

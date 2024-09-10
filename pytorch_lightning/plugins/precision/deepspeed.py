@@ -21,15 +21,15 @@ from torch.nn import Module
 from torch.optim import LBFGS, Optimizer
 from typing_extensions import get_args, override
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins.precision.deepspeed import _PRECISION_INPUT
-from lightning.fabric.plugins.precision.utils import _convert_fp_tensor, _DtypeContextManager
-from lightning.fabric.utilities.types import Steppable
-from lightning.pytorch.plugins.precision.precision import Precision
-from lightning.pytorch.utilities import GradClipAlgorithmType
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.rank_zero import WarningCache
+import pytorch_lightning as pl
+from lightning_fabric.plugins.precision.deepspeed import _PRECISION_INPUT
+from lightning_fabric.plugins.precision.utils import _convert_fp_tensor, _DtypeContextManager
+from lightning_fabric.utilities.types import Steppable
+from pytorch_lightning.plugins.precision.precision import Precision
+from pytorch_lightning.utilities import GradClipAlgorithmType
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.model_helpers import is_overridden
+from pytorch_lightning.utilities.rank_zero import WarningCache
 
 if TYPE_CHECKING:
     import deepspeed

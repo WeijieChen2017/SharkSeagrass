@@ -17,11 +17,11 @@ import torch
 from lightning_utilities.core.imports import RequirementCache
 from typing_extensions import override
 
-from lightning.fabric.accelerators import _AcceleratorRegistry
-from lightning.fabric.accelerators.cpu import _parse_cpu_cores
-from lightning.fabric.utilities.types import _DEVICE
-from lightning.pytorch.accelerators.accelerator import Accelerator
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
+from lightning_fabric.accelerators import _AcceleratorRegistry
+from lightning_fabric.accelerators.cpu import _parse_cpu_cores
+from lightning_fabric.utilities.types import _DEVICE
+from pytorch_lightning.accelerators.accelerator import Accelerator
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 
 class CPUAccelerator(Accelerator):

@@ -24,11 +24,11 @@ from typing import Any, Dict
 
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks.callback import Callback
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.rank_zero import rank_zero_warn
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks.callback import Callback
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.model_helpers import is_overridden
+from pytorch_lightning.utilities.rank_zero import rank_zero_warn
 
 
 class GradientAccumulationScheduler(Callback):
@@ -54,8 +54,8 @@ class GradientAccumulationScheduler(Callback):
 
     Example::
 
-        >>> from lightning.pytorch import Trainer
-        >>> from lightning.pytorch.callbacks import GradientAccumulationScheduler
+        >>> from pytorch_lightning import Trainer
+        >>> from pytorch_lightning.callbacks import GradientAccumulationScheduler
 
         # from epoch 5, it starts accumulating every 2 batches. Here we have 4 instead of 5
         # because epoch (key) should be zero-indexed.
@@ -122,7 +122,7 @@ class GradientAccumulationScheduler(Callback):
             )
 
         # local import to avoid circular import
-        from lightning.pytorch.strategies import DeepSpeedStrategy
+        from pytorch_lightning.strategies import DeepSpeedStrategy
 
         if isinstance(trainer.strategy, DeepSpeedStrategy):
             raise RuntimeError(

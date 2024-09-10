@@ -17,11 +17,11 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union
 import torch
 from typing_extensions import override
 
-from lightning.fabric.plugins import Precision as FabricPrecision
-from lightning.fabric.utilities.throughput import Throughput, get_available_flops
-from lightning.fabric.utilities.throughput import _plugin_to_compute_dtype as fabric_plugin_to_compute_dtype
-from lightning.pytorch.callbacks import Callback
-from lightning.pytorch.plugins import (
+from lightning_fabric.plugins import Precision as FabricPrecision
+from lightning_fabric.utilities.throughput import Throughput, get_available_flops
+from lightning_fabric.utilities.throughput import _plugin_to_compute_dtype as fabric_plugin_to_compute_dtype
+from pytorch_lightning.callbacks import Callback
+from pytorch_lightning.plugins import (
     BitsandbytesPrecision,
     DeepSpeedPrecision,
     DoublePrecision,
@@ -32,15 +32,15 @@ from lightning.pytorch.plugins import (
     TransformerEnginePrecision,
     XLAPrecision,
 )
-from lightning.pytorch.trainer.states import RunningStage, TrainerFn
-from lightning.pytorch.utilities.rank_zero import rank_zero_only, rank_zero_warn
+from pytorch_lightning.trainer.states import RunningStage, TrainerFn
+from pytorch_lightning.utilities.rank_zero import rank_zero_only, rank_zero_warn
 
 if TYPE_CHECKING:
-    from lightning.pytorch import LightningModule, Trainer
+    from pytorch_lightning import LightningModule, Trainer
 
 
 class ThroughputMonitor(Callback):
-    r"""Computes and logs throughput with the :class:`~lightning.fabric.utilities.throughput.Throughput`
+    r"""Computes and logs throughput with the :class:`~lightning_fabric.utilities.throughput.Throughput`
 
     Example::
 
@@ -65,14 +65,14 @@ class ThroughputMonitor(Callback):
     Notes:
         - It assumes that the batch size is the same during all iterations.
         - It will try to access a ``flops_per_batch`` attribute on your ``LightningModule`` on every iteration.
-          We suggest using the :func:`~lightning.fabric.utilities.throughput.measure_flops` function for this.
+          We suggest using the :func:`~lightning_fabric.utilities.throughput.measure_flops` function for this.
           You might want to compute it differently each time based on your setup.
 
     Args:
         batch_size_fn: A function to compute the number of samples given a batch.
         length_fn: A function to compute the number of items in a sample given a batch.
         \**kwargs: See available parameters in
-            :class:`~lightning.fabric.utilities.throughput.Throughput`
+            :class:`~lightning_fabric.utilities.throughput.Throughput`
 
     """
 

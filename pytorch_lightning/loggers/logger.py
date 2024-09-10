@@ -22,10 +22,10 @@ from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 
 from typing_extensions import override
 
-from lightning.fabric.loggers import Logger as FabricLogger
-from lightning.fabric.loggers.logger import _DummyExperiment as DummyExperiment  # for backward compatibility
-from lightning.fabric.loggers.logger import rank_zero_experiment  # noqa: F401  # for backward compatibility
-from lightning.pytorch.callbacks.model_checkpoint import ModelCheckpoint
+from lightning_fabric.loggers import Logger as FabricLogger
+from lightning_fabric.loggers.logger import _DummyExperiment as DummyExperiment  # for backward compatibility
+from lightning_fabric.loggers.logger import rank_zero_experiment  # noqa: F401  # for backward compatibility
+from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 
 
 class Logger(FabricLogger, ABC):

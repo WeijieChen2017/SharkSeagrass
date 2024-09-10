@@ -13,16 +13,16 @@
 # limitations under the License.
 import re
 
-from lightning.fabric.utilities.exceptions import MisconfigurationException  # noqa: F401
+from lightning_fabric.utilities.exceptions import MisconfigurationException  # noqa: F401
 
 
 class SIGTERMException(SystemExit):
     """Exception used when a :class:`signal.SIGTERM` is sent to a process.
 
     This exception is raised by the loops at specific points. It can be used to write custom logic in the
-    :meth:`lightning.pytorch.callbacks.callback.Callback.on_exception` method.
+    :meth:`pytorch_lightning.callbacks.callback.Callback.on_exception` method.
 
-    For example, you could use the :class:`lightning.pytorch.callbacks.fault_tolerance.OnExceptionCheckpoint` callback
+    For example, you could use the :class:`pytorch_lightning.callbacks.fault_tolerance.OnExceptionCheckpoint` callback
     that saves a checkpoint for you when this exception is raised.
 
     """

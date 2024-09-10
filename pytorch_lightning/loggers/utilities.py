@@ -18,8 +18,8 @@ from typing import Any, List, Tuple, Union
 
 from torch import Tensor
 
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks import Checkpoint
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks import Checkpoint
 
 
 def _version(loggers: List[Any], separator: str = "_") -> Union[int, str]:

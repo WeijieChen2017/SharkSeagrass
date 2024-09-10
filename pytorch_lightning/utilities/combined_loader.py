@@ -18,9 +18,9 @@ from typing import Any, Callable, Dict, Iterator, List, Literal, Optional, Tuple
 from torch.utils.data.dataloader import _BaseDataLoaderIter, _MultiProcessingDataLoaderIter
 from typing_extensions import Self, TypedDict, override
 
-from lightning.fabric.utilities.data import sized_len
-from lightning.fabric.utilities.types import _Stateful
-from lightning.pytorch.utilities._pytree import _map_and_unflatten, _tree_flatten, tree_unflatten
+from lightning_fabric.utilities.data import sized_len
+from lightning_fabric.utilities.types import _Stateful
+from pytorch_lightning.utilities._pytree import _map_and_unflatten, _tree_flatten, tree_unflatten
 
 _ITERATOR_RETURN = Tuple[Any, int, int]  # batch, batch_idx, dataloader_idx
 

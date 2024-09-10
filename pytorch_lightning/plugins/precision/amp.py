@@ -17,13 +17,13 @@ from torch import Tensor
 from torch.optim import LBFGS, Optimizer
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins.precision.amp import _optimizer_handles_unscaling
-from lightning.fabric.utilities.imports import _TORCH_GREATER_EQUAL_2_4
-from lightning.fabric.utilities.types import Optimizable
-from lightning.pytorch.plugins.precision.precision import Precision
-from lightning.pytorch.utilities import GradClipAlgorithmType
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
+import pytorch_lightning as pl
+from lightning_fabric.plugins.precision.amp import _optimizer_handles_unscaling
+from lightning_fabric.utilities.imports import _TORCH_GREATER_EQUAL_2_4
+from lightning_fabric.utilities.types import Optimizable
+from pytorch_lightning.plugins.precision.precision import Precision
+from pytorch_lightning.utilities import GradClipAlgorithmType
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 
 class MixedPrecision(Precision):

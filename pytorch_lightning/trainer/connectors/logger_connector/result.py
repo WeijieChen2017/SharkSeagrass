@@ -21,15 +21,15 @@ from torch import Tensor
 from torchmetrics import Metric
 from typing_extensions import TypedDict, override
 
-from lightning.fabric.utilities import move_data_to_device
-from lightning.fabric.utilities.apply_func import convert_tensors_to_scalars
-from lightning.fabric.utilities.distributed import _distributed_is_initialized
-from lightning.pytorch.utilities.data import extract_batch_size
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.imports import _TORCHMETRICS_GREATER_EQUAL_1_0_0
-from lightning.pytorch.utilities.memory import recursive_detach
-from lightning.pytorch.utilities.rank_zero import WarningCache, rank_zero_warn
-from lightning.pytorch.utilities.warnings import PossibleUserWarning
+from lightning_fabric.utilities import move_data_to_device
+from lightning_fabric.utilities.apply_func import convert_tensors_to_scalars
+from lightning_fabric.utilities.distributed import _distributed_is_initialized
+from pytorch_lightning.utilities.data import extract_batch_size
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.imports import _TORCHMETRICS_GREATER_EQUAL_1_0_0
+from pytorch_lightning.utilities.memory import recursive_detach
+from pytorch_lightning.utilities.rank_zero import WarningCache, rank_zero_warn
+from pytorch_lightning.utilities.warnings import PossibleUserWarning
 
 _VALUE = Union[Metric, Tensor]  # Do not include scalars as they were converted to tensors
 _OUT_DICT = Dict[str, Tensor]
@@ -181,7 +181,7 @@ class _Metadata:
 
 
 class _ResultMetric(Metric):
-    """Wraps the value provided to `:meth:`~lightning.pytorch.core.LightningModule.log`"""
+    """Wraps the value provided to `:meth:`~pytorch_lightning.core.LightningModule.log`"""
 
     def __init__(self, metadata: _Metadata, is_tensor: bool) -> None:
         super().__init__()
@@ -310,7 +310,7 @@ class _ResultMetric(Metric):
 
 
 class _ResultCollection(dict):
-    """Collection (dictionary) of :class:`~lightning.pytorch.trainer.connectors.logger_connector.result._ResultMetric`
+    """Collection (dictionary) of :class:`~pytorch_lightning.trainer.connectors.logger_connector.result._ResultMetric`
 
     Example::
 
@@ -371,7 +371,7 @@ class _ResultCollection(dict):
         metric_attribute: Optional[str] = None,
         rank_zero_only: bool = False,
     ) -> None:
-        """See :meth:`~lightning.pytorch.core.LightningModule.log`"""
+        """See :meth:`~pytorch_lightning.core.LightningModule.log`"""
         # no metrics should be logged with graphs
         if not enable_graph:
             value = recursive_detach(value)

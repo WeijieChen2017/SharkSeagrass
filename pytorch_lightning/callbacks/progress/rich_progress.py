@@ -19,9 +19,9 @@ from typing import Any, Dict, Generator, Optional, Union, cast
 from lightning_utilities.core.imports import RequirementCache
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks.progress.progress_bar import ProgressBar
-from lightning.pytorch.utilities.types import STEP_OUTPUT
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks.progress.progress_bar import ProgressBar
+from pytorch_lightning.utilities.types import STEP_OUTPUT
 
 _RICH_AVAILABLE = RequirementCache("rich>=10.2.2")
 
@@ -229,8 +229,8 @@ class RichProgressBar(ProgressBar):
 
     .. code-block:: python
 
-        from lightning.pytorch import Trainer
-        from lightning.pytorch.callbacks import RichProgressBar
+        from pytorch_lightning import Trainer
+        from pytorch_lightning.callbacks import RichProgressBar
 
         trainer = Trainer(callbacks=RichProgressBar())
 

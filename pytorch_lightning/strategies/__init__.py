@@ -13,17 +13,17 @@
 # limitations under the License.
 import sys
 
-from lightning.fabric.strategies.registry import _StrategyRegistry
-from lightning.fabric.utilities.registry import _register_classes
-from lightning.pytorch.strategies.ddp import DDPStrategy
-from lightning.pytorch.strategies.deepspeed import DeepSpeedStrategy
-from lightning.pytorch.strategies.fsdp import FSDPStrategy
-from lightning.pytorch.strategies.model_parallel import ModelParallelStrategy
-from lightning.pytorch.strategies.parallel import ParallelStrategy
-from lightning.pytorch.strategies.single_device import SingleDeviceStrategy
-from lightning.pytorch.strategies.single_xla import SingleDeviceXLAStrategy  # noqa: F401
-from lightning.pytorch.strategies.strategy import Strategy
-from lightning.pytorch.strategies.xla import XLAStrategy  # noqa: F401
+from lightning_fabric.strategies.registry import _StrategyRegistry
+from lightning_fabric.utilities.registry import _register_classes
+from pytorch_lightning.strategies.ddp import DDPStrategy
+from pytorch_lightning.strategies.deepspeed import DeepSpeedStrategy
+from pytorch_lightning.strategies.fsdp import FSDPStrategy
+from pytorch_lightning.strategies.model_parallel import ModelParallelStrategy
+from pytorch_lightning.strategies.parallel import ParallelStrategy
+from pytorch_lightning.strategies.single_device import SingleDeviceStrategy
+from pytorch_lightning.strategies.single_xla import SingleDeviceXLAStrategy  # noqa: F401
+from pytorch_lightning.strategies.strategy import Strategy
+from pytorch_lightning.strategies.xla import XLAStrategy  # noqa: F401
 
 StrategyRegistry = _StrategyRegistry()
 _register_classes(StrategyRegistry, "register_strategies", sys.modules[__name__], Strategy)

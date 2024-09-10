@@ -12,14 +12,14 @@
 # limitations under the License.
 import sys
 
-from lightning.fabric.accelerators import find_usable_cuda_devices  # noqa: F401
-from lightning.fabric.accelerators.registry import _AcceleratorRegistry
-from lightning.fabric.utilities.registry import _register_classes
-from lightning.pytorch.accelerators.accelerator import Accelerator
-from lightning.pytorch.accelerators.cpu import CPUAccelerator  # noqa: F401
-from lightning.pytorch.accelerators.cuda import CUDAAccelerator  # noqa: F401
-from lightning.pytorch.accelerators.mps import MPSAccelerator  # noqa: F401
-from lightning.pytorch.accelerators.xla import XLAAccelerator  # noqa: F401
+from lightning_fabric.accelerators import find_usable_cuda_devices  # noqa: F401
+from lightning_fabric.accelerators.registry import _AcceleratorRegistry
+from lightning_fabric.utilities.registry import _register_classes
+from pytorch_lightning.accelerators.accelerator import Accelerator
+from pytorch_lightning.accelerators.cpu import CPUAccelerator  # noqa: F401
+from pytorch_lightning.accelerators.cuda import CUDAAccelerator  # noqa: F401
+from pytorch_lightning.accelerators.mps import MPSAccelerator  # noqa: F401
+from pytorch_lightning.accelerators.xla import XLAAccelerator  # noqa: F401
 
 AcceleratorRegistry = _AcceleratorRegistry()
 _register_classes(AcceleratorRegistry, "register_accelerators", sys.modules[__name__], Accelerator)

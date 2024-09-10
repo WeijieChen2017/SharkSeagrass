@@ -15,7 +15,7 @@ from typing import Any, Dict, Optional
 
 from typing_extensions import override
 
-from lightning.fabric.plugins import CheckpointIO
+from lightning_fabric.plugins import CheckpointIO
 
 
 class _WrappingCheckpointIO(CheckpointIO):

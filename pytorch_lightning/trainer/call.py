@@ -18,15 +18,15 @@ from typing import Any, Callable, Dict, Optional, Type, Union
 
 from packaging.version import Version
 
-import lightning.pytorch as pl
-from lightning.fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
-from lightning.pytorch.callbacks import Checkpoint, EarlyStopping
-from lightning.pytorch.strategies.launchers import _SubprocessScriptLauncher
-from lightning.pytorch.trainer.connectors.signal_connector import _get_sigkill_signal
-from lightning.pytorch.trainer.states import TrainerStatus
-from lightning.pytorch.utilities.exceptions import _TunerExitException
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.rank_zero import rank_zero_info, rank_zero_warn
+import pytorch_lightning as pl
+from lightning_fabric.utilities.device_dtype_mixin import _DeviceDtypeModuleMixin
+from pytorch_lightning.callbacks import Checkpoint, EarlyStopping
+from pytorch_lightning.strategies.launchers import _SubprocessScriptLauncher
+from pytorch_lightning.trainer.connectors.signal_connector import _get_sigkill_signal
+from pytorch_lightning.trainer.states import TrainerStatus
+from pytorch_lightning.utilities.exceptions import _TunerExitException
+from pytorch_lightning.utilities.model_helpers import is_overridden
+from pytorch_lightning.utilities.rank_zero import rank_zero_info, rank_zero_warn
 
 log = logging.getLogger(__name__)
 

@@ -28,11 +28,11 @@ import torch
 from torch.optim.optimizer import Optimizer
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks.callback import Callback
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.rank_zero import rank_zero_warn
-from lightning.pytorch.utilities.types import LRSchedulerConfig
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks.callback import Callback
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.rank_zero import rank_zero_warn
+from pytorch_lightning.utilities.types import LRSchedulerConfig
 
 
 class LearningRateMonitor(Callback):
@@ -53,8 +53,8 @@ class LearningRateMonitor(Callback):
 
     Example::
 
-        >>> from lightning.pytorch import Trainer
-        >>> from lightning.pytorch.callbacks import LearningRateMonitor
+        >>> from pytorch_lightning import Trainer
+        >>> from pytorch_lightning.callbacks import LearningRateMonitor
         >>> lr_monitor = LearningRateMonitor(logging_interval='step')
         >>> trainer = Trainer(callbacks=[lr_monitor])
 

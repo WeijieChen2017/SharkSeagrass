@@ -21,19 +21,19 @@ from fsspec.core import url_to_fs
 from fsspec.implementations.local import LocalFileSystem
 from torch import Tensor
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins.environments.slurm import SLURMEnvironment
-from lightning.fabric.utilities.cloud_io import _is_dir, get_filesystem
-from lightning.fabric.utilities.types import _PATH
-from lightning.pytorch.callbacks import ModelCheckpoint
-from lightning.pytorch.plugins.precision import MixedPrecision
-from lightning.pytorch.trainer import call
-from lightning.pytorch.trainer.states import TrainerFn
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.imports import _OMEGACONF_AVAILABLE
-from lightning.pytorch.utilities.migration import pl_legacy_patch
-from lightning.pytorch.utilities.migration.utils import _pl_migrate_checkpoint
-from lightning.pytorch.utilities.rank_zero import rank_zero_info, rank_zero_warn
+import pytorch_lightning as pl
+from lightning_fabric.plugins.environments.slurm import SLURMEnvironment
+from lightning_fabric.utilities.cloud_io import _is_dir, get_filesystem
+from lightning_fabric.utilities.types import _PATH
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.plugins.precision import MixedPrecision
+from pytorch_lightning.trainer import call
+from pytorch_lightning.trainer.states import TrainerFn
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.imports import _OMEGACONF_AVAILABLE
+from pytorch_lightning.utilities.migration import pl_legacy_patch
+from pytorch_lightning.utilities.migration.utils import _pl_migrate_checkpoint
+from pytorch_lightning.utilities.rank_zero import rank_zero_info, rank_zero_warn
 
 log = logging.getLogger(__name__)
 
@@ -117,7 +117,7 @@ class _CheckpointConnector:
         if ckpt_path is None and SLURMEnvironment.detect() and self._hpc_resume_path is not None:
             ckpt_path = "hpc"
 
-        from lightning.pytorch.callbacks.on_exception_checkpoint import OnExceptionCheckpoint
+        from pytorch_lightning.callbacks.on_exception_checkpoint import OnExceptionCheckpoint
 
         ft_checkpoints = [cb for cb in self.trainer.callbacks if isinstance(cb, OnExceptionCheckpoint)]
         fn = state_fn.value

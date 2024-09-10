@@ -26,10 +26,10 @@ import torch
 from torch import Tensor
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks.callback import Callback
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.rank_zero import rank_prefixed_message, rank_zero_warn
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks.callback import Callback
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.rank_zero import rank_prefixed_message, rank_zero_warn
 
 log = logging.getLogger(__name__)
 
@@ -73,8 +73,8 @@ class EarlyStopping(Callback):
 
     Example::
 
-        >>> from lightning.pytorch import Trainer
-        >>> from lightning.pytorch.callbacks import EarlyStopping
+        >>> from pytorch_lightning import Trainer
+        >>> from pytorch_lightning.callbacks import EarlyStopping
         >>> early_stopping = EarlyStopping('val_loss')
         >>> trainer = Trainer(callbacks=[early_stopping])
 
@@ -179,7 +179,7 @@ class EarlyStopping(Callback):
         self.patience = state_dict["patience"]
 
     def _should_skip_check(self, trainer: "pl.Trainer") -> bool:
-        from lightning.pytorch.trainer.states import TrainerFn
+        from pytorch_lightning.trainer.states import TrainerFn
 
         return trainer.state.fn != TrainerFn.FITTING or trainer.sanity_checking
 

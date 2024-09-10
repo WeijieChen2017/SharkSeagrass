@@ -16,9 +16,9 @@ from typing import Union
 import torch
 from torch._dynamo import OptimizedModule
 
-import lightning.pytorch as pl
-from lightning.pytorch.strategies import DDPStrategy, DeepSpeedStrategy, FSDPStrategy, SingleDeviceStrategy, Strategy
-from lightning.pytorch.utilities.model_helpers import _check_mixed_imports
+import pytorch_lightning as pl
+from pytorch_lightning.strategies import DDPStrategy, DeepSpeedStrategy, FSDPStrategy, SingleDeviceStrategy, Strategy
+from pytorch_lightning.utilities.model_helpers import _check_mixed_imports
 
 
 def from_compiled(model: OptimizedModule) -> "pl.LightningModule":

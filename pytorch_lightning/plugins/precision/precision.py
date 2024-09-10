@@ -21,12 +21,12 @@ from torch.nn import Module
 from torch.optim import Optimizer
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins import Precision as FabricPrecision
-from lightning.fabric.utilities.types import Steppable
-from lightning.pytorch.core.hooks import CheckpointHooks
-from lightning.pytorch.trainer import call
-from lightning.pytorch.utilities import GradClipAlgorithmType
+import pytorch_lightning as pl
+from lightning_fabric.plugins import Precision as FabricPrecision
+from lightning_fabric.utilities.types import Steppable
+from pytorch_lightning.core.hooks import CheckpointHooks
+from pytorch_lightning.trainer import call
+from pytorch_lightning.utilities import GradClipAlgorithmType
 
 
 class Precision(FabricPrecision, CheckpointHooks):

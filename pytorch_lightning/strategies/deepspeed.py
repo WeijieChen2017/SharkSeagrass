@@ -27,28 +27,28 @@ from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler, ReduceLROnPlateau
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins import ClusterEnvironment
-from lightning.fabric.strategies import _StrategyRegistry
-from lightning.fabric.strategies.deepspeed import (
+import pytorch_lightning as pl
+from lightning_fabric.plugins import ClusterEnvironment
+from lightning_fabric.strategies import _StrategyRegistry
+from lightning_fabric.strategies.deepspeed import (
     _DEEPSPEED_AVAILABLE,
     _format_precision_config,
     _validate_checkpoint_directory,
     _validate_device_index_selection,
 )
-from lightning.fabric.utilities.optimizer import _optimizers_to_device
-from lightning.fabric.utilities.seed import reset_seed
-from lightning.fabric.utilities.types import _PATH
-from lightning.pytorch.accelerators.cuda import CUDAAccelerator
-from lightning.pytorch.core.optimizer import _init_optimizers_and_lr_schedulers
-from lightning.pytorch.plugins.precision import Precision
-from lightning.pytorch.strategies.ddp import DDPStrategy
-from lightning.pytorch.trainer.states import TrainerFn
-from lightning.pytorch.utilities import GradClipAlgorithmType
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.rank_zero import WarningCache, rank_zero_info, rank_zero_warn
-from lightning.pytorch.utilities.types import LRSchedulerConfig
+from lightning_fabric.utilities.optimizer import _optimizers_to_device
+from lightning_fabric.utilities.seed import reset_seed
+from lightning_fabric.utilities.types import _PATH
+from pytorch_lightning.accelerators.cuda import CUDAAccelerator
+from pytorch_lightning.core.optimizer import _init_optimizers_and_lr_schedulers
+from pytorch_lightning.plugins.precision import Precision
+from pytorch_lightning.strategies.ddp import DDPStrategy
+from pytorch_lightning.trainer.states import TrainerFn
+from pytorch_lightning.utilities import GradClipAlgorithmType
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.model_helpers import is_overridden
+from pytorch_lightning.utilities.rank_zero import WarningCache, rank_zero_info, rank_zero_warn
+from pytorch_lightning.utilities.types import LRSchedulerConfig
 
 log = logging.getLogger(__name__)
 warning_cache = WarningCache()
@@ -657,7 +657,7 @@ class DeepSpeedStrategy(DDPStrategy):
         # Rely on deepspeed to load the checkpoint and necessary information
         assert self.lightning_module is not None
 
-        from lightning.pytorch.trainer.states import TrainerFn
+        from pytorch_lightning.trainer.states import TrainerFn
 
         is_fitting = self.lightning_module.trainer.state.fn == TrainerFn.FITTING
 

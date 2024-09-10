@@ -17,17 +17,17 @@ from typing import Optional, Union
 import torch
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.fabric.accelerators.xla import _XLA_AVAILABLE
-from lightning.fabric.plugins import XLACheckpointIO
-from lightning.fabric.strategies import _StrategyRegistry
-from lightning.fabric.utilities.optimizer import _optimizers_to_device
-from lightning.fabric.utilities.types import _DEVICE
-from lightning.pytorch.plugins.io.wrapper import _WrappingCheckpointIO
-from lightning.pytorch.plugins.precision.xla import XLAPrecision
-from lightning.pytorch.strategies.single_device import SingleDeviceStrategy
-from lightning.pytorch.trainer.states import TrainerFn
-from lightning.pytorch.utilities import find_shared_parameters, set_shared_parameters
+import pytorch_lightning as pl
+from lightning_fabric.accelerators.xla import _XLA_AVAILABLE
+from lightning_fabric.plugins import XLACheckpointIO
+from lightning_fabric.strategies import _StrategyRegistry
+from lightning_fabric.utilities.optimizer import _optimizers_to_device
+from lightning_fabric.utilities.types import _DEVICE
+from pytorch_lightning.plugins.io.wrapper import _WrappingCheckpointIO
+from pytorch_lightning.plugins.precision.xla import XLAPrecision
+from pytorch_lightning.strategies.single_device import SingleDeviceStrategy
+from pytorch_lightning.trainer.states import TrainerFn
+from pytorch_lightning.utilities import find_shared_parameters, set_shared_parameters
 
 
 class SingleDeviceXLAStrategy(SingleDeviceStrategy):
