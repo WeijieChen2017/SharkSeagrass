@@ -59,21 +59,21 @@ def main():
 
     data_loader_params = {
         "train": {
-            "batch_size": 4,
+            "batch_size": 1,
             "shuffle": True,
             "num_workers_cache": 4,
             "num_workers_loader": 8,
             "cache_rate": 1.0,
         },
         "val": {
-            "batch_size": 4,
+            "batch_size": 1,
             "shuffle": False,
             "num_workers_cache": 2,
             "num_workers_loader": 4,
             "cache_rate": 1.0,
         },
         "test": {
-            "batch_size": 4,
+            "batch_size": 1,
             "shuffle": False,
             "num_workers_cache": 1,
             "num_workers_loader": 2,
