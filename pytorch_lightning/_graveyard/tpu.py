@@ -15,27 +15,27 @@
 import sys
 from typing import Any
 
-import lightning.pytorch as pl
-from lightning.fabric.strategies import _StrategyRegistry
-from lightning.pytorch.accelerators.xla import XLAAccelerator
-from lightning.pytorch.plugins.precision import XLAPrecision
-from lightning.pytorch.strategies.single_xla import SingleDeviceXLAStrategy
-from lightning.pytorch.utilities.rank_zero import rank_zero_deprecation
+import pytorch_lightning as pl
+from lightning_fabric.strategies import _StrategyRegistry
+from pytorch_lightning.accelerators.xla import XLAAccelerator
+from pytorch_lightning.plugins.precision import XLAPrecision
+from pytorch_lightning.strategies.single_xla import SingleDeviceXLAStrategy
+from pytorch_lightning.utilities.rank_zero import rank_zero_deprecation
 
 
 def _patch_sys_modules() -> None:
     self = sys.modules[__name__]
-    sys.modules["lightning.pytorch.strategies.single_tpu"] = self
-    sys.modules["lightning.pytorch.accelerators.tpu"] = self
-    sys.modules["lightning.pytorch.plugins.precision.tpu"] = self
-    sys.modules["lightning.pytorch.plugins.precision.tpu_bf16"] = self
-    sys.modules["lightning.pytorch.plugins.precision.xlabf16"] = self
+    sys.modules["pytorch_lightning.strategies.single_tpu"] = self
+    sys.modules["pytorch_lightning.accelerators.tpu"] = self
+    sys.modules["pytorch_lightning.plugins.precision.tpu"] = self
+    sys.modules["pytorch_lightning.plugins.precision.tpu_bf16"] = self
+    sys.modules["pytorch_lightning.plugins.precision.xlabf16"] = self
 
 
 class SingleTPUStrategy(SingleDeviceXLAStrategy):
     """Legacy class.
 
-    Use :class:`~lightning.pytorch.strategies.single_xla.SingleDeviceXLAStrategy` instead.
+    Use :class:`~pytorch_lightning.strategies.single_xla.SingleDeviceXLAStrategy` instead.
 
     """
 
@@ -52,13 +52,13 @@ class SingleTPUStrategy(SingleDeviceXLAStrategy):
 class TPUAccelerator(XLAAccelerator):
     """Legacy class.
 
-    Use :class:`~lightning.pytorch.accelerators.xla.XLAAccelerator` instead.
+    Use :class:`~pytorch_lightning.accelerators.xla.XLAAccelerator` instead.
 
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         rank_zero_deprecation(
-            "The `TPUAccelerator` class is deprecated. Use `lightning.pytorch.accelerators.XLAAccelerator` instead."
+            "The `TPUAccelerator` class is deprecated. Use `pytorch_lightning.accelerators.XLAAccelerator` instead."
         )
         super().__init__(*args, **kwargs)
 
@@ -66,13 +66,13 @@ class TPUAccelerator(XLAAccelerator):
 class TPUPrecisionPlugin(XLAPrecision):
     """Legacy class.
 
-    Use :class:`~lightning.pytorch.plugins.precision.xla.XLAPrecision` instead.
+    Use :class:`~pytorch_lightning.plugins.precision.xla.XLAPrecision` instead.
 
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         rank_zero_deprecation(
-            "The `TPUPrecisionPlugin` class is deprecated. Use `lightning.pytorch.plugins.precision.XLAPrecision`"
+            "The `TPUPrecisionPlugin` class is deprecated. Use `pytorch_lightning.plugins.precision.XLAPrecision`"
             " instead."
         )
         super().__init__(precision="32-true")
@@ -81,14 +81,14 @@ class TPUPrecisionPlugin(XLAPrecision):
 class TPUBf16PrecisionPlugin(XLAPrecision):
     """Legacy class.
 
-    Use :class:`~lightning.pytorch.plugins.precision.xlabf16.XLAPrecision` instead.
+    Use :class:`~pytorch_lightning.plugins.precision.xlabf16.XLAPrecision` instead.
 
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         rank_zero_deprecation(
             "The `TPUBf16PrecisionPlugin` class is deprecated. Use"
-            " `lightning.pytorch.plugins.precision.XLAPrecision` instead."
+            " `pytorch_lightning.plugins.precision.XLAPrecision` instead."
         )
         super().__init__(precision="bf16-true")
 
@@ -96,14 +96,14 @@ class TPUBf16PrecisionPlugin(XLAPrecision):
 class XLABf16PrecisionPlugin(XLAPrecision):
     """Legacy class.
 
-    Use :class:`~lightning.pytorch.plugins.precision.xlabf16.XLAPrecision` instead.
+    Use :class:`~pytorch_lightning.plugins.precision.xlabf16.XLAPrecision` instead.
 
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         rank_zero_deprecation(
             "The `XLABf16PrecisionPlugin` class is deprecated. Use"
-            " `lightning.pytorch.plugins.precision.XLAPrecision` instead."
+            " `pytorch_lightning.plugins.precision.XLAPrecision` instead."
         )
         super().__init__(precision="bf16-true")
 

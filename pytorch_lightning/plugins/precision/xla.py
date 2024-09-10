@@ -18,12 +18,12 @@ from typing import Any, Callable
 import torch
 from typing_extensions import get_args, override
 
-import lightning.pytorch as pl
-from lightning.fabric.accelerators.xla import _XLA_AVAILABLE
-from lightning.fabric.plugins.precision.xla import _PRECISION_INPUT
-from lightning.fabric.utilities.types import Optimizable
-from lightning.pytorch.plugins.precision.precision import Precision
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
+import pytorch_lightning as pl
+from lightning_fabric.accelerators.xla import _XLA_AVAILABLE
+from lightning_fabric.plugins.precision.xla import _PRECISION_INPUT
+from lightning_fabric.utilities.types import Optimizable
+from pytorch_lightning.plugins.precision.precision import Precision
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 
 class XLAPrecision(Precision):

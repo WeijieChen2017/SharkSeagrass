@@ -14,7 +14,7 @@
 """Contains migration functions to upgrade legacy checkpoints to the format of the current Lightning version.
 
 When Lightning loads a checkpoint, these migrations will be applied on the loaded checkpoint dictionary sequentially,
-see :func:`~lightning.pytorch.utilities.migration.utils.migrate_checkpoint`.
+see :func:`~pytorch_lightning.utilities.migration.utils.migrate_checkpoint`.
 
 For the Lightning developer: How to add a new migration?
 
@@ -26,17 +26,17 @@ For the Lightning developer: How to add a new migration?
 3. You can test the migration on a checkpoint (backup your files first) by running:
 
    cp model.ckpt model.ckpt.backup
-   python -m lightning.pytorch.utilities.upgrade_checkpoint model.ckpt
+   python -m pytorch_lightning.utilities.upgrade_checkpoint model.ckpt
 
 """
 
 import re
 from typing import Any, Callable, Dict, List
 
-from lightning.fabric.utilities.warnings import PossibleUserWarning
-from lightning.pytorch.callbacks.early_stopping import EarlyStopping
-from lightning.pytorch.callbacks.model_checkpoint import ModelCheckpoint
-from lightning.pytorch.utilities.rank_zero import rank_zero_warn
+from lightning_fabric.utilities.warnings import PossibleUserWarning
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
+from pytorch_lightning.utilities.rank_zero import rank_zero_warn
 
 _CHECKPOINT = Dict[str, Any]
 

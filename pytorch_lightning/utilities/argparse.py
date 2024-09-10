@@ -29,7 +29,7 @@ def _parse_env_variables(cls: Type, template: str = "PL_%(cls_name)s_%(cls_argum
 
     Examples:
 
-        >>> from lightning.pytorch import Trainer
+        >>> from pytorch_lightning import Trainer
         >>> _parse_env_variables(Trainer)
         Namespace()
         >>> import os

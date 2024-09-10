@@ -16,8 +16,8 @@ from typing import Dict
 
 from typing_extensions import override
 
-from lightning.fabric.accelerators.xla import _XLA_AVAILABLE
-from lightning.pytorch.profilers.profiler import Profiler
+from lightning_fabric.accelerators.xla import _XLA_AVAILABLE
+from pytorch_lightning.profilers.profiler import Profiler
 
 log = logging.getLogger(__name__)
 

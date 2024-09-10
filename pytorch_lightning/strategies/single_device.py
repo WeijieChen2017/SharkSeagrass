@@ -19,12 +19,12 @@ import torch
 from torch import Tensor
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins import CheckpointIO
-from lightning.fabric.strategies import _StrategyRegistry
-from lightning.fabric.utilities.types import _DEVICE
-from lightning.pytorch.plugins.precision import Precision
-from lightning.pytorch.strategies.strategy import Strategy, TBroadcast
+import pytorch_lightning as pl
+from lightning_fabric.plugins import CheckpointIO
+from lightning_fabric.strategies import _StrategyRegistry
+from lightning_fabric.utilities.types import _DEVICE
+from pytorch_lightning.plugins.precision import Precision
+from pytorch_lightning.strategies.strategy import Strategy, TBroadcast
 
 
 class SingleDeviceStrategy(Strategy):

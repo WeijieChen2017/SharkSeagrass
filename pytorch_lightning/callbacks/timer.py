@@ -24,12 +24,12 @@ from typing import Any, Dict, Optional, Union
 
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks.callback import Callback
-from lightning.pytorch.trainer.states import RunningStage
-from lightning.pytorch.utilities import LightningEnum
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.rank_zero import rank_zero_info
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks.callback import Callback
+from pytorch_lightning.trainer.states import RunningStage
+from pytorch_lightning.utilities import LightningEnum
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.rank_zero import rank_zero_info
 
 log = logging.getLogger(__name__)
 
@@ -58,8 +58,8 @@ class Timer(Callback):
 
     Example::
 
-        from lightning.pytorch import Trainer
-        from lightning.pytorch.callbacks import Timer
+        from pytorch_lightning import Trainer
+        from pytorch_lightning.callbacks import Timer
 
         # stop training after 12 hours
         timer = Timer(duration="00:12:00:00")

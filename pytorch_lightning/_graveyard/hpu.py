@@ -1,16 +1,16 @@
 import sys
 from typing import Any
 
-import lightning.pytorch as pl
+import pytorch_lightning as pl
 
 
 def _patch_sys_modules() -> None:
     self = sys.modules[__name__]
-    sys.modules["lightning.pytorch.accelerators.hpu"] = self
-    sys.modules["lightning.pytorch.strategies.hpu_parallel"] = self
-    sys.modules["lightning.pytorch.strategies.single_hpu"] = self
-    sys.modules["lightning.pytorch.plugins.io.hpu_plugin"] = self
-    sys.modules["lightning.pytorch.plugins.precision.hpu"] = self
+    sys.modules["pytorch_lightning.accelerators.hpu"] = self
+    sys.modules["pytorch_lightning.strategies.hpu_parallel"] = self
+    sys.modules["pytorch_lightning.strategies.single_hpu"] = self
+    sys.modules["pytorch_lightning.plugins.io.hpu_plugin"] = self
+    sys.modules["pytorch_lightning.plugins.precision.hpu"] = self
 
 
 class HPUAccelerator:

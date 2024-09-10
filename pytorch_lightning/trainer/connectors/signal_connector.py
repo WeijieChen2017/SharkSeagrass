@@ -7,10 +7,10 @@ from subprocess import call
 from types import FrameType
 from typing import Any, Callable, Dict, List, Set, Union
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins.environments import SLURMEnvironment
-from lightning.fabric.utilities.imports import _IS_WINDOWS
-from lightning.pytorch.utilities.rank_zero import rank_prefixed_message, rank_zero_info
+import pytorch_lightning as pl
+from lightning_fabric.plugins.environments import SLURMEnvironment
+from lightning_fabric.utilities.imports import _IS_WINDOWS
+from pytorch_lightning.utilities.rank_zero import rank_prefixed_message, rank_zero_info
 
 # copied from signal.pyi
 _SIGNUM = Union[int, signal.Signals]

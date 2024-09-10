@@ -21,19 +21,19 @@ Create a simple callback on the fly using lambda functions.
 
 from typing import Callable, Optional
 
-from lightning.pytorch.callbacks.callback import Callback
+from pytorch_lightning.callbacks.callback import Callback
 
 
 class LambdaCallback(Callback):
     r"""Create a simple callback on the fly using lambda functions.
 
     Args:
-        **kwargs: hooks supported by :class:`~lightning.pytorch.callbacks.callback.Callback`
+        **kwargs: hooks supported by :class:`~pytorch_lightning.callbacks.callback.Callback`
 
     Example::
 
-        >>> from lightning.pytorch import Trainer
-        >>> from lightning.pytorch.callbacks import LambdaCallback
+        >>> from pytorch_lightning import Trainer
+        >>> from pytorch_lightning.callbacks import LambdaCallback
         >>> trainer = Trainer(callbacks=[LambdaCallback(setup=lambda *args: print('setup'))])
 
     """

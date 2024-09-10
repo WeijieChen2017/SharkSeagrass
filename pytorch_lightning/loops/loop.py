@@ -13,8 +13,8 @@
 # limitations under the License.
 from typing import Dict, Optional
 
-import lightning.pytorch as pl
-from lightning.pytorch.loops.progress import _BaseProgress
+import pytorch_lightning as pl
+from pytorch_lightning.loops.progress import _BaseProgress
 
 
 class _Loop:

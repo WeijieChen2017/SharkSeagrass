@@ -23,34 +23,34 @@ from torch import Tensor
 from torch.optim import Optimizer
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins.collectives.torch_collective import default_pg_timeout
-from lightning.fabric.strategies.model_parallel import (
+import pytorch_lightning as pl
+from lightning_fabric.plugins.collectives.torch_collective import default_pg_timeout
+from lightning_fabric.strategies.model_parallel import (
     _distributed_checkpoint_save,
     _is_sharded_checkpoint,
     _load_checkpoint,
     _setup_device_mesh,
 )
-from lightning.fabric.utilities.distributed import (
+from lightning_fabric.utilities.distributed import (
     _distributed_is_initialized,
     _get_default_process_group_backend_for_device,
     _init_dist_connection,
     _sync_ddp_if_available,
 )
-from lightning.fabric.utilities.distributed import group as _group
-from lightning.fabric.utilities.imports import _TORCH_GREATER_EQUAL_2_4
-from lightning.fabric.utilities.init import _materialize_distributed_module
-from lightning.fabric.utilities.load import _METADATA_FILENAME
-from lightning.fabric.utilities.optimizer import _optimizers_to_device
-from lightning.fabric.utilities.seed import reset_seed
-from lightning.fabric.utilities.types import _PATH, ReduceOp
-from lightning.pytorch.core.optimizer import LightningOptimizer
-from lightning.pytorch.strategies.launchers.subprocess_script import _SubprocessScriptLauncher
-from lightning.pytorch.strategies.parallel import ParallelStrategy
-from lightning.pytorch.strategies.strategy import TBroadcast
-from lightning.pytorch.trainer.states import TrainerFn
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.rank_zero import rank_zero_only
+from lightning_fabric.utilities.distributed import group as _group
+from lightning_fabric.utilities.imports import _TORCH_GREATER_EQUAL_2_4
+from lightning_fabric.utilities.init import _materialize_distributed_module
+from lightning_fabric.utilities.load import _METADATA_FILENAME
+from lightning_fabric.utilities.optimizer import _optimizers_to_device
+from lightning_fabric.utilities.seed import reset_seed
+from lightning_fabric.utilities.types import _PATH, ReduceOp
+from pytorch_lightning.core.optimizer import LightningOptimizer
+from pytorch_lightning.strategies.launchers.subprocess_script import _SubprocessScriptLauncher
+from pytorch_lightning.strategies.parallel import ParallelStrategy
+from pytorch_lightning.strategies.strategy import TBroadcast
+from pytorch_lightning.trainer.states import TrainerFn
+from pytorch_lightning.utilities.model_helpers import is_overridden
+from pytorch_lightning.utilities.rank_zero import rank_zero_only
 
 if TYPE_CHECKING:
     from torch.distributed.device_mesh import DeviceMesh

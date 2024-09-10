@@ -29,18 +29,18 @@ import torch
 import yaml
 from lightning_utilities.core.apply_func import apply_to_collection
 
-import lightning.pytorch as pl
-from lightning.fabric.utilities.cloud_io import _is_dir, get_filesystem
-from lightning.fabric.utilities.cloud_io import _load as pl_load
-from lightning.fabric.utilities.data import AttributeDict
-from lightning.fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
-from lightning.pytorch.accelerators import CUDAAccelerator, MPSAccelerator, XLAAccelerator
-from lightning.pytorch.utilities.imports import _OMEGACONF_AVAILABLE
-from lightning.pytorch.utilities.migration import pl_legacy_patch
-from lightning.pytorch.utilities.migration.utils import _pl_migrate_checkpoint
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.parsing import parse_class_init_keys
-from lightning.pytorch.utilities.rank_zero import rank_zero_warn
+import pytorch_lightning as pl
+from lightning_fabric.utilities.cloud_io import _is_dir, get_filesystem
+from lightning_fabric.utilities.cloud_io import _load as pl_load
+from lightning_fabric.utilities.data import AttributeDict
+from lightning_fabric.utilities.types import _MAP_LOCATION_TYPE, _PATH
+from pytorch_lightning.accelerators import CUDAAccelerator, MPSAccelerator, XLAAccelerator
+from pytorch_lightning.utilities.imports import _OMEGACONF_AVAILABLE
+from pytorch_lightning.utilities.migration import pl_legacy_patch
+from pytorch_lightning.utilities.migration.utils import _pl_migrate_checkpoint
+from pytorch_lightning.utilities.model_helpers import is_overridden
+from pytorch_lightning.utilities.parsing import parse_class_init_keys
+from pytorch_lightning.utilities.rank_zero import rank_zero_warn
 
 if TYPE_CHECKING:
     from torch.storage import UntypedStorage

@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from lightning.fabric.plugins import ClusterEnvironment  # noqa: F401
-from lightning.fabric.plugins.environments import (  # noqa: F401
+from lightning_fabric.plugins import ClusterEnvironment  # noqa: F401
+from lightning_fabric.plugins.environments import (  # noqa: F401
     KubeflowEnvironment,
     LightningEnvironment,
     LSFEnvironment,

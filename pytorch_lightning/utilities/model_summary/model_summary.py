@@ -24,10 +24,10 @@ import torch.nn as nn
 from torch import Tensor
 from torch.utils.hooks import RemovableHandle
 
-import lightning.pytorch as pl
-from lightning.fabric.utilities.distributed import _is_dtensor
-from lightning.pytorch.utilities.model_helpers import _ModuleMode
-from lightning.pytorch.utilities.rank_zero import WarningCache
+import pytorch_lightning as pl
+from lightning_fabric.utilities.distributed import _is_dtensor
+from pytorch_lightning.utilities.model_helpers import _ModuleMode
+from pytorch_lightning.utilities.rank_zero import WarningCache
 
 log = logging.getLogger(__name__)
 warning_cache = WarningCache()
@@ -39,7 +39,7 @@ NOT_APPLICABLE = "n/a"
 
 
 class LayerSummary:
-    """Summary class for a single layer in a :class:`~lightning.pytorch.core.LightningModule`. It collects the
+    """Summary class for a single layer in a :class:`~pytorch_lightning.core.LightningModule`. It collects the
     following information:
 
     - Type of the layer (e.g. Linear, BatchNorm1d, ...)
@@ -145,7 +145,7 @@ class LayerSummary:
 
 
 class ModelSummary:
-    """Generates a summary of all layers in a :class:`~lightning.pytorch.core.LightningModule`.
+    """Generates a summary of all layers in a :class:`~pytorch_lightning.core.LightningModule`.
 
     Args:
         model: The model to summarize (also referred to as the root module).
@@ -167,7 +167,7 @@ class ModelSummary:
 
     Example::
 
-        >>> import lightning.pytorch as pl
+        >>> import pytorch_lightning as pl
         >>> class LitModel(pl.LightningModule):
         ...
         ...     def __init__(self):

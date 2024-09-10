@@ -20,8 +20,8 @@ from typing import Any
 
 import torch
 
-from lightning.fabric.utilities.types import _PATH
-from lightning.pytorch.strategies.deepspeed import _DEEPSPEED_AVAILABLE
+from lightning_fabric.utilities.types import _PATH
+from pytorch_lightning.strategies.deepspeed import _DEEPSPEED_AVAILABLE
 
 CPU_DEVICE = torch.device("cpu")
 

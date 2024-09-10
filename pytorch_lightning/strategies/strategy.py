@@ -21,21 +21,21 @@ from torch import Tensor
 from torch.nn import Module
 from torch.optim import Optimizer
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins import CheckpointIO
-from lightning.fabric.strategies import _StrategyRegistry
-from lightning.fabric.utilities import move_data_to_device
-from lightning.fabric.utilities.distributed import ReduceOp
-from lightning.fabric.utilities.init import _EmptyInit
-from lightning.fabric.utilities.optimizer import _optimizer_to_device, _optimizers_to_device
-from lightning.fabric.utilities.types import _PATH
-from lightning.pytorch.core.optimizer import LightningOptimizer, _init_optimizers_and_lr_schedulers
-from lightning.pytorch.plugins import TorchCheckpointIO
-from lightning.pytorch.plugins.io.wrapper import _WrappingCheckpointIO
-from lightning.pytorch.plugins.precision import Precision
-from lightning.pytorch.strategies.launchers.launcher import _Launcher
-from lightning.pytorch.trainer.states import TrainerFn
-from lightning.pytorch.utilities.types import STEP_OUTPUT, LRSchedulerConfig
+import pytorch_lightning as pl
+from lightning_fabric.plugins import CheckpointIO
+from lightning_fabric.strategies import _StrategyRegistry
+from lightning_fabric.utilities import move_data_to_device
+from lightning_fabric.utilities.distributed import ReduceOp
+from lightning_fabric.utilities.init import _EmptyInit
+from lightning_fabric.utilities.optimizer import _optimizer_to_device, _optimizers_to_device
+from lightning_fabric.utilities.types import _PATH
+from pytorch_lightning.core.optimizer import LightningOptimizer, _init_optimizers_and_lr_schedulers
+from pytorch_lightning.plugins import TorchCheckpointIO
+from pytorch_lightning.plugins.io.wrapper import _WrappingCheckpointIO
+from pytorch_lightning.plugins.precision import Precision
+from pytorch_lightning.strategies.launchers.launcher import _Launcher
+from pytorch_lightning.trainer.states import TrainerFn
+from pytorch_lightning.utilities.types import STEP_OUTPUT, LRSchedulerConfig
 
 TBroadcast = TypeVar("TBroadcast")
 TReduce = TypeVar("TReduce")
@@ -379,7 +379,7 @@ class Strategy(ABC):
     def training_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
         """The actual training step.
 
-        See :meth:`~lightning.pytorch.core.LightningModule.training_step` for more details
+        See :meth:`~pytorch_lightning.core.LightningModule.training_step` for more details
 
         """
         assert self.lightning_module is not None
@@ -400,7 +400,7 @@ class Strategy(ABC):
     def validation_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
         """The actual validation step.
 
-        See :meth:`~lightning.pytorch.core.LightningModule.validation_step` for more details
+        See :meth:`~pytorch_lightning.core.LightningModule.validation_step` for more details
 
         """
         assert self.lightning_module is not None
@@ -413,7 +413,7 @@ class Strategy(ABC):
     def test_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
         """The actual test step.
 
-        See :meth:`~lightning.pytorch.core.LightningModule.test_step` for more details
+        See :meth:`~pytorch_lightning.core.LightningModule.test_step` for more details
 
         """
         assert self.lightning_module is not None
@@ -426,7 +426,7 @@ class Strategy(ABC):
     def predict_step(self, *args: Any, **kwargs: Any) -> Any:
         """The actual predict step.
 
-        See :meth:`~lightning.pytorch.core.LightningModule.predict_step` for more details
+        See :meth:`~pytorch_lightning.core.LightningModule.predict_step` for more details
 
         """
         assert self.lightning_module is not None

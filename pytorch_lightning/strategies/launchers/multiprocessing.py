@@ -27,21 +27,21 @@ from lightning_utilities.core.apply_func import apply_to_collection
 from torch import Tensor
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.fabric.strategies.launchers.multiprocessing import (
+import pytorch_lightning as pl
+from lightning_fabric.strategies.launchers.multiprocessing import (
     _check_bad_cuda_fork,
     _check_missing_main_guard,
     _disable_module_memory_sharing,
 )
-from lightning.fabric.utilities import move_data_to_device
-from lightning.fabric.utilities.distributed import _set_num_threads_if_needed
-from lightning.fabric.utilities.seed import _collect_rng_states, _set_rng_states
-from lightning.fabric.utilities.types import _PATH
-from lightning.pytorch.accelerators import CPUAccelerator
-from lightning.pytorch.strategies.launchers.launcher import _Launcher
-from lightning.pytorch.trainer.connectors.signal_connector import _SIGNUM
-from lightning.pytorch.trainer.states import TrainerFn, TrainerState
-from lightning.pytorch.utilities.rank_zero import rank_zero_debug
+from lightning_fabric.utilities import move_data_to_device
+from lightning_fabric.utilities.distributed import _set_num_threads_if_needed
+from lightning_fabric.utilities.seed import _collect_rng_states, _set_rng_states
+from lightning_fabric.utilities.types import _PATH
+from pytorch_lightning.accelerators import CPUAccelerator
+from pytorch_lightning.strategies.launchers.launcher import _Launcher
+from pytorch_lightning.trainer.connectors.signal_connector import _SIGNUM
+from pytorch_lightning.trainer.states import TrainerFn, TrainerState
+from pytorch_lightning.utilities.rank_zero import rank_zero_debug
 
 log = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ class _MultiProcessingLauncher(_Launcher):
         Arguments:
             function: The entry point for all launched processes.
             *args: Optional positional arguments to be passed to the given function.
-            trainer: Optional reference to the :class:`~lightning.pytorch.trainer.trainer.Trainer` for which
+            trainer: Optional reference to the :class:`~pytorch_lightning.trainer.trainer.Trainer` for which
                 a selected set of attributes get restored in the main process after processes join.
             **kwargs: Optional keyword arguments to be passed to the given function.
 

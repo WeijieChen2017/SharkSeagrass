@@ -22,12 +22,12 @@ from typing import Optional
 
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks.callback import Callback
-from lightning.pytorch.tuner.batch_size_scaling import _scale_batch_size
-from lightning.pytorch.utilities.exceptions import MisconfigurationException, _TunerExitException
-from lightning.pytorch.utilities.parsing import lightning_hasattr
-from lightning.pytorch.utilities.rank_zero import rank_zero_warn
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks.callback import Callback
+from pytorch_lightning.tuner.batch_size_scaling import _scale_batch_size
+from pytorch_lightning.utilities.exceptions import MisconfigurationException, _TunerExitException
+from pytorch_lightning.utilities.parsing import lightning_hasattr
+from pytorch_lightning.utilities.rank_zero import rank_zero_warn
 
 
 class BatchSizeFinder(Callback):
@@ -68,7 +68,7 @@ class BatchSizeFinder(Callback):
         # 1. Customize the BatchSizeFinder callback to run at different epochs. This feature is
         # useful while fine-tuning models since you can't always use the same batch size after
         # unfreezing the backbone.
-        from lightning.pytorch.callbacks import BatchSizeFinder
+        from pytorch_lightning.callbacks import BatchSizeFinder
 
 
         class FineTuneBatchSizeFinder(BatchSizeFinder):
@@ -90,7 +90,7 @@ class BatchSizeFinder(Callback):
     Example::
 
         # 2. Run batch size finder for validate/test/predict.
-        from lightning.pytorch.callbacks import BatchSizeFinder
+        from pytorch_lightning.callbacks import BatchSizeFinder
 
 
         class EvalBatchSizeFinder(BatchSizeFinder):

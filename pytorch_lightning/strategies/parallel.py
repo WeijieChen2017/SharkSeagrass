@@ -19,12 +19,12 @@ import torch
 from torch import Tensor
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.fabric.plugins import CheckpointIO, ClusterEnvironment
-from lightning.fabric.utilities.distributed import ReduceOp, _all_gather_ddp_if_available
-from lightning.pytorch.plugins import LayerSync
-from lightning.pytorch.plugins.precision import Precision
-from lightning.pytorch.strategies.strategy import Strategy
+import pytorch_lightning as pl
+from lightning_fabric.plugins import CheckpointIO, ClusterEnvironment
+from lightning_fabric.utilities.distributed import ReduceOp, _all_gather_ddp_if_available
+from pytorch_lightning.plugins import LayerSync
+from pytorch_lightning.plugins.precision import Precision
+from pytorch_lightning.strategies.strategy import Strategy
 
 
 class ParallelStrategy(Strategy, ABC):

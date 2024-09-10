@@ -19,8 +19,8 @@ from typing import Dict, List, Literal, Optional, Union
 
 import torch
 
-from lightning.fabric.connector import _PRECISION_INPUT, _PRECISION_INPUT_STR, _convert_precision_to_unified_args
-from lightning.fabric.plugins.environments import (
+from lightning_fabric.connector import _PRECISION_INPUT, _PRECISION_INPUT_STR, _convert_precision_to_unified_args
+from lightning_fabric.plugins.environments import (
     ClusterEnvironment,
     LightningEnvironment,
     LSFEnvironment,
@@ -28,14 +28,14 @@ from lightning.fabric.plugins.environments import (
     SLURMEnvironment,
     TorchElasticEnvironment,
 )
-from lightning.fabric.utilities.device_parser import _determine_root_gpu_device
-from lightning.fabric.utilities.imports import _IS_INTERACTIVE
-from lightning.pytorch.accelerators import AcceleratorRegistry
-from lightning.pytorch.accelerators.accelerator import Accelerator
-from lightning.pytorch.accelerators.cuda import CUDAAccelerator
-from lightning.pytorch.accelerators.mps import MPSAccelerator
-from lightning.pytorch.accelerators.xla import XLAAccelerator
-from lightning.pytorch.plugins import (
+from lightning_fabric.utilities.device_parser import _determine_root_gpu_device
+from lightning_fabric.utilities.imports import _IS_INTERACTIVE
+from pytorch_lightning.accelerators import AcceleratorRegistry
+from pytorch_lightning.accelerators.accelerator import Accelerator
+from pytorch_lightning.accelerators.cuda import CUDAAccelerator
+from pytorch_lightning.accelerators.mps import MPSAccelerator
+from pytorch_lightning.accelerators.xla import XLAAccelerator
+from pytorch_lightning.plugins import (
     _PLUGIN_INPUT,
     BitsandbytesPrecision,
     CheckpointIO,
@@ -48,8 +48,8 @@ from lightning.pytorch.plugins import (
     TransformerEnginePrecision,
     XLAPrecision,
 )
-from lightning.pytorch.plugins.layer_sync import LayerSync, TorchSyncBatchNorm
-from lightning.pytorch.strategies import (
+from pytorch_lightning.plugins.layer_sync import LayerSync, TorchSyncBatchNorm
+from pytorch_lightning.strategies import (
     DDPStrategy,
     DeepSpeedStrategy,
     FSDPStrategy,
@@ -61,10 +61,10 @@ from lightning.pytorch.strategies import (
     StrategyRegistry,
     XLAStrategy,
 )
-from lightning.pytorch.strategies.ddp import _DDP_FORK_ALIASES
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.imports import _habana_available_and_importable
-from lightning.pytorch.utilities.rank_zero import rank_zero_info, rank_zero_warn
+from pytorch_lightning.strategies.ddp import _DDP_FORK_ALIASES
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.imports import _habana_available_and_importable
+from pytorch_lightning.utilities.rank_zero import rank_zero_info, rank_zero_warn
 
 log = logging.getLogger(__name__)
 
@@ -192,7 +192,7 @@ class _AcceleratorConnector:
         if strategy != "auto" and strategy not in self._registered_strategies and not isinstance(strategy, Strategy):
             raise ValueError(
                 f"You selected an invalid strategy name: `strategy={strategy!r}`."
-                " It must be either a string or an instance of `lightning.pytorch.strategies.Strategy`."
+                " It must be either a string or an instance of `pytorch_lightning.strategies.Strategy`."
                 " Example choices: auto, ddp, ddp_spawn, deepspeed, ..."
                 " Find a complete list of options in our documentation at https://lightning.ai"
             )

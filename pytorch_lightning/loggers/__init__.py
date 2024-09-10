@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from lightning.pytorch.loggers.comet import CometLogger
-from lightning.pytorch.loggers.csv_logs import CSVLogger
-from lightning.pytorch.loggers.logger import Logger
-from lightning.pytorch.loggers.mlflow import MLFlowLogger
-from lightning.pytorch.loggers.neptune import NeptuneLogger
-from lightning.pytorch.loggers.tensorboard import TensorBoardLogger
-from lightning.pytorch.loggers.wandb import WandbLogger
+from pytorch_lightning.loggers.comet import CometLogger
+from pytorch_lightning.loggers.csv_logs import CSVLogger
+from pytorch_lightning.loggers.logger import Logger
+from pytorch_lightning.loggers.mlflow import MLFlowLogger
+from pytorch_lightning.loggers.neptune import NeptuneLogger
+from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
+from pytorch_lightning.loggers.wandb import WandbLogger
 
 __all__ = ["CometLogger", "CSVLogger", "Logger", "MLFlowLogger", "TensorBoardLogger", "WandbLogger", "NeptuneLogger"]

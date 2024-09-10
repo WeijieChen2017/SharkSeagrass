@@ -26,13 +26,13 @@ from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.fabric.utilities.cloud_io import get_filesystem
-from lightning.pytorch import Callback, LightningDataModule, LightningModule, Trainer, seed_everything
-from lightning.pytorch.core.mixins.hparams_mixin import _given_hyperparameters_context
-from lightning.pytorch.utilities.exceptions import MisconfigurationException
-from lightning.pytorch.utilities.model_helpers import is_overridden
-from lightning.pytorch.utilities.rank_zero import rank_zero_warn
+import pytorch_lightning as pl
+from lightning_fabric.utilities.cloud_io import get_filesystem
+from pytorch_lightning import Callback, LightningDataModule, LightningModule, Trainer, seed_everything
+from pytorch_lightning.core.mixins.hparams_mixin import _given_hyperparameters_context
+from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.utilities.model_helpers import is_overridden
+from pytorch_lightning.utilities.rank_zero import rank_zero_warn
 
 _JSONARGPARSE_SIGNATURES_AVAILABLE = RequirementCache("jsonargparse[signatures]>=4.27.7")
 
@@ -329,21 +329,21 @@ class LightningCLI:
         For more info, read :ref:`the CLI docs <lightning-cli>`.
 
         Args:
-            model_class: An optional :class:`~lightning.pytorch.core.LightningModule` class to train on or a
-                callable which returns a :class:`~lightning.pytorch.core.LightningModule` instance when
+            model_class: An optional :class:`~pytorch_lightning.core.LightningModule` class to train on or a
+                callable which returns a :class:`~pytorch_lightning.core.LightningModule` instance when
                 called. If ``None``, you can pass a registered model with ``--model=MyModel``.
-            datamodule_class: An optional :class:`~lightning.pytorch.core.datamodule.LightningDataModule` class or a
-                callable which returns a :class:`~lightning.pytorch.core.datamodule.LightningDataModule` instance when
+            datamodule_class: An optional :class:`~pytorch_lightning.core.datamodule.LightningDataModule` class or a
+                callable which returns a :class:`~pytorch_lightning.core.datamodule.LightningDataModule` instance when
                 called. If ``None``, you can pass a registered datamodule with ``--data=MyDataModule``.
             save_config_callback: A callback class to save the config.
             save_config_kwargs: Parameters that will be used to instantiate the save_config_callback.
-            trainer_class: An optional subclass of the :class:`~lightning.pytorch.trainer.trainer.Trainer` class or a
-                callable which returns a :class:`~lightning.pytorch.trainer.trainer.Trainer` instance when called.
+            trainer_class: An optional subclass of the :class:`~pytorch_lightning.trainer.trainer.Trainer` class or a
+                callable which returns a :class:`~pytorch_lightning.trainer.trainer.Trainer` instance when called.
             trainer_defaults: Set to override Trainer defaults or add persistent callbacks. The callbacks added through
                 this argument will not be configurable from a configuration file and will always be present for
                 this particular CLI. Alternatively, configurable callbacks can be added as explained in
                 :ref:`the CLI docs <lightning-cli>`.
-            seed_everything_default: Number for the :func:`~lightning.fabric.utilities.seed.seed_everything`
+            seed_everything_default: Number for the :func:`~lightning_fabric.utilities.seed.seed_everything`
                 seed value. Set to True to automatically choose a seed value.
                 Setting it to False will avoid calling ``seed_everything``.
             parser_kwargs: Additional arguments to instantiate each ``LightningArgumentParser``.
@@ -356,7 +356,7 @@ class LightningCLI:
             args: Arguments to parse. If ``None`` the arguments are taken from ``sys.argv``. Command line style
                 arguments can be given in a ``list``. Alternatively, structured config options can be given in a
                 ``dict`` or ``jsonargparse.Namespace``.
-            run: Whether subcommands should be added to run a :class:`~lightning.pytorch.trainer.trainer.Trainer`
+            run: Whether subcommands should be added to run a :class:`~pytorch_lightning.trainer.trainer.Trainer`
                 method. If set to ``False``, the trainer and model classes will be instantiated only.
 
         """
@@ -401,7 +401,7 @@ class LightningCLI:
 
     def init_parser(self, **kwargs: Any) -> LightningArgumentParser:
         """Method that instantiates the argument parser."""
-        kwargs.setdefault("dump_header", [f"lightning.pytorch=={pl.__version__}"])
+        kwargs.setdefault("dump_header", [f"pytorch_lightning=={pl.__version__}"])
         parser = LightningArgumentParser(**kwargs)
         parser.add_argument(
             "-c", "--config", action=ActionConfigFile, help="Path to a configuration file in json or yaml format."
@@ -606,7 +606,7 @@ class LightningCLI:
     def configure_optimizers(
         lightning_module: LightningModule, optimizer: Optimizer, lr_scheduler: Optional[LRSchedulerTypeUnion] = None
     ) -> Any:
-        """Override to customize the :meth:`~lightning.pytorch.core.LightningModule.configure_optimizers` method.
+        """Override to customize the :meth:`~pytorch_lightning.core.LightningModule.configure_optimizers` method.
 
         Args:
             lightning_module: A reference to the model.
@@ -624,7 +624,7 @@ class LightningCLI:
         return [optimizer], [lr_scheduler]
 
     def _add_configure_optimizers_method_to_model(self, subcommand: Optional[str]) -> None:
-        """Overrides the model's :meth:`~lightning.pytorch.core.LightningModule.configure_optimizers` method if a
+        """Overrides the model's :meth:`~pytorch_lightning.core.LightningModule.configure_optimizers` method if a
         single optimizer and optionally a scheduler argument groups are added to the parser as 'AUTOMATIC'."""
         if not self.auto_configure_optimizers:
             return
@@ -803,7 +803,7 @@ class _InstantiatorFn:
             }
         with _given_hyperparameters_context(
             hparams=hparams,
-            instantiator="lightning.pytorch.cli.instantiate_module",
+            instantiator="pytorch_lightning.cli.instantiate_module",
         ):
             return class_type(*args, **kwargs)
 

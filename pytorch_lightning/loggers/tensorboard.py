@@ -23,17 +23,17 @@ from typing import Any, Dict, Optional, Union
 from torch import Tensor
 from typing_extensions import override
 
-import lightning.pytorch as pl
-from lightning.fabric.loggers.tensorboard import _TENSORBOARD_AVAILABLE
-from lightning.fabric.loggers.tensorboard import TensorBoardLogger as FabricTensorBoardLogger
-from lightning.fabric.utilities.cloud_io import _is_dir
-from lightning.fabric.utilities.logger import _convert_params
-from lightning.fabric.utilities.types import _PATH
-from lightning.pytorch.callbacks import ModelCheckpoint
-from lightning.pytorch.core.saving import save_hparams_to_yaml
-from lightning.pytorch.loggers.logger import Logger
-from lightning.pytorch.utilities.imports import _OMEGACONF_AVAILABLE
-from lightning.pytorch.utilities.rank_zero import rank_zero_only, rank_zero_warn
+import pytorch_lightning as pl
+from lightning_fabric.loggers.tensorboard import _TENSORBOARD_AVAILABLE
+from lightning_fabric.loggers.tensorboard import TensorBoardLogger as FabricTensorBoardLogger
+from lightning_fabric.utilities.cloud_io import _is_dir
+from lightning_fabric.utilities.logger import _convert_params
+from lightning_fabric.utilities.types import _PATH
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.core.saving import save_hparams_to_yaml
+from pytorch_lightning.loggers.logger import Logger
+from pytorch_lightning.utilities.imports import _OMEGACONF_AVAILABLE
+from pytorch_lightning.utilities.rank_zero import rank_zero_only, rank_zero_warn
 
 
 class TensorBoardLogger(Logger, FabricTensorBoardLogger):
@@ -51,8 +51,8 @@ class TensorBoardLogger(Logger, FabricTensorBoardLogger):
     .. testcode::
         :skipif: not _TENSORBOARD_AVAILABLE or not _TENSORBOARDX_AVAILABLE
 
-        from lightning.pytorch import Trainer
-        from lightning.pytorch.loggers import TensorBoardLogger
+        from pytorch_lightning import Trainer
+        from pytorch_lightning.loggers import TensorBoardLogger
 
         logger = TensorBoardLogger("tb_logs", name="my_model")
         trainer = Trainer(logger=logger)
