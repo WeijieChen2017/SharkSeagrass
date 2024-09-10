@@ -13,7 +13,7 @@ when_to_transfer_output = ON_EXIT_OR_EVICT
 transfer_input_files = SharkSeagrass.zip, TOFNAC_CTAC_hash.tar.gz, vq_f4_noattn_nn.pth
 
 +WantGPULab = true
-+GPUJobLength = "long"
++GPUJobLength = "medium"
 request_gpus = 1
 require_gpus = GlobalMemoryMb >= 15000
 request_cpus = 24
