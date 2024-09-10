@@ -57,7 +57,26 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
+    # MID_PET = 5000
+    # MIQ_PET = 0.9
+    # MAX_PET = 20000
+    # MAX_CT = 1976
+    # MIN_CT = -1024
+    # MIN_PET = 0
+    # RANGE_CT = MAX_CT - MIN_CT
+    # RANGE_PET = MAX_PET - MIN_PET
+
     data_loader_params = {
+        "norm": {
+            "MID_PET": 5000,
+            "MIQ_PET": 0.9,
+            "MAX_PET": 20000,
+            "MAX_CT": 1976,
+            "MIN_CT": -1024,
+            "MIN_PET": 0,
+            "RANGE_CT": 3000,
+            "RANGE_PET": 20000,
+        },
         "train": {
             "batch_size": 1,
             "shuffle": True,
@@ -185,6 +204,7 @@ def main():
 
     # train the model
     best_val_loss = 1e10
+    LOSS_FACTOR = data_loader_params["norm"]["RANGE_CT"]
     print("Start training")
     for idx_epoch in range(train_params["num_epoch"]):
 
@@ -212,9 +232,14 @@ def main():
                 optimizer.step()
 
                 case_loss += loss.item()
+                print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
 
             case_loss /= len(indices_list)
+            case_loss *= LOSS_FACTOR
+            # keep 3 decimal digits like 123.456
+            case_loss = round(case_loss, 3)
             logger.log(idx_epoch, "train_case_loss", case_loss)
+            
             train_loss += case_loss
         
         train_loss /= len(train_data_loader)
@@ -237,11 +262,16 @@ def main():
                     x = volume_x[:, indices-1:indices+2, :, :]
                     y = volume_y[:, indices, :, :].unsqueeze(0)
 
-                    outputs = model(x)
-                    loss = output_loss(outputs, y)
-                    case_loss += loss.item()
+                    with torch.no_grad():
+                        outputs = model(x)
+                        loss = output_loss(outputs, y)
+                        case_loss += loss.item()
+                        print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
 
                 case_loss /= len(indices_list)
+                case_loss *= LOSS_FACTOR
+                # keep 3 decimal digits like 123.456
+                case_loss = round(case_loss, 3)
                 logger.log(idx_epoch, "val_case_loss", case_loss)
                 val_loss += case_loss
 
@@ -270,12 +300,17 @@ def main():
                     for indices in indices_list:
                         x = volume_x[:, indices-1:indices+2, :, :]
                         y = volume_y[:, indices, :, :].unsqueeze(0)
-
-                        outputs = model(x)
-                        loss = output_loss(outputs, y)
-                        case_loss += loss.item()
+                        
+                        with torch.no_grad():
+                            outputs = model(x)
+                            loss = output_loss(outputs, y)
+                            case_loss += loss.item()
+                            print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
 
                     case_loss /= len(indices_list)
+                    case_loss *= LOSS_FACTOR
+                    # keep 3 decimal digits like 123.456
+                    case_loss = round(case_loss, 3)
                     logger.log(idx_epoch, "test_case_loss", case_loss)
                     test_loss += case_loss
 
