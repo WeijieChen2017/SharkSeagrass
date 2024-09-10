@@ -232,13 +232,14 @@ def main():
                 optimizer.step()
 
                 case_loss += loss.item()
-                print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+                # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
 
             case_loss /= len(indices_list)
             case_loss *= LOSS_FACTOR
             # keep 3 decimal digits like 123.456
             case_loss = round(case_loss, 3)
             logger.log(idx_epoch, "train_case_loss", case_loss)
+            # print(f"EPOCH {idx_epoch}, CASE {idx_case}, LOSS {case_loss}")
             
             train_loss += case_loss
         
@@ -266,7 +267,7 @@ def main():
                         outputs = model(x)
                         loss = output_loss(outputs, y)
                         case_loss += loss.item()
-                        print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+                        # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
 
                 case_loss /= len(indices_list)
                 case_loss *= LOSS_FACTOR
@@ -274,6 +275,7 @@ def main():
                 case_loss = round(case_loss, 3)
                 logger.log(idx_epoch, "val_case_loss", case_loss)
                 val_loss += case_loss
+                # print(f"EPOCH {idx_epoch}, CASE {idx_case}, LOSS {case_loss}")
 
             val_loss /= len(val_data_loader)
             logger.log(idx_epoch, "val_loss", val_loss)
@@ -305,7 +307,7 @@ def main():
                             outputs = model(x)
                             loss = output_loss(outputs, y)
                             case_loss += loss.item()
-                            print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+                            # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
 
                     case_loss /= len(indices_list)
                     case_loss *= LOSS_FACTOR
@@ -313,6 +315,7 @@ def main():
                     case_loss = round(case_loss, 3)
                     logger.log(idx_epoch, "test_case_loss", case_loss)
                     test_loss += case_loss
+                    # print(f"EPOCH {idx_epoch}, CASE {idx_case}, LOSS {case_loss}")
 
                 test_loss /= len(test_data_loader)
                 logger.log(idx_epoch, "test_loss", test_loss)
