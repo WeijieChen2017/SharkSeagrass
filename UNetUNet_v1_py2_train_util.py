@@ -71,6 +71,11 @@ def prepare_dataset(data_div_json, global_config):
         "val": val_path_list,
         "test": test_path_list,
     }
+    for key in data_division_dict.keys():
+        print(key)
+        for key2 in data_division_dict[key]:
+            print(key2)
+
     with open(data_division_file, "w") as f:
         json.dump(data_division_dict, f, indent=4)
 
