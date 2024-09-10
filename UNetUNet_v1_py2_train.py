@@ -82,7 +82,7 @@ def main():
             "shuffle": True,
             "num_workers_cache": 4,
             "num_workers_loader": 8,
-            "cache_rate": 1.0,
+            "cache_rate": 0.5,
         },
         "val": {
             "batch_size": 1,
