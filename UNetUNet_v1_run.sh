@@ -10,14 +10,14 @@ cd SharkSeagrass
 mkdir results
 echo "============================================"
 ls
-echo "============================================"
+# echo "============================================"
 # Install PyTorch Lightning
-python -m pip install pytorch-lightning
-echo "============================================"
+# python -m pip install pytorch-lightning
+# echo "============================================"
 # Check if the installation succeeded
-python -m pip show pytorch-lightning
-echo "============================================"
-pip list
+# python -m pip show pytorch-lightning
+# echo "============================================"
+# pip list
 echo "============================================"
 python UNetUNet_v1_py2_train.py --cross_validation $1
 echo "============================================"
