@@ -197,19 +197,12 @@ def main():
             len_z = case_data["TOFNAC"].shape[0]
             volume_x = case_data["TOFNAC"].to(device)
             volume_y = case_data["CTAC"].to(device)
-            indices_list = []
-            for idx_z in range(len_z):
-                # create index list:
-                if idx_z == 0:
-                    indices_list.append([0, 0, 1])
-                elif idx_z == len_z - 1:
-                    indices_list.append([idx_z-1, idx_z, idx_z])
-                else:
-                    indices_list.append([idx_z-1, idx_z, idx_z+1])  
+            # create index list without the first and last slice
+            indices_list = [i for i in range(1, len_z-1)]
             
             random.shuffle(indices_list)
             for indices in indices_list:
-                x = volume_x[indices, :, :].unsqueeze(0) # 1x3x400x400
+                x = volume_x[indices-1:indices+2, :, :].unsqueeze(0)
                 y = volume_y[indices, :, :].unsqueeze(0).unsqueeze(0) # 1x1x400x400
 
                 optimizer.zero_grad()
@@ -237,19 +230,11 @@ def main():
                 len_z = case_data["TOFNAC"].shape[0]
                 volume_x = case_data["TOFNAC"].to(device)
                 volume_y = case_data["CTAC"].to(device)
-                indices_list = []
-                for idx_z in range(len_z):
-                    # create index list:
-                    if idx_z == 0:
-                        indices_list.append([0, 0, 1])
-                    elif idx_z == len_z - 1:
-                        indices_list.append([idx_z-1, idx_z, idx_z])
-                    else:
-                        indices_list.append([idx_z-1, idx_z, idx_z+1])  
+                indices_list = [i for i in range(1, len_z-1)]
 
                 random.shuffle(indices_list)
                 for indices in indices_list:
-                    x = volume_x[indices, :, :].unsqueeze(0)
+                    x = volume_x[indices-1:indices+2, :, :].unsqueeze(0)
                     y = volume_y[indices, :, :].unsqueeze(0).unsqueeze(0)
 
                     outputs = model(x)
@@ -278,19 +263,11 @@ def main():
                     len_z = case_data["TOFNAC"].shape[0]
                     volume_x = case_data["TOFNAC"].to(device)
                     volume_y = case_data["CTAC"].to(device)
-                    indices_list = []
-                    for idx_z in range(len_z):
-                        # create index list:
-                        if idx_z == 0:
-                            indices_list.append([0, 0, 1])
-                        elif idx_z == len_z - 1:
-                            indices_list.append([idx_z-1, idx_z, idx_z])
-                        else:
-                            indices_list.append([idx_z-1, idx_z, idx_z+1])  
+                    indices_list = [i for i in range(1, len_z-1)]
 
                     random.shuffle(indices_list)
                     for indices in indices_list:
-                        x = volume_x[indices, :, :].unsqueeze(0)
+                        x = volume_x[indices-1:indices+2, :, :].unsqueeze(0)
                         y = volume_y[indices, :, :].unsqueeze(0).unsqueeze(0)
 
                         outputs = model(x)
