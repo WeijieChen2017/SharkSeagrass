@@ -713,13 +713,14 @@ class VQModel(nn.Module):
                  ddconfig,
                  n_embed,
                  embed_dim,
-                 ckpt_path=None,
-                 ignore_keys=[],
-                 image_key="image"):
+                #  ckpt_path=None,
+                #  ignore_keys=[],
+                #  image_key="image"
+                 ):
         super().__init__()
         self.embed_dim = embed_dim
         self.n_embed = n_embed
-        self.image_key = image_key
+        # self.image_key = image_key
         self.encoder = Encoder(**ddconfig)
         self.decoder = Decoder(**ddconfig)
         
@@ -728,22 +729,22 @@ class VQModel(nn.Module):
 
         self.out_conv = nn.Conv2d(ddconfig["out_ch"], 1, 1)
 
-        if ckpt_path is not None:
-            self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
+        # if ckpt_path is not None:
+        #     self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
 
-    def init_from_ckpt(self, path, ignore_keys=list()):
-        sd = torch.load(path, map_location="cpu")
-        keys = list(sd.keys())
-        for k in keys:
-            for ik in ignore_keys:
-                if k.startswith(ik):
-                    print("Deleting key {} from state_dict.".format(k))
-                    del sd[k]
-        missing, unexpected = self.load_state_dict(sd, strict=False)
-        print(f"Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys")
-        if len(missing) > 0:
-            print(f"Missing Keys: {missing}")
-            print(f"Unexpected Keys: {unexpected}")
+    # def init_from_ckpt(self, path, ignore_keys=list()):
+    #     sd = torch.load(path, map_location="cpu")
+    #     keys = list(sd.keys())
+    #     for k in keys:
+    #         for ik in ignore_keys:
+    #             if k.startswith(ik):
+    #                 print("Deleting key {} from state_dict.".format(k))
+    #                 del sd[k]
+    #     missing, unexpected = self.load_state_dict(sd, strict=False)
+    #     print(f"Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys")
+    #     if len(missing) > 0:
+    #         print(f"Missing Keys: {missing}")
+    #         print(f"Unexpected Keys: {unexpected}")
 
     def init_random_weights(self):
         for m in self.modules():

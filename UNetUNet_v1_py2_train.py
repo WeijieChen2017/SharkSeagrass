@@ -153,11 +153,12 @@ def main():
         ddconfig=model_step1_params["ddconfig"],
         n_embed=model_step1_params["n_embed"],
         embed_dim=model_step1_params["embed_dim"],
-        ckpt_path=model_step1_params["ckpt_path"],
-        ignore_keys=[],
-        image_key="image",
+        # ckpt_path=model_step1_params["ckpt_path"],
+        # ignore_keys=[],
+        # image_key="image",
     )
-
+    
+    model.load_state_dict(torch.load(model_step1_params["ckpt_path"], map_location=torch.device('cpu')), strict=False)
     print("Model step 1 loaded from", model_step1_params["ckpt_path"])
     model.to(device)
     model.train()
