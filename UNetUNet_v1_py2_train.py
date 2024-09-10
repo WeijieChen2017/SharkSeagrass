@@ -114,9 +114,7 @@ def main():
     }
 
     wandb_config = {
-        "train_fold": args.train_fold,
-        "val_fold": args.val_fold,
-        "test_fold": args.test_fold,
+        "cross_validation": args.cross_validation,
         "random_seed": random_seed,
         "model_step1_params": model_step1_params,
         "data_loader_params": data_loader_params,
