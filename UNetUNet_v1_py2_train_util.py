@@ -1,3 +1,4 @@
+import os
 import time
 import json
 import torch
@@ -17,19 +18,7 @@ from monai.data import CacheDataset, DataLoader
 
 
 def prepare_dataset(data_div_json, global_config):
-    with open(data_div_json, "r") as f:
-        data_div = json.load(f)
     
-    train_list = data_div["train"]
-    val_list = data_div["val"]
-    test_list = data_div["test"]
-
-    num_train = len(train_list)
-    num_val = len(val_list)
-    num_test = len(test_list)
-
-    global_config["logger"].log(0, "dataset_info", f"num_train: {num_train}, num_val: {num_val}, num_test: {num_test}")
-
     input_modality = global_config["model_step1_params"]["input_modality"]
     input_modality_dict = {
         "x": input_modality[0],
@@ -43,85 +32,122 @@ def prepare_dataset(data_div_json, global_config):
     train_transforms = Compose(
         [
             LoadImaged(keys=input_modality, image_only=True),
-            RandSpatialCropd(
-                keys=input_modality_dict["x"], 
-                roi_size=(img_size, img_size, in_channel), 
-                random_size=False),
-            RandSpatialCropd(
-                keys=input_modality_dict["y"],
-                roi_size=(img_size, img_size, out_channel),
-                random_size=False),
-            EnsureChannelFirstd(
-                keys=input_modality_dict["x"],
-                channel_dim=-1),
-            EnsureChannelFirstd(
-                keys=input_modality_dict["y"],
-                channel_dim="none" if out_channel == 1 else -1),
+            EnsureChannelFirstd(keys=input_modality_dict, channel_dim=-1),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["x"], 
+            #     roi_size=(img_size, img_size, in_channel), 
+            #     random_size=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["y"],
+            #     roi_size=(img_size, img_size, out_channel),
+            #     random_size=False),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["x"],
+            #     channel_dim=-1),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["y"],
+            #     channel_dim="none" if out_channel == 1 else -1),
+
         ]
     )
 
     val_transforms = Compose(
         [
             LoadImaged(keys=input_modality, image_only=True),
-            RandSpatialCropd(
-                keys=input_modality_dict["x"], 
-                roi_size=(img_size, img_size, in_channel), 
-                random_size=False),
-            RandSpatialCropd(
-                keys=input_modality_dict["y"],
-                roi_size=(img_size, img_size, out_channel),
-                random_size=False),
-            EnsureChannelFirstd(
-                keys=input_modality_dict["x"],
-                channel_dim=-1),
-            EnsureChannelFirstd(
-                keys=input_modality_dict["y"],
-                channel_dim="none" if out_channel == 1 else -1),
+            EnsureChannelFirstd(keys=input_modality_dict, channel_dim=-1),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["x"], 
+            #     roi_size=(img_size, img_size, in_channel), 
+            #     random_size=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["y"],
+            #     roi_size=(img_size, img_size, out_channel),
+            #     random_size=False),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["x"],
+            #     channel_dim=-1),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["y"],
+            #     channel_dim="none" if out_channel == 1 else -1),
         ]
     )
 
     test_transforms = Compose(
         [
             LoadImaged(keys=input_modality, image_only=True),
-            RandSpatialCropd(
-                keys=input_modality_dict["x"], 
-                roi_size=(img_size, img_size, in_channel), 
-                random_size=False),
-            RandSpatialCropd(
-                keys=input_modality_dict["y"],
-                roi_size=(img_size, img_size, out_channel),
-                random_size=False),
-            EnsureChannelFirstd(
-                keys=input_modality_dict["x"],
-                channel_dim=-1),
-            EnsureChannelFirstd(
-                keys=input_modality_dict["y"],
-                channel_dim="none" if out_channel == 1 else -1),
+            EnsureChannelFirstd(keys=input_modality_dict, channel_dim=-1),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["x"], 
+            #     roi_size=(img_size, img_size, in_channel), 
+            #     random_size=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["y"],
+            #     roi_size=(img_size, img_size, out_channel),
+            #     random_size=False),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["x"],
+            #     channel_dim=-1),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["y"],
+            #     channel_dim="none" if out_channel == 1 else -1),
         ]
     )
 
+    with open(data_div_json, "r") as f:
+        data_div = json.load(f)
+    
+    train_list = data_div[f"cv_{global_config["cross_validation"]}"]["train"]
+    val_list = data_div[f"cv_{global_config["cross_validation"]}"]["val"]
+    test_list = data_div[f"cv_{global_config["cross_validation"]}"]["test"]
 
-    with open(data_division_file, "r") as f:
-        data_division = json.load(f)
+    # num_train = len(train_list)
+    # num_val = len(val_list)
+    # num_test = len(test_list)
 
-    train_list = data_division["train"]
-    val_list = data_division["val"]
-    test_list = data_division["test"]
+    str_train_list = ", ".join(train_list)
+    str_val_list = ", ".join(val_list)
+    str_test_list = ", ".join(test_list)
 
-    num_train_files = len(train_list)
-    num_val_files = len(val_list)
-    num_test_files = len(test_list)
+    global_config["logger"].log(0, "data_split_train", str_train_list)
+    global_config["logger"].log(0, "data_split_val", str_val_list)
+    global_config["logger"].log(0, "data_split_test", str_test_list)
 
-    print("The number of train files is: ", num_train_files)
-    print("The number of val files is: ", num_val_files)
-    print("The number of test files is: ", num_test_files)
-    print()
+    # construct the data path list
+    train_path_list = []
+    val_path_list = []
+    test_path_list = []
+
+    for hashname in train_list:
+        train_path_list.append({
+            "TOFNAC": f"TOFNAC_CTAC_hash/{hashname}_TOFNAC.nii.gz",
+            "CTAC": f"TOFNAC_CTAC_hash/{hashname}_CTAC.nii.gz",
+        })
+
+    for hashname in val_list:
+        val_path_list.append({
+            "TOFNAC": f"TOFNAC_CTAC_hash/{hashname}_TOFNAC.nii.gz",
+            "CTAC": f"TOFNAC_CTAC_hash/{hashname}_CTAC.nii.gz",
+        })
+
+    for hashname in test_list:
+        test_path_list.append({
+            "TOFNAC": f"TOFNAC_CTAC_hash/{hashname}_TOFNAC.nii.gz",
+            "CTAC": f"TOFNAC_CTAC_hash/{hashname}_CTAC.nii.gz",
+        })
 
     # save the data division file
-    # data_division_file = os.path.join(root_folder, "data_division.json")
+    root_folder = global_config["root_folder"]
+    data_division_file = os.path.join(root_folder, "data_division.json")
+    data_division_dict = {
+        "train": train_path_list,
+        "val": val_path_list,
+        "test": test_path_list,
+    }
+    with open(data_division_file, "w") as f:
+        json.dump(data_division_dict, f, indent=4)
 
     train_ds = CacheDataset(
-        data=train_list,
+        data=train_path_list,
         transform=train_transforms,
         # cache_num=num_train_files,
         cache_rate=global_config["data_loader_params"]["train"]["cache_rate"],
@@ -129,7 +155,7 @@ def prepare_dataset(data_div_json, global_config):
     )
 
     val_ds = CacheDataset(
-        data=val_list,
+        data=val_path_list,
         transform=val_transforms, 
         # cache_num=num_val_files,
         cache_rate=global_config["data_loader_params"]["val"]["cache_rate"],
@@ -137,14 +163,12 @@ def prepare_dataset(data_div_json, global_config):
     )
 
     test_ds = CacheDataset(
-        data=test_list,
+        data=test_path_list,
         transform=test_transforms,
         # cache_num=num_test_files,
         cache_rate=global_config["data_loader_params"]["test"]["cache_rate"],
         num_workers=global_config["data_loader_params"]["test"]["num_workers_cache"],
     )
-
-
 
     train_loader = DataLoader(train_ds, 
                             batch_size=global_config["data_loader_params"]["train"]["batch_size"],

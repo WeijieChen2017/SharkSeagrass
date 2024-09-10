@@ -35,21 +35,17 @@ import time
 import random
 import numpy as np
 
-from UNetUNet_v1_py2_train_util import VQModel, simple_logger, two_segment_scale, prepare_dataset
+from UNetUNet_v1_py2_train_util import VQModel, simple_logger, prepare_dataset
 
 
 
-
-    
 
 def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
-    argparser.add_argument('--train_fold', type=str, default="0,1,2", help='Path to the training fold')
-    argparser.add_argument('--val_fold', type=str, default="3", help='Path to the validation fold')
-    argparser.add_argument('--test_fold', type=str, default="4", help='Path to the testing fold')
+    argparser.add_argument('--cross_validation', type=int, default=5, help='Index of the cross validation')
     args = argparser.parse_args()
-    tag = f"fold{args.test_fold}"
+    tag = f"fold{args.cross_validation}"
 
     random_seed = 42
     # set the random seed
@@ -107,13 +103,28 @@ def main():
         }
     }
 
+    train_params = {
+        "num_epoch": 50, # 50 epochs
+        "optimizer": "AdamW",
+        "lr": 1e-5,
+        "weight_decay": 1e-5,
+        "loss": "MAE",
+        "val_per_epoch": 5,
+        "save_per_epoch": 10,
+    }
+
     wandb_config = {
         "train_fold": args.train_fold,
         "val_fold": args.val_fold,
         "test_fold": args.test_fold,
         "random_seed": random_seed,
         "model_step1_params": model_step1_params,
+        "data_loader_params": data_loader_params,
+        "train_params": train_params,
     }
+
+    
+
 
     global_config = {}
 
@@ -121,19 +132,23 @@ def main():
     wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
     wandb_run = wandb.init(project="UNetUNet", dir=os.getenv("WANDB_DIR", "cache/wandb"), config=wandb_config)
     wandb_run.log_code(root=".", name=tag+"UNetUNet_v1_py2_train.py")
+    global_config["tag"] = tag
     global_config["wandb_run"] = wandb_run
     global_config["IS_LOGGER_WANDB"] = True
     global_config["input_modality"] = ["TOFNAC", "CTAC"]
     global_config["model_step1_params"] = model_step1_params
     global_config["data_loader_params"] = data_loader_params
+    global_config["train_params"] = train_params
+    global_config["cross_validation"] = args.cross_validation
 
 
-    test_fold = args.test_fold
-    root_folder = f"./results/test_fold_{test_fold}/"
-    data_div_json = "data_div.json"
+    cross_validation = args.cross_validation
+    root_folder = f"./results/cv{cross_validation}/"
+    data_div_json = "UNetUNet_v1_data_split.json"
     if not os.path.exists(root_folder):
         os.makedirs(root_folder)
     print("The root folder is: ", root_folder)
+    global_config["root_folder"] = root_folder
 
     # load step 1 model and step 2 model
     model = VQModel(
@@ -156,6 +171,148 @@ def main():
     global_config["logger"] = logger
     
     train_data_loader, val_data_loader, test_data_loader = prepare_dataset(data_div_json, global_config)
+
+    # set the optimizer
+    if train_params["optimizer"] == "AdamW":
+        optimizer = torch.optim.AdamW(model.parameters(), lr=train_params["lr"], weight_decay=train_params["weight_decay"])
+    else:
+        raise ValueError(f"Optimizer {train_params['optimizer']} is not supported")
+    
+    # set the loss function
+    if train_params["loss"] == "MAE":
+        output_loss = torch.nn.L1Loss()
+    elif train_params["loss"] == "MSE":
+        output_loss = torch.nn.MSELoss()
+
+    # train the model
+    best_val_loss = 1e10
+    print("Start training")
+    for idx_epoch in range(train_params["num_epoch"]):
+
+        # train the model
+        model.train()
+        train_loss = 0
+        for idx_case, case_data in enumerate(train_data_loader):
+            # this will return a zx400x400 tensor
+            case_loss = 0
+            len_z = case_data["TOFNAC"].shape[0]
+            volume_x = case_data["TOFNAC"].to(device)
+            volume_y = case_data["CTAC"].to(device)
+            indices_list = []
+            for idx_z in range(len_z):
+                # create index list:
+                if idx_z == 0:
+                    indices_list.append([0, 0, 1])
+                elif idx_z == len_z - 1:
+                    indices_list.append([idx_z-1, idx_z, idx_z])
+                else:
+                    indices_list.append([idx_z-1, idx_z, idx_z+1])  
+            
+            random.shuffle(indices_list)
+            for indices in indices_list:
+                x = volume_x[indices, :, :].unsqueeze(0) # 1x3x400x400
+                y = volume_y[indices, :, :].unsqueeze(0).unsqueeze(0) # 1x1x400x400
+
+                optimizer.zero_grad()
+                outputs = model(x)
+                loss = output_loss(outputs, y)
+                loss.backward()
+                optimizer.step()
+
+                case_loss += loss.item()
+
+            case_loss /= len(indices_list)
+            logger.log(idx_epoch, "train_case_loss", case_loss)
+            train_loss += case_loss
+        
+        train_loss /= len(train_data_loader)
+        logger.log(idx_epoch, "train_loss", train_loss)
+    
+        # evaluate the model
+        if idx_epoch % train_params["val_per_epoch"] == 0:
+
+            model.eval()
+            val_loss = 0
+            for idx_case, case_data in enumerate(val_data_loader):
+                case_loss = 0
+                len_z = case_data["TOFNAC"].shape[0]
+                volume_x = case_data["TOFNAC"].to(device)
+                volume_y = case_data["CTAC"].to(device)
+                indices_list = []
+                for idx_z in range(len_z):
+                    # create index list:
+                    if idx_z == 0:
+                        indices_list.append([0, 0, 1])
+                    elif idx_z == len_z - 1:
+                        indices_list.append([idx_z-1, idx_z, idx_z])
+                    else:
+                        indices_list.append([idx_z-1, idx_z, idx_z+1])  
+
+                random.shuffle(indices_list)
+                for indices in indices_list:
+                    x = volume_x[indices, :, :].unsqueeze(0)
+                    y = volume_y[indices, :, :].unsqueeze(0).unsqueeze(0)
+
+                    outputs = model(x)
+                    loss = output_loss(outputs, y)
+                    case_loss += loss.item()
+
+                case_loss /= len(indices_list)
+                logger.log(idx_epoch, "val_case_loss", case_loss)
+                val_loss += case_loss
+
+            val_loss /= len(val_data_loader)
+            logger.log(idx_epoch, "val_loss", val_loss)
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                torch.save(model.state_dict(), os.path.join(root_folder, "best_model.pth"))
+                logger.log(idx_epoch, "best_val_loss", best_val_loss)
+                print(f"Save the best model with val_loss: {val_loss} at epoch {idx_epoch}")
+                logger.log(idx_epoch, "best_model_epoch", idx_epoch)
+                logger.log(idx_epoch, "best_model_val_loss", val_loss)
+                
+                # test the model
+                test_loss = 0
+                for idx_case, case_data in enumerate(test_data_loader):
+                    case_loss = 0
+                    len_z = case_data["TOFNAC"].shape[0]
+                    volume_x = case_data["TOFNAC"].to(device)
+                    volume_y = case_data["CTAC"].to(device)
+                    indices_list = []
+                    for idx_z in range(len_z):
+                        # create index list:
+                        if idx_z == 0:
+                            indices_list.append([0, 0, 1])
+                        elif idx_z == len_z - 1:
+                            indices_list.append([idx_z-1, idx_z, idx_z])
+                        else:
+                            indices_list.append([idx_z-1, idx_z, idx_z+1])  
+
+                    random.shuffle(indices_list)
+                    for indices in indices_list:
+                        x = volume_x[indices, :, :].unsqueeze(0)
+                        y = volume_y[indices, :, :].unsqueeze(0).unsqueeze(0)
+
+                        outputs = model(x)
+                        loss = output_loss(outputs, y)
+                        case_loss += loss.item()
+
+                    case_loss /= len(indices_list)
+                    logger.log(idx_epoch, "test_case_loss", case_loss)
+                    test_loss += case_loss
+
+                test_loss /= len(test_data_loader)
+                logger.log(idx_epoch, "test_loss", test_loss)
+        
+        # save the model
+        if idx_epoch % train_params["save_per_epoch"] == 0:
+            save_path = os.path.join(root_folder, f"model_epoch_{idx_epoch}.pth")
+            torch.save(model.state_dict(), save_path)
+            logger.log(idx_epoch, "save_model_path", save_path)
+            print(f"Save model to {save_path}")
+
+print("Done!")
 
 if __name__ == "__main__":
     main()
