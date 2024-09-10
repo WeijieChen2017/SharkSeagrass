@@ -194,18 +194,16 @@ def main():
         for idx_case, case_data in enumerate(train_data_loader):
             # this will return a zx400x400 tensor
             case_loss = 0
-            len_z = case_data["TOFNAC"].shape[0]
+            len_z = case_data["TOFNAC"].shape[1]
             volume_x = case_data["TOFNAC"].to(device)
             volume_y = case_data["CTAC"].to(device)
-            print("volume_x shape: ", volume_x.shape, "volume_y shape: ", volume_y.shape, "len_z: ", len_z)
             # create index list without the first and last slice
             indices_list = [i for i in range(1, len_z-1)]
             
             random.shuffle(indices_list)
-            print("indices_list: ", indices_list)
             for indices in indices_list:
-                x = volume_x[indices-1:indices+2, :, :].unsqueeze(0)
-                y = volume_y[indices, :, :].unsqueeze(0).unsqueeze(0) # 1x1x400x400
+                x = volume_x[:, indices-1:indices+2, :, :].unsqueeze(0)
+                y = volume_y[:, indices, :, :].unsqueeze(0).unsqueeze(0) # 1x1x400x400
 
                 optimizer.zero_grad()
                 outputs = model(x)
@@ -229,15 +227,15 @@ def main():
             val_loss = 0
             for idx_case, case_data in enumerate(val_data_loader):
                 case_loss = 0
-                len_z = case_data["TOFNAC"].shape[0]
+                len_z = case_data["TOFNAC"].shape[1]
                 volume_x = case_data["TOFNAC"].to(device)
                 volume_y = case_data["CTAC"].to(device)
                 indices_list = [i for i in range(1, len_z-1)]
 
                 random.shuffle(indices_list)
                 for indices in indices_list:
-                    x = volume_x[indices-1:indices+2, :, :].unsqueeze(0)
-                    y = volume_y[indices, :, :].unsqueeze(0).unsqueeze(0)
+                    x = volume_x[:, indices-1:indices+2, :, :].unsqueeze(0)
+                    y = volume_y[:, indices, :, :].unsqueeze(0).unsqueeze(0)
 
                     outputs = model(x)
                     loss = output_loss(outputs, y)
@@ -262,15 +260,15 @@ def main():
                 test_loss = 0
                 for idx_case, case_data in enumerate(test_data_loader):
                     case_loss = 0
-                    len_z = case_data["TOFNAC"].shape[0]
+                    len_z = case_data["TOFNAC"].shape[1]
                     volume_x = case_data["TOFNAC"].to(device)
                     volume_y = case_data["CTAC"].to(device)
                     indices_list = [i for i in range(1, len_z-1)]
 
                     random.shuffle(indices_list)
                     for indices in indices_list:
-                        x = volume_x[indices-1:indices+2, :, :].unsqueeze(0)
-                        y = volume_y[indices, :, :].unsqueeze(0).unsqueeze(0)
+                        x = volume_x[:, indices-1:indices+2, :, :].unsqueeze(0)
+                        y = volume_y[:, indices, :, :].unsqueeze(0).unsqueeze(0)
 
                         outputs = model(x)
                         loss = output_loss(outputs, y)
