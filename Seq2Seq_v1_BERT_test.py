@@ -87,51 +87,29 @@ def enumerate_cubes(data, cube_size):
                 cubes.append(cube)
     return np.asarray(cubes)
 
-def assemble_cube_array(cubes, cube_size, data_shape):
-    ax, ay, az = data_shape
+def assemble_cube_array_from_seq_to_volume(cube_array, cube_size, data_shape):
+    volume = np.zeros(data_shape)
+    ax, ay, az = data.shape
+    # pad the data if the size is not divisible by cube_size
     px = (cube_size - ax % cube_size) % cube_size
     py = (cube_size - ay % cube_size) % cube_size
     pz = (cube_size - az % cube_size) % cube_size
-    cubes = np.pad(cubes, ((0, 0), (0, px), (0, py), (0, pz)), mode='constant')
-    print(f"Pad the cubes to {cubes.shape} from ({ax}, {ay}, {az})")
-    data = np.zeros((ax + px, ay + py, az + pz))
-    for idx, cube in enumerate(cubes):
-        x = (idx // (ay // cube_size)) * cube_size
-        y = (idx % (ay // cube_size)) * cube_size
-        z = (idx % (az // cube_size)) * cube_size
-        data[x:x + cube_size, y:y + cube_size, z:z + cube_size] = cube
-    return data
+    volume = np.pad(volume, ((0, px), (0, py), (0, pz)), mode='constant')
 
-def draw_cube(STEP1_data, STEP2_data, cube_size, batch_size):
+    # count = np.zeros(data_shape)
+    for idx, cube in enumerate(cube_array):
+        x = idx // (data_shape[1] // cube_size)
+        y = (idx // (data_shape[2] // cube_size)) % (data_shape[1] // cube_size)
+        z = idx % (data_shape[2] // cube_size)
+        volume[x * cube_size:(x + 1) * cube_size, y * cube_size:(y + 1) * cube_size, z * cube_size:(z + 1) * cube_size] += cube
+        # count[x * cube_size:(x + 1) * cube_size, y * cube_size:(y + 1) * cube_size, z * cube_size:(z + 1) * cube_size] += 1
 
-    batch_x = []
-    batch_y = []
+    # cut the padded part
+    volume = volume[:ax, :ay, :az]
 
-    for idx_batch in range(batch_size):
-        cx = np.random.randint(cube_size // 2, STEP1_data.shape[1] - cube_size // 2)
-        cy = np.random.randint(cube_size // 2, STEP1_data.shape[2] - cube_size // 2)
-        cz = np.random.randint(cube_size // 2, STEP1_data.shape[0] - cube_size // 2)
-        step1_cube = STEP1_data[cz - cube_size // 2:cz + cube_size // 2, cx - cube_size // 2:cx + cube_size // 2, cy - cube_size // 2:cy + cube_size // 2]
-        step2_cube = STEP2_data[cz - cube_size // 2:cz + cube_size // 2, cx - cube_size // 2:cx + cube_size // 2, cy - cube_size // 2:cy + cube_size // 2]
-        step1_seq = step1_cube.reshape(-1)
-        step2_seq = step2_cube.reshape(-1)
-        token1 = vq_embeddings[step1_seq]
-        token2 = vq_embeddings[step2_seq]
-        token1 = token1.repeat(1,4)
-        token2 = token2.repeat(1,4)
-        token1 = token1.unsqueeze(0)
-        token2 = token2.unsqueeze(0)
+    return volume
 
-        batch_x.append(token1)
-        batch_y.append(token2)
-
-    batch_x = torch.cat(batch_x, dim=0)
-    batch_y = torch.cat(batch_y, dim=0)
-
-    return batch_x, batch_y
-
-
-# Start training
+# Start evaluating the model
 
 optimizer = AdamW(model.parameters(), lr=5e-5)
 # epochs = 1000
@@ -161,7 +139,7 @@ for idx_tag, tag in enumerate(test_tag_list):
         STEP1_seq = STEP1_cube.reshape(-1)
         token1 = vq_embeddings[STEP1_seq]
         token1 = token1.repeat(1,4)
-        token1 = token1.unsqueeze(0).to(device)
+        token1 = token1.unsqueeze(0)
         pred_STEP2_cube = model(token1)
 
         pred_1 = pred_STEP2_cube[:, :, :3].reshape(-1, 3).detach().cpu()
@@ -179,7 +157,8 @@ for idx_tag, tag in enumerate(test_tag_list):
         pred_STEP2_cube = pred_idx.reshape(cube_size, cube_size, cube_size) 
         pred_STEP2_cube_array.append(pred_STEP2_cube)
     
-    pred_STEP2_data = assemble_cube_array(cubes, cube_size, data_shape)
+    pred_STEP2_data = assemble_cube_array_from_seq_to_volume(pred_STEP2_cube_array, cube_size, STEP2_data.shape)
+    print(f"Predicted STEP2 data shape: {pred_STEP2_data.shape}")
     pred_STEP2_path = f"{data_folder}token_volume/PRED_STEP2_{tag}_VOLUME.npy"
     np.save(pred_STEP2_path, pred_STEP2_data)
     print(f"Save the predicted STEP2 data to {pred_STEP2_path}")
