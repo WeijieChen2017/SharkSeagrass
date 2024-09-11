@@ -89,7 +89,7 @@ def enumerate_cubes(data, cube_size):
 
 def assemble_cube_array_from_seq_to_volume(cube_array, cube_size, data_shape):
     volume = np.zeros(data_shape)
-    ax, ay, az = data.shape
+    ax, ay, az = data_shape
     # pad the data if the size is not divisible by cube_size
     px = (cube_size - ax % cube_size) % cube_size
     py = (cube_size - ay % cube_size) % cube_size
