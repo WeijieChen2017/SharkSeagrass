@@ -170,6 +170,29 @@ for epoch in range(epochs):
             save_path = f"{root}best_model.pth"
             torch.save(model.state_dict(), save_path)
             print(f"Save model at epoch {epoch + 1}")
+
+        # Test the model
+        model.eval()
+        random.shuffle(test_list)
+        test_loss = []
+        for idx_tag, tag in enumerate(test_list):
+            STEP1_path = f"{data_folder}token_volume/TOKEN_STEP1_{tag}_VOLUME.npy"
+            STEP2_path = f"{data_folder}token_volume/TOKEN_STEP2_{tag}_VOLUME.npy"
+            STEP1_data = np.load(STEP1_path).reshape(-1, 100, 100)
+            STEP2_data = np.load(STEP2_path).reshape(-1, 100, 100)
+            case_loss = []
+            for idx_sample in range(samples_per_case):
+                batch_x, batch_y = draw_cube(STEP1_data, STEP2_data, cube_size, batch_size)
+                batch_x = batch_x.to(device)
+                batch_y = batch_y.to(device)
+                predictions = model(batch_x)
+                loss = F.mse_loss(predictions, batch_y)
+                case_loss.append(loss.item())
+                print(f'Test Epoch {epoch + 1}/{epochs}, Batch {idx_tag + 1}/{len(test_list)}, Sample {idx_sample + 1}/{samples_per_case}, Loss: {loss.item():.4f}')
+
+            case_loss = np.mean(np.asarray(case_loss))
+            test_loss.append(case_loss)
+            print(f'Test Epoch {epoch + 1}/{epochs}, Batch {idx_tag + 1}/{len(test_list)}, Loss: {case_loss:.4f}')
     
     if epoch % save_per_epoch == 0:
         save_path = f"{root}model_epoch_{epoch + 1}.pth"
