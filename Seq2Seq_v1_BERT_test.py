@@ -169,10 +169,10 @@ for idx_tag, tag in enumerate(test_tag_list):
         pred_3 = pred_STEP2_cube[:, :, 6:9].reshape(-1, 3)
         pred_4 = pred_STEP2_cube[:, :, 9:12].reshape(-1, 3)
 
-        pred_idx_1 = torch.argmin(torch.cdist(pred_1, weights), dim=1)
-        pred_idx_2 = torch.argmin(torch.cdist(pred_2, weights), dim=1)
-        pred_idx_3 = torch.argmin(torch.cdist(pred_3, weights), dim=1)
-        pred_idx_4 = torch.argmin(torch.cdist(pred_4, weights), dim=1)
+        pred_idx_1 = torch.argmin(torch.cdist(pred_1, vq_embeddings), dim=1)
+        pred_idx_2 = torch.argmin(torch.cdist(pred_2, vq_embeddings), dim=1)
+        pred_idx_3 = torch.argmin(torch.cdist(pred_3, vq_embeddings), dim=1)
+        pred_idx_4 = torch.argmin(torch.cdist(pred_4, vq_embeddings), dim=1)
 
         # select the majority vote from the 4 predictions
         pred_idx = torch.mode(torch.stack([pred_idx_1, pred_idx_2, pred_idx_3, pred_idx_4]), dim=0).values
