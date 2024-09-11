@@ -1,3 +1,4 @@
+import os
 import torch
 import random
 import numpy as np
@@ -10,6 +11,7 @@ from transformers import BertModel, BertConfig
 # Load the pre-trained VQ-VAE embeddings
 data_folder = "Seq2Seq/"
 root = f"{data_folder}v1_BERT/"
+os.makedirs(root, exist_ok=True)
 vq_embeddings_path = f"{data_folder}f4_noattn_vq_weights.npy"
 vq_embeddings = np.load(vq_embeddings_path)
 print(vq_embeddings.shape)
