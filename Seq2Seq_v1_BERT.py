@@ -102,7 +102,7 @@ batch_size = 24
 samples_per_case = 25
 cube_size = 8
 vq_embeddings = torch.tensor(vq_embeddings, dtype=torch.float32)
-val_per_epoch = 50
+val_per_epoch = 25
 save_per_epoch = 100
 
 best_val=1e6
