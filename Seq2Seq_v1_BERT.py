@@ -195,6 +195,9 @@ for epoch in range(epochs):
             case_loss = np.mean(np.asarray(case_loss))
             test_loss.append(case_loss)
             print(f'Test Epoch {epoch + 1}/{epochs}, Batch {idx_tag + 1}/{len(test_list)}, Loss: {case_loss:.4f}')
+        
+        test_loss = np.mean(np.asarray(test_loss))
+        print(f'Test Epoch {epoch + 1}/{epochs}, Loss: {test_loss:.4f}')
     
     if epoch % save_per_epoch == 0:
         save_path = f"{root}model_epoch_{epoch + 1}.pth"
