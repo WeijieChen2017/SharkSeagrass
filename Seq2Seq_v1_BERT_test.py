@@ -164,10 +164,10 @@ for idx_tag, tag in enumerate(test_tag_list):
         token1 = token1.unsqueeze(0).to(device)
         pred_STEP2_cube = model(token1)
 
-        pred_1 = pred_STEP2_cube[:, :, :3].reshape(-1, 3)
-        pred_2 = pred_STEP2_cube[:, :, 3:6].reshape(-1, 3)
-        pred_3 = pred_STEP2_cube[:, :, 6:9].reshape(-1, 3)
-        pred_4 = pred_STEP2_cube[:, :, 9:12].reshape(-1, 3)
+        pred_1 = pred_STEP2_cube[:, :, :3].reshape(-1, 3).detach().cpu()
+        pred_2 = pred_STEP2_cube[:, :, 3:6].reshape(-1, 3).detach().cpu()
+        pred_3 = pred_STEP2_cube[:, :, 6:9].reshape(-1, 3).detach().cpu()
+        pred_4 = pred_STEP2_cube[:, :, 9:12].reshape(-1, 3).detach().cpu()
 
         pred_idx_1 = torch.argmin(torch.cdist(pred_1, vq_embeddings), dim=1)
         pred_idx_2 = torch.argmin(torch.cdist(pred_2, vq_embeddings), dim=1)
