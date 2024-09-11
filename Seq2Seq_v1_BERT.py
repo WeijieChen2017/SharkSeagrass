@@ -98,7 +98,7 @@ def draw_cube(STEP1_data, STEP2_data, cube_size, batch_size):
 
 optimizer = AdamW(model.parameters(), lr=5e-5)
 epochs = 1000
-batch_size = 32
+batch_size = 48
 samples_per_case = 20
 cube_size = 8
 vq_embeddings = torch.tensor(vq_embeddings, dtype=torch.float32)
@@ -130,7 +130,7 @@ for epoch in range(epochs):
             loss.backward()
             optimizer.step()
             case_loss.append(loss.item())
-            print(f'Training Epoch {epoch + 1}/{epochs}, Batch {idx_tag + 1}/{len(train_list)}, Sample {idx_sample + 1}/{samples_per_case}, Loss: {loss.item():.4f}')
+            # print(f'Training Epoch {epoch + 1}/{epochs}, Batch {idx_tag + 1}/{len(train_list)}, Sample {idx_sample + 1}/{samples_per_case}, Loss: {loss.item():.4f}')
 
         case_loss = np.mean(np.asarray(case_loss))
         epoch_loss.append(case_loss)
@@ -157,7 +157,7 @@ for epoch in range(epochs):
                 predictions = model(batch_x)
                 loss = F.mse_loss(predictions, batch_y)
                 case_loss.append(loss.item())
-                print(f'Validation Epoch {epoch + 1}/{epochs}, Batch {idx_tag + 1}/{len(val_list)}, Sample {idx_sample + 1}/{samples_per_case}, Loss: {loss.item():.4f}')
+                # print(f'Validation Epoch {epoch + 1}/{epochs}, Batch {idx_tag + 1}/{len(val_list)}, Sample {idx_sample + 1}/{samples_per_case}, Loss: {loss.item():.4f}')
 
             case_loss = np.mean(np.asarray(case_loss))
             val_loss.append(case_loss)
@@ -190,7 +190,7 @@ for epoch in range(epochs):
                 predictions = model(batch_x)
                 loss = F.mse_loss(predictions, batch_y)
                 case_loss.append(loss.item())
-                print(f'Test Epoch {epoch + 1}/{epochs}, Batch {idx_tag + 1}/{len(test_list)}, Sample {idx_sample + 1}/{samples_per_case}, Loss: {loss.item():.4f}')
+                # print(f'Test Epoch {epoch + 1}/{epochs}, Batch {idx_tag + 1}/{len(test_list)}, Sample {idx_sample + 1}/{samples_per_case}, Loss: {loss.item():.4f}')
 
             case_loss = np.mean(np.asarray(case_loss))
             test_loss.append(case_loss)
