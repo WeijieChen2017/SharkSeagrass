@@ -1,4 +1,5 @@
 import os
+import json
 import torch
 import random
 import numpy as np
@@ -64,6 +65,14 @@ train_ratio, val_ratio, test_ratio = 0.7, 0.2, 0.1
 train_list = tag_list[:int(len(tag_list) * train_ratio)]
 val_list = tag_list[int(len(tag_list) * train_ratio):int(len(tag_list) * (train_ratio + val_ratio))]
 test_list = tag_list[int(len(tag_list) * (train_ratio + val_ratio)):]
+data_div_json = {
+    "train": train_list,
+    "val": val_list,
+    "test": test_list
+}
+with open(f"{root}data_div.json", "w") as f:
+    json.dump(data_div_json, f, indent=4)
+print("Save data_div.json done!")
 
 def draw_cube(STEP1_data, STEP2_data, cube_size, batch_size):
 
