@@ -139,7 +139,7 @@ for idx_tag, tag in enumerate(test_tag_list):
         STEP1_seq = STEP1_cube.reshape(-1)
         token1 = vq_embeddings[STEP1_seq]
         token1 = token1.repeat(1,4)
-        token1 = token1.unsqueeze(0)
+        token1 = token1.unsqueeze(0).to(device)
         pred_STEP2_cube = model(token1)
 
         pred_1 = pred_STEP2_cube[:, :, :3].reshape(-1, 3).detach().cpu()
