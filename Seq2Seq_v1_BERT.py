@@ -98,7 +98,7 @@ def draw_cube(STEP1_data, STEP2_data, cube_size, batch_size):
 
 optimizer = AdamW(model.parameters(), lr=5e-5)
 epochs = 1000
-batch_size = 48
+batch_size = 24
 samples_per_case = 20
 cube_size = 8
 vq_embeddings = torch.tensor(vq_embeddings, dtype=torch.float32)
