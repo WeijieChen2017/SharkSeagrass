@@ -99,7 +99,7 @@ epochs = 1000
 batch_size = 96
 samples_per_case = 20
 cube_size = 8
-weights = torch.tensor(weights, dtype=torch.float32)
+vq_embeddings = torch.tensor(vq_embeddings, dtype=torch.float32)
 val_per_epoch = 50
 save_per_epoch = 100
 
