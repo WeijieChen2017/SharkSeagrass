@@ -153,7 +153,7 @@ for idx_tag, tag in enumerate(test_tag_list):
     STEP1_data = np.load(STEP1_path).reshape(-1, 100, 100)
     STEP2_data = np.load(STEP2_path).reshape(-1, 100, 100)
     case_loss = []
-    STEP1_cube_array = enumerate_cubes(data, cube_size):
+    STEP1_cube_array = enumerate_cubes(data, cube_size)
     pred_STEP2_cube_array = []
     len_cubes = len(STEP1_cube_array)
     print(f"Enumerate {len_cubes} cubes")
