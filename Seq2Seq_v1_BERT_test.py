@@ -157,6 +157,11 @@ for idx_tag, tag in enumerate(test_tag_list):
         pred_STEP2_cube = pred_idx.reshape(cube_size, cube_size, cube_size) 
         pred_STEP2_cube_array.append(pred_STEP2_cube)
     
+    # save the predicted STEP cube array
+    savename = f"{data_folder}token_volume/PRED_STEP2_{tag}_CUBE_ARRAY.npy"
+    np.save(savename, np.asarray(pred_STEP2_cube_array))
+    print(f"Save the predicted STEP2 cube array to {savename}")
+    
     pred_STEP2_data = assemble_cube_array_from_seq_to_volume(pred_STEP2_cube_array, cube_size, STEP2_data.shape)
     print(f"Predicted STEP2 data shape: {pred_STEP2_data.shape}")
     pred_STEP2_path = f"{data_folder}token_volume/PRED_STEP2_{tag}_VOLUME.npy"
