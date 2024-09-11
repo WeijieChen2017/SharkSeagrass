@@ -18,7 +18,7 @@ print(vq_embeddings.shape)
 print(f"Load vq_embeddings done from {vq_embeddings_path}")
 
 # Configure the BERT model
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 D = 12
 config = BertConfig.from_pretrained('bert-base-uncased')
 config.hidden_size = D  # Match to the dimension of your input
