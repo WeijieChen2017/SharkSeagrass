@@ -76,8 +76,8 @@ def draw_cube(STEP1_data, STEP2_data, cube_size, batch_size):
         step2_cube = STEP2_data[cz - cube_size // 2:cz + cube_size // 2, cx - cube_size // 2:cx + cube_size // 2, cy - cube_size // 2:cy + cube_size // 2]
         step1_seq = step1_cube.reshape(-1)
         step2_seq = step2_cube.reshape(-1)
-        token1 = weights[step1_seq]
-        token2 = weights[step2_seq]
+        token1 = vq_embeddings[step1_seq]
+        token2 = vq_embeddings[step2_seq]
         token1 = token1.repeat(1,4)
         token2 = token2.repeat(1,4)
         token1 = token1.unsqueeze(0)
