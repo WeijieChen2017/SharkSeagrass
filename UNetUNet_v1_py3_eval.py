@@ -135,7 +135,7 @@ def main():
     # load json
     with open(data_div_json, "r") as f:
         data_div = json.load(f)
-    data_div_cv = data_div[f"cv{cross_validation}"]
+    data_div_cv = data_div[f"cv_{cross_validation}"]
 
     log_file = os.path.join(root_folder, "log.txt")
     with open(log_file, "w") as f:
