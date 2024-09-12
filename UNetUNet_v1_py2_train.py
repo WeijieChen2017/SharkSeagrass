@@ -123,7 +123,7 @@ def main():
     }
 
     train_params = {
-        "num_epoch": 50, # 50 epochs
+        "num_epoch": 51, # 50 epochs
         "optimizer": "AdamW",
         "lr": 1e-5,
         "weight_decay": 1e-5,
@@ -287,7 +287,7 @@ def main():
                 print(f"Save the best model with val_loss: {val_loss} at epoch {idx_epoch}")
                 logger.log(idx_epoch, "best_model_epoch", idx_epoch)
                 logger.log(idx_epoch, "best_model_val_loss", val_loss)
-                wandb_run.log_model(path=os.path.join(root_folder, "best_model.pth"), name="model_best_eval", aliases=tag+f"cv{cross_validation}")
+                wandb_run.log_model(path=os.path.join(root_folder, f"best_model_cv{cross_validation}.pth"), name="model_best_eval", aliases=tag+f"cv{cross_validation}")
                 
                 # test the model
                 test_loss = 0
