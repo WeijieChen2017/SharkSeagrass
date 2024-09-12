@@ -19,7 +19,7 @@ from UNetUNet_v1_py2_train_util import VQModel, simple_logger, prepare_dataset
 def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
-    argparser.add_argument('--cross_validation', type=int, default=0, help='Index of the cross validation')
+    argparser.add_argument('-c', '--cross_validation', type=int, default=0, help='Index of the cross validation')
     args = argparser.parse_args()
     tag = f"fold{args.cross_validation}"
 
