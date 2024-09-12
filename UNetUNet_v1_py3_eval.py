@@ -170,14 +170,15 @@ def main():
             CTAC_pred = np.zeros_like(CTAC_data)
             for idx_z in range(len_z):
                 if idx_z == 0:
-                    slice_1 = TOFNAC_data[:, :, idx_z]
-                    slice_2 = TOFNAC_data[:, :, idx_z]
-                    slice_3 = TOFNAC_data[:, :, idx_z+1]
-                    print(slice_1.shape, slice_2.shape, slice_3.shape)
+                    slice_1 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                    slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                    slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(400, 400, 1)
                     data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
-                    # data_x = np.concatenate([TOFNAC_data[:, :, idx_z], TOFNAC_data[:, :, idx_z], TOFNAC_data[:, :, idx_z+1]], axis=2)
                 elif idx_z == len_z - 1:
-                    data_x = np.concatenate([TOFNAC_data[:, :, idx_z-1], TOFNAC_data[:, :, idx_z], TOFNAC_data[:, :, idx_z]], axis=2)
+                    slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(400, 400, 1)
+                    slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                    slice_3 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                    data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
                 else:
                     data_x = TOFNAC_data[:, :, idx_z-1:idx_z+2]
                 # data_x is 400x400x3, convert it to 1x3x400x400
