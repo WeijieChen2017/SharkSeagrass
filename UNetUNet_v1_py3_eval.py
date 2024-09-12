@@ -20,6 +20,7 @@ def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
     argparser.add_argument('-c', '--cross_validation', type=int, default=0, help='Index of the cross validation')
+    argparser.add_argument('-p', '--part2', type=bool, default=True, help='Whether to run the second part')
     args = argparser.parse_args()
     tag = f"fold{args.cross_validation}"
 
@@ -129,92 +130,143 @@ def main():
     print("Model step 1 loaded from", model_step1_params["ckpt_path"])
     model.to(device)
 
+    if not args.part2:
+        data_folder = "B100/TOFNAC_CTAC_hash/"
+        data_split = ["train", "val", "test"]
+        # load json
+        with open(data_div_json, "r") as f:
+            data_div = json.load(f)
+        data_div_cv = data_div[f"cv_{cross_validation}"]
 
-    data_folder = "B100/TOFNAC_CTAC_hash/"
-    data_split = ["train", "val", "test"]
-    # load json
-    with open(data_div_json, "r") as f:
-        data_div = json.load(f)
-    data_div_cv = data_div[f"cv_{cross_validation}"]
+        log_file = os.path.join(root_folder, "log.txt")
+        with open(log_file, "w") as f:
+            print(f"Training division: {data_div_cv['train']}")
+            print(f"Validation division: {data_div_cv['val']}")
+            print(f"Testing division: {data_div_cv['test']}")
 
-    log_file = os.path.join(root_folder, "log.txt")
-    with open(log_file, "w") as f:
-        print(f"Training division: {data_div_cv['train']}")
-        print(f"Validation division: {data_div_cv['val']}")
-        print(f"Testing division: {data_div_cv['test']}")
-
-    for split in data_split:
-        data_split_folder = os.path.join(root_folder, split)
-        if not os.path.exists(data_split_folder):
-            os.makedirs(data_split_folder)
-        
-        split_list = data_div_cv[split]
-        split_loss = []
-        # now there will be a list of file names
-        for casename in split_list:
-            print(f"{split} -> Processing {casename}")
-            # casenme "FGX078"
-            # TOFNAC_path "FGX078_CTAC.nii.gz" have been normalized
-            # CTAC_path "FGX078_TOFNAC.nii.gz" have been normalized
-            TOFNAC_path = os.path.join(data_folder, f"{casename}_TOFNAC.nii.gz")
-            CTAC_path = os.path.join(data_folder, f"{casename}_CTAC.nii.gz")
-            # load the data
-            TOFNAC_file = nib.load(TOFNAC_path)
-            CTAC_file = nib.load(CTAC_path)
-
-            TOFNAC_data = TOFNAC_file.get_fdata()
-            CTAC_data = CTAC_file.get_fdata()
-            print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
-
-            len_z = TOFNAC_data.shape[2]
-            CTAC_pred = np.zeros_like(CTAC_data)
-            for idx_z in range(len_z):
-                if idx_z == 0:
-                    slice_1 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
-                    slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
-                    slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(400, 400, 1)
-                    data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
-                elif idx_z == len_z - 1:
-                    slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(400, 400, 1)
-                    slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
-                    slice_3 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
-                    data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
-                else:
-                    data_x = TOFNAC_data[:, :, idx_z-1:idx_z+2]
-                # data_x is 400x400x3, convert it to 1x3x400x400
-                data_x = np.transpose(data_x, (2, 0, 1))
-                data_x = np.expand_dims(data_x, axis=0)
-                data_x = torch.tensor(data_x, dtype=torch.float32).to(device)
-                with torch.no_grad():
-                    pred_y = model(data_x)
-                    pred_y = pred_y.cpu().detach().numpy()
-                    pred_y = np.squeeze(pred_y, axis=0)
-                    CTAC_pred[:, :, idx_z] = pred_y
+        for split in data_split:
+            data_split_folder = os.path.join(root_folder, split)
+            if not os.path.exists(data_split_folder):
+                os.makedirs(data_split_folder)
             
-            # save the CTAC_pred
-            
-            CTAC_pred_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
-            CTAC_pred_nii = nib.Nifti1Image(CTAC_pred, CTAC_file.affine, CTAC_file.header)
-            nib.save(CTAC_pred_nii, CTAC_pred_path)
-            print(f"Save the CTAC_pred to {CTAC_pred_path}")
+            split_list = data_div_cv[split]
+            split_loss = []
+            # now there will be a list of file names
+            for casename in split_list:
+                print(f"{split} -> Processing {casename}")
+                # casenme "FGX078"
+                # TOFNAC_path "FGX078_CTAC.nii.gz" have been normalized
+                # CTAC_path "FGX078_TOFNAC.nii.gz" have been normalized
+                TOFNAC_path = os.path.join(data_folder, f"{casename}_TOFNAC.nii.gz")
+                CTAC_path = os.path.join(data_folder, f"{casename}_CTAC.nii.gz")
+                # load the data
+                TOFNAC_file = nib.load(TOFNAC_path)
+                CTAC_file = nib.load(CTAC_path)
 
-            # compute the loss
-            CTAC_HU = CTAC_data * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
-            CTAC_pred = CTAC_pred * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
-            CTAC_mask = CTAC_HU > -500
-            MAE = np.mean(np.abs(CTAC_HU[CTAC_mask] - CTAC_pred[CTAC_mask]))
-            print(f"{split} -> {casename} -> MAE: {MAE:.4f}")
-            split_loss.append(MAE)
+                TOFNAC_data = TOFNAC_file.get_fdata()
+                CTAC_data = CTAC_file.get_fdata()
+                print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
+
+                len_z = TOFNAC_data.shape[2]
+                CTAC_pred = np.zeros_like(CTAC_data)
+                for idx_z in range(len_z):
+                    if idx_z == 0:
+                        slice_1 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                        slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(400, 400, 1)
+                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+                    elif idx_z == len_z - 1:
+                        slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(400, 400, 1)
+                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                        slice_3 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+                    else:
+                        data_x = TOFNAC_data[:, :, idx_z-1:idx_z+2]
+                    # data_x is 400x400x3, convert it to 1x3x400x400
+                    data_x = np.transpose(data_x, (2, 0, 1))
+                    data_x = np.expand_dims(data_x, axis=0)
+                    data_x = torch.tensor(data_x, dtype=torch.float32).to(device)
+                    with torch.no_grad():
+                        pred_y = model(data_x)
+                        pred_y = pred_y.cpu().detach().numpy()
+                        pred_y = np.squeeze(pred_y, axis=0)
+                        CTAC_pred[:, :, idx_z] = pred_y
+                
+                # save the CTAC_pred
+                
+                CTAC_pred_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
+                CTAC_pred_nii = nib.Nifti1Image(CTAC_pred, CTAC_file.affine, CTAC_file.header)
+                nib.save(CTAC_pred_nii, CTAC_pred_path)
+                print(f"Save the CTAC_pred to {CTAC_pred_path}")
+
+                # compute the loss
+                CTAC_HU = CTAC_data * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
+                CTAC_pred = CTAC_pred * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
+                CTAC_mask = CTAC_HU > -500
+                MAE = np.mean(np.abs(CTAC_HU[CTAC_mask] - CTAC_pred[CTAC_mask]))
+                print(f"{split} -> {casename} -> MAE: {MAE:.4f}")
+                split_loss.append(MAE)
+                with open(log_file, "a") as f:
+                    f.write(f"{split} -> {casename} -> MAE: {MAE:.4f}\n")
+            
+            split_loss = np.asarray(split_loss)
+            split_loss = np.mean(split_loss)
+            print(f"{split} -> Average MAE: {split_loss:.4f}")
             with open(log_file, "a") as f:
-                f.write(f"{split} -> {casename} -> MAE: {MAE:.4f}\n")
-        
-        split_loss = np.asarray(split_loss)
-        split_loss = np.mean(split_loss)
-        print(f"{split} -> Average MAE: {split_loss:.4f}")
-        with open(log_file, "a") as f:
-            f.write(f"{split} -> Average MAE: {split_loss:.4f}\n")
+                f.write(f"{split} -> Average MAE: {split_loss:.4f}\n")
 
-    print("Done!")
+        print("Done!")
+    
+    else:
+        root_folder = f"B100/TOFNAC_CTACIVV_part2/cv{cross_validation}/"
+        data_folder = f"B100/TOFNAC_CTACIVV_part2/"
+        data_split = ["test"]
+        # load json
+        with open(data_div_json, "r") as f:
+            data_div = json.load(f)
+        
+        data_div_cv = data_div[f"part2"]
+
+        log_file = os.path.join(root_folder, "log_part2.txt")
+        with open(log_file, "w") as f:
+            print(f"Part 2 division: {data_div_cv['test']}")
+        
+        for split in data_split:
+            data_split_folder = os.path.join(root_folder, split)
+            if not os.path.exists(data_split_folder):
+                os.makedirs(data_split_folder)
+            
+            split_list = data_div_cv[split]
+            split_loss = []
+            # now there will be a list of file names
+            for casename in split_list:
+                print(f"{split} -> Processing {casename}")
+                # casenme "FGX078"
+                # TOFNAC_path "FGX078_CTAC.nii.gz" is not normalized
+                # CTAC_path "FGX078_TOFNAC.nii.gz" is not normalized
+                TOFNAC_path = os.path.join(data_folder, f"{casename}_TOFNAC.nii.gz")
+                CTAC_path = os.path.join(data_folder, f"{casename}_CTAC.nii.gz")
+                # load the data
+                TOFNAC_file = nib.load(TOFNAC_path)
+                CTAC_file = nib.load(CTAC_path)
+
+                TOFNAC_data = TOFNAC_file.get_fdata()
+                CTAC_data = CTAC_file.get_fdata()
+                print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
+
+                len_z = TOFNAC_data.shape[2]
+                CTAC_pred = np.zeros_like(CTAC_data)
+                for idx_z in range(len_z):
+                    if idx_z == 0:
+                        slice_1 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                        slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(400, 400, 1)
+                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+                    elif idx_z == len_z - 1:
+                        slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(400, 400, 1)
+                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                        slice_3 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                        data_x = np.concatenate([slice_1, slice_
 
 if __name__ == "__main__":
     main()
