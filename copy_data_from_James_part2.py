@@ -15,8 +15,7 @@ import numpy as np
 root_folder = "B100/TOFNAC_CTACIVV_part2/"
 
 for case_tag in case_list:
-    TOFNAC_path = sorted(glob.glob(f"Duetto_Output_B100_part2_nii_Winston/PET TOFNAC {case_tag} B100/*.nii"))
-    print(TOFNAC_path)
+    TOFNAC_path = sorted(glob.glob(f"Duetto_Output_B100_part2_nii_Winston/PET TOFNAC {case_tag} B100/*.nii"))[0]
     CTACIVV_path = f"Duetto_Output_B100_part2_nii_Winston/CTACIVV_{case_tag[1:]}.nii"
 
     PET_file = nib.load(TOFNAC_path)
