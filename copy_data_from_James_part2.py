@@ -13,6 +13,7 @@ import nibabel as nib
 import numpy as np
 
 root_folder = "B100/TOFNAC_CTACIVV_part2/"
+os.makedirs(root_folder, exist_ok=True)
 
 for case_tag in case_list:
     TOFNAC_path = sorted(glob.glob(f"Duetto_Output_B100_part2_nii_Winston/PET TOFNAC {case_tag} B100/*.nii"))[0]
