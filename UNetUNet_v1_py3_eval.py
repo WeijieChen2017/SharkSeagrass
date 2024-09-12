@@ -112,7 +112,7 @@ def main():
     global_config["input_modality"] = ["TOFNAC", "CTAC"]
     global_config["model_step1_params"] = model_step1_params
     global_config["data_loader_params"] = data_loader_params
-    global_config["train_params"] = train_params
+    # global_config["train_params"] = train_params
     global_config["cross_validation"] = args.cross_validation
 
     
