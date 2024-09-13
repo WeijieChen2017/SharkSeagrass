@@ -278,7 +278,7 @@ def main():
 
                 # normalize the data
                 TOFNAC_data = TOFNAC_file.get_fdata()
-                CTAC_data = CTAC_file.get_fdata()
+                CTAC_data = CTAC_file.get_fdata()[33:433, 33:433, :]
                 TOFNAC_data = two_segment_scale(TOFNAC_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
 
                 print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
