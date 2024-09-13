@@ -270,8 +270,8 @@ def main():
                 # casenme "FGX078"
                 # TOFNAC_path "FGX078_CTAC.nii.gz" is not normalized
                 # CTAC_path "FGX078_TOFNAC.nii.gz" is not normalized
-                TOFNAC_path = os.path.join(data_folder, f"{casename}_TOFNAC.nii.gz")
-                CTAC_path = os.path.join(data_folder, f"{casename}_CTAC.nii.gz")
+                TOFNAC_path = os.path.join(data_folder, f"TOFNAC_{casename}_400.nii.gz")
+                CTAC_path = os.path.join(data_folder, f"CTACIVV_{casename}_400.nii.gz")
                 # load the data
                 TOFNAC_file = nib.load(TOFNAC_path)
                 CTAC_file = nib.load(CTAC_path)
