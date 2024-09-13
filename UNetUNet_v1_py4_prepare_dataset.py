@@ -88,7 +88,13 @@ def main():
         step1_data = step1_file.get_fdata()
         step2_data = step2_file.get_fdata()
 
-        print("< " * 50)
+        compress_step1_data = np.clip(step1_data, 0, 1)
+        compress_step1_path = step1_path.replace(".nii.gz", "_clip.nii.gz")
+        compress_step1_nii = nib.Nifti1Image(compress_step1_data, step1_file.affine, step1_file.header)
+        nib.save(compress_step1_nii, compress_step1_path)
+        print(f"Compressed data saved at {compress_step1_path}")
+
+        print("<" * 50)
         print(f"Processing:  {step1_path} {step2_path}")
         print(f"s1 shape: {step1_data.shape}, s2 shape: {step2_data.shape}")
         print(f"s1 mean: {np.mean(step1_data):.4f}, s1 std: {np.std(step1_data):.4f}")
@@ -96,7 +102,7 @@ def main():
         print(f"s1 min: {np.min(step1_data):.4f}, s1 max: {np.max(step1_data):.4f}")
         print(f"s2 min: {np.min(step2_data):.4f}, s2 max: {np.max(step2_data):.4f}")
         print(f"s1 dtype: {step1_data.dtype}, s2 dtype: {step2_data.dtype}")
-        print("> " * 50)
+        print(">" * 50)
 
 
 
