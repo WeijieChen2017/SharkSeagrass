@@ -38,8 +38,7 @@ def main():
     with open(data_div_json, "r") as f:
         data_div = json.load(f)
         
-    cv = global_config["cross_validation"]
-
+    cv = args.cross_validation
     train_list = data_div[f"cv_{cv}"]["train"]
     val_list = data_div[f"cv_{cv}"]["val"]
     test_list = data_div[f"cv_{cv}"]["test"]
