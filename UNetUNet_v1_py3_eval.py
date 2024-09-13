@@ -16,6 +16,30 @@ import numpy as np
 
 from UNetUNet_v1_py2_train_util import VQModel, simple_logger, prepare_dataset
 
+MID_PET = 5000
+MIQ_PET = 0.9
+MAX_PET = 20000
+MAX_CT = 1976
+MIN_CT = -1024
+MIN_PET = 0
+RANGE_CT = MAX_CT - MIN_CT
+RANGE_PET = MAX_PET - MIN_PET
+
+
+def two_segment_scale(arr, MIN, MID, MAX, MIQ):
+    # Create an empty array to hold the scaled results
+    scaled_arr = np.zeros_like(arr, dtype=np.float32)
+
+    # First segment: where arr <= MID
+    mask1 = arr <= MID
+    scaled_arr[mask1] = (arr[mask1] - MIN) / (MID - MIN) * MIQ
+
+    # Second segment: where arr > MID
+    mask2 = arr > MID
+    scaled_arr[mask2] = MIQ + (arr[mask2] - MID) / (MAX - MID) * (1 - MIQ)
+    
+    return scaled_arr
+
 def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
@@ -250,8 +274,11 @@ def main():
                 TOFNAC_file = nib.load(TOFNAC_path)
                 CTAC_file = nib.load(CTAC_path)
 
+                # normalize the data
                 TOFNAC_data = TOFNAC_file.get_fdata()
                 CTAC_data = CTAC_file.get_fdata()
+                TOFNAC_data = two_segment_scale(TOFNAC_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
+
                 print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
 
                 len_z = TOFNAC_data.shape[2]
@@ -261,12 +288,47 @@ def main():
                         slice_1 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
                         slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
                         slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(400, 400, 1)
-                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
                     elif idx_z == len_z - 1:
                         slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(400, 400, 1)
                         slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
                         slice_3 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
-                        data_x = np.concatenate([slice_1, slice_
+                    else:
+                        slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(400, 400, 1)
+                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1) 
+                        slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(400, 400, 1)
+                    data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+                    # data_x is 400x400x3, convert it to 1x3x400x400
+                    data_x = np.transpose(data_x, (2, 0, 1))
+                    data_x = np.expand_dims(data_x, axis=0)
+                    data_x = torch.tensor(data_x, dtype=torch.float32).to(device)
+                    with torch.no_grad():
+                        pred_y = model(data_x)
+                        pred_y = pred_y.cpu().detach().numpy()
+                        pred_y = np.squeeze(pred_y, axis=0)
+                        CTAC_pred[:, :, idx_z] = pred_y
+                    
+                # save the CTAC_pred
+                CTAC_pred = CTAC_pred * RANGE_CT + MIN_CT
+                CTAC_pred_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
+                CTAC_pred_nii = nib.Nifti1Image(CTAC_pred, CTAC_file.affine, CTAC_file.header)
+                nib.save(CTAC_pred_nii, CTAC_pred_path)
+
+                # compute the loss
+                CTGT_mask = CTAC_data > -500
+                MAE = np.mean(np.abs(CTAC_data[CTGT_mask] - CTAC_pred[CTGT_mask]))
+                print(f"{split} -> {casename} -> MAE: {MAE:.4f}")
+                split_loss.append(MAE)
+
+                with open(log_file, "a") as f:
+                    f.write(f"{split} -> {casename} -> MAE: {MAE:.4f}\n")
+            
+            split_loss = np.asarray(split_loss)
+            split_loss = np.mean(split_loss)
+            print(f"{split} -> Average MAE: {split_loss:.4f}")
+            with open(log_file, "a") as f:
+                f.write(f"{split} -> Average MAE: {split_loss:.4f}\n")
+            
+        print("Done!")
 
 if __name__ == "__main__":
     main()
