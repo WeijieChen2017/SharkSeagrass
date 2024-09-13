@@ -44,7 +44,7 @@ def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
     argparser.add_argument('-c', '--cross_validation', type=int, default=0, help='Index of the cross validation')
-    argparser.add_argument('-p', '--part2', type=bool, default=True, help='Whether to run the second part')
+    argparser.add_argument('-p', '--part2', type=bool, default=False, help='Whether to run the second part')
     args = argparser.parse_args()
     tag = f"fold{args.cross_validation}"
 
@@ -59,7 +59,7 @@ def main():
     torch.backends.cudnn.benchmark = False
 
     cross_validation = args.cross_validation
-    root_folder = f"B100/five_fold_cross_validation/cv{cross_validation}/"
+    root_folder = f"B100/UNetUNet_best/cv{cross_validation}/"
     data_div_json = "UNetUNet_v1_data_split.json"
     if not os.path.exists(root_folder):
         os.makedirs(root_folder)
@@ -114,7 +114,7 @@ def main():
         "embed_dim": 3,
         "img_size" : 400,
         "input_modality" : ["TOFNAC", "CTAC"],
-        "ckpt_path": f"B100/five_fold_cross_validation/best_model_cv{cross_validation}.pth",
+        "ckpt_path": f"B100/UNetUNet_best/best_model_cv{cross_validation}.pth",
         "ddconfig": {
             "attn_type": "none",
             "double_z": False,
@@ -312,7 +312,7 @@ def main():
                 # save the CTAC_pred
                 CTAC_pred = CTAC_pred * RANGE_CT + MIN_CT
                 CTAC_pred_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
-                CTAC_pred_nii = nib.Nifti1Image(CTAC_pred, CTAC_file.affine, CTAC_file.header)
+                CTAC_pred_nii = nib.Nifti1Image(CTAC_pred, TOFNAC_file.affine, TOFNAC_file.header)
                 nib.save(CTAC_pred_nii, CTAC_pred_path)
 
                 # compute the loss
