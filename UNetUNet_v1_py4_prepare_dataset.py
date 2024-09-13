@@ -31,7 +31,7 @@ def two_segment_scale(arr, MIN, MID, MAX, MIQ):
 
 def main():
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
-    argparser.add_argument('--cross_validation', type=int, default=5, help='Index of the cross validation')
+    argparser.add_argument('-c', '--cross_validation', type=int, default=0, help='Index of the cross validation')
     args = argparser.parse_args()
 
     data_div_json = "UNetUNet_v1_data_split.json"
