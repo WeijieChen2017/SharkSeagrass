@@ -96,6 +96,7 @@ def main():
         print(f"s2 mean: {np.mean(step2_data):.4f}, s2 std: {np.std(step2_data):.4f}")
         print(f"s1 min: {np.min(step1_data):.4f}, s1 max: {np.max(step1_data):.4f}")
         print(f"s2 min: {np.min(step2_data):.4f}, s2 max: {np.max(step2_data):.4f}")
+        print(f"s1 dtype: {step1_data.dtype}, s2 dtype: {step2_data.dtype}")
         print("> " * 50)
 
 
