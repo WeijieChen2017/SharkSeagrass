@@ -115,8 +115,53 @@ for i_case in range(num_TOFNAC):
 
     print(f"Saved {hash_name} at {save_filename_TOFNAC} and {save_filename_CTAC}")
     
-
-
+# tar -czvf cv0.tar.gz cv0
+# tar -czvf cv1.tar.gz cv1
+# tar -czvf cv2.tar.gz cv2
+# tar -czvf cv3.tar.gz cv3
+# tar -czvf cv4.tar.gz cv4
+# tar -czvf CTAC.tar.gz CTAC
+# tar -czvf TOFNAC_CTAC_hash.tar.gz TOFNAC_CTAC_hash
+# tar -czvf TC256.tar.gz TC256
+# <><><><><><><><><><><><><><><><><><><><>
+# data_dict = {
+#     4055: "PAW055",
+#     4069: "NAF069",
+#     4079: "SAM079",
+#     4094: "KQA094",
+#     4105: "TVA105",
+#     4120: "HNJ120",
+#     4130: "JQR130",
+#     4139: "RFK139",
+#     4058: "EIA058",
+#     4073: "YKY073",
+#     4081: "TTE081",
+#     4096: "BII096",
+#     4106: "GSB106",
+#     4124: "BPO124",
+#     4131: "KWX131",
+#     4061: "JLB061",
+#     4074: "SPT074",
+#     4084: "KZF084",
+#     4098: "XZG098",
+#     4114: "RSE114",
+#     4125: "OOP125",
+#     4134: "ONC134",
+#     4066: "EGS066",
+#     4077: "MLU077",
+#     4091: "NKQ091",
+#     4099: "DZS099",
+#     4115: "WVX115",
+#     4128: "LCQ128",
+#     4137: "FNG137",
+#     4068: "SCH068",
+#     4078: "FGX078",
+#     4092: "ZTS092",
+#     4103: "NIR103",
+#     4118: "LBO118",
+#     4129: "SNF129",
+#     4138: "WLX138"
+# }
 # <><><><><><><><><><><><><><><><><><><><>
 # 4055 : PAW055
 # 4069 : NAF069
