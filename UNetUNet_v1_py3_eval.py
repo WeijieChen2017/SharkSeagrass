@@ -243,6 +243,8 @@ def main():
     
     else:
         root_folder = f"B100/TOFNAC_CTACIVV_part2/cv{cross_validation}/"
+        if not os.path.exists(root_folder):
+            os.makedirs(root_folder)
         data_folder = f"B100/TOFNAC_CTACIVV_part2/"
         data_split = ["test"]
         # load json
