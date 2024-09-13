@@ -88,7 +88,7 @@ def main():
         step1_data = step1_file.get_fdata()
         step2_data = step2_file.get_fdata()
 
-        compress_step1_data = np.clip(step1_data, 0, 1)
+        compress_step1_data = np.clip(step1_data, 0, 1).astype(np.float32)
         compress_step1_path = step1_path.replace(".nii.gz", "_clip.nii.gz")
         compress_step1_nii = nib.Nifti1Image(compress_step1_data, step1_file.affine, step1_file.header)
         nib.save(compress_step1_nii, compress_step1_path)
