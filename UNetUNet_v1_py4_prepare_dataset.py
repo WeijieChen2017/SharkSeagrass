@@ -59,21 +59,21 @@ def main():
     for hashname in train_list:
         train_path_list.append({
             # BPO124_CTAC_pred_cv0.nii.gz
-            "STEP1": f"cv{cv}/train/{hashname}_CTAC_pred_cv{cv}.nii.gz",
+            "STEP1": f"B100/UNetUnet_best/cv{cv}/train/{hashname}_CTAC_pred_cv{cv}.nii.gz",
             # BPO124_CTAC.nii.gz
-            "STEP2": f"CTAC/{hashname}_CTAC.nii.gz",
+            "STEP2": f"B100/UNetUnet_best/CTAC/{hashname}_CTAC.nii.gz",
         })
 
     for hashname in val_list:
         val_path_list.append({
-            "STEP1": f"cv{cv}/val/{hashname}_CTAC_pred_cv{cv}.nii.gz",
-            "STEP2": f"CTAC/{hashname}_CTAC.nii.gz",
+            "STEP1": f"B100/UNetUnet_best/cv{cv}/val/{hashname}_CTAC_pred_cv{cv}.nii.gz",
+            "STEP2": f"B100/UNetUnet_best/CTAC/{hashname}_CTAC.nii.gz",
         })
 
     for hashname in test_list:
         test_path_list.append({
-            "STEP1": f"cv{cv}/test/{hashname}_CTAC_pred_cv{cv}.nii.gz",
-            "STEP2": f"CTAC/{hashname}_CTAC.nii.gz",
+            "STEP1": f"B100/UNetUnet_best/cv{cv}/test/{hashname}_CTAC_pred_cv{cv}.nii.gz",
+            "STEP2": f"B100/UNetUnet_best/CTAC/{hashname}_CTAC.nii.gz",
         })
 
 
