@@ -44,7 +44,7 @@ def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
     argparser.add_argument('-c', '--cross_validation', type=int, default=0, help='Index of the cross validation')
-    argparser.add_argument('-p', '--part2', type=bool, default=False, help='Whether to run the second part')
+    argparser.add_argument('-p', '--part2', type=bool, default=True, help='Whether to run the second part')
     args = argparser.parse_args()
     tag = f"fold{args.cross_validation}"
 
