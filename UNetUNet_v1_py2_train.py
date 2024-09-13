@@ -45,7 +45,7 @@ def main():
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
     argparser.add_argument('--cross_validation', type=int, default=5, help='Index of the cross validation')
     args = argparser.parse_args()
-    tag = f"fold{args.cross_validation}"
+    tag = f"fold{args.cross_validation}_256"
 
     random_seed = 729
     # set the random seed
@@ -160,7 +160,7 @@ def main():
 
 
     cross_validation = args.cross_validation
-    root_folder = f"./results/cv{cross_validation}/"
+    root_folder = f"./results/cv{cross_validation}_256/"
     data_div_json = "UNetUNet_v1_data_split.json"
     if not os.path.exists(root_folder):
         os.makedirs(root_folder)
@@ -282,12 +282,13 @@ def main():
 
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
-                torch.save(model.state_dict(), os.path.join(root_folder, "best_model.pth"))
+                save_path = os.path.join(root_folder, f"best_model_cv{cross_validation}.pth")
+                torch.save(model.state_dict(), save_path)
                 logger.log(idx_epoch, "best_val_loss", best_val_loss)
                 print(f"Save the best model with val_loss: {val_loss} at epoch {idx_epoch}")
                 logger.log(idx_epoch, "best_model_epoch", idx_epoch)
                 logger.log(idx_epoch, "best_model_val_loss", val_loss)
-                wandb_run.log_model(path=os.path.join(root_folder, f"best_model_cv{cross_validation}.pth"), name="model_best_eval", aliases=tag+f"cv{cross_validation}")
+                wandb_run.log_model(path=save_path, name="model_best_eval", aliases=tag+f"cv{cross_validation}")
                 
                 # test the model
                 test_loss = 0
