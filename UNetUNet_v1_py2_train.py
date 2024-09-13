@@ -47,7 +47,7 @@ def main():
     args = argparser.parse_args()
     tag = f"fold{args.cross_validation}"
 
-    random_seed = 42
+    random_seed = 729
     # set the random seed
     random.seed(random_seed)
     np.random.seed(random_seed)
@@ -82,21 +82,21 @@ def main():
             "shuffle": True,
             "num_workers_cache": 4,
             "num_workers_loader": 8,
-            "cache_rate": 0.5,
+            "cache_rate": 1.0,
         },
         "val": {
             "batch_size": 1,
             "shuffle": False,
             "num_workers_cache": 2,
             "num_workers_loader": 4,
-            "cache_rate": 1.0,
+            "cache_rate": 0.1,
         },
         "test": {
             "batch_size": 1,
             "shuffle": False,
             "num_workers_cache": 1,
             "num_workers_loader": 2,
-            "cache_rate": 1.0,
+            "cache_rate": 0.1,
         },
     }
 
@@ -104,7 +104,7 @@ def main():
         "VQ_NAME": "f4-noattn",
         "n_embed": 8192,
         "embed_dim": 3,
-        "img_size" : 400,
+        "img_size" : 256,
         "input_modality" : ["TOFNAC", "CTAC"],
         "ckpt_path": "vq_f4_noattn_nn.pth",
         "ddconfig": {
