@@ -47,20 +47,20 @@ def prepare_dataset(data_div_json, global_config):
 
     for hashname in train_list:
         train_path_list.append({
-            "TOFNAC": f"TOFNAC_CTAC_hash/{hashname}_TOFNAC_256.nii.gz",
-            "CTAC": f"TOFNAC_CTAC_hash/{hashname}_CTAC_256.nii.gz",
+            "TOFNAC": f"TC256/{hashname}_TOFNAC_256.nii.gz",
+            "CTAC": f"TC256/{hashname}_CTAC_256.nii.gz",
         })
 
     for hashname in val_list:
         val_path_list.append({
-            "TOFNAC": f"TOFNAC_CTAC_hash/{hashname}_TOFNAC_256.nii.gz",
-            "CTAC": f"TOFNAC_CTAC_hash/{hashname}_CTAC_256.nii.gz",
+            "TOFNAC": f"TC256/{hashname}_TOFNAC_256.nii.gz",
+            "CTAC": f"TC256/{hashname}_CTAC_256.nii.gz",
         })
 
     for hashname in test_list:
         test_path_list.append({
-            "TOFNAC": f"TOFNAC_CTAC_hash/{hashname}_TOFNAC_256.nii.gz",
-            "CTAC": f"TOFNAC_CTAC_hash/{hashname}_CTAC_256.nii.gz",
+            "TOFNAC": f"TC256/{hashname}_TOFNAC_256.nii.gz",
+            "CTAC": f"TC256/{hashname}_CTAC_256.nii.gz",
         })
 
     # save the data division file
