@@ -1,7 +1,7 @@
 unzip SharkSeagrass.zip
 rm SharkSeagrass.zip
 
-tar -xzvf TOFNAC_CTAC_hash.tar.gz
+tar -xzvf TC256.tar.gz
 rm TC256.tar.gz
 mv TC256 ./SharkSeagrass/
 mv vq_f4_noattn_nn.pth ./SharkSeagrass/
