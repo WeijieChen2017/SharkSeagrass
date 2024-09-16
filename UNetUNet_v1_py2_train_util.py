@@ -94,7 +94,7 @@ def prepare_dataset(data_div_json, global_config):
         [
             LoadImaged(keys=input_modality, image_only=True),
             EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
-            NormalizeIntensity(keys=input_modality),
+            NormalizeIntensity(),
             # RandSpatialCropd(
             #     keys=input_modality_dict["x"], 
             #     roi_size=(img_size, img_size, in_channel), 
@@ -117,7 +117,7 @@ def prepare_dataset(data_div_json, global_config):
         [
             LoadImaged(keys=input_modality, image_only=True),
             EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
-            NormalizeIntensity(keys=input_modality),
+            NormalizeIntensity(),
             # RandSpatialCropd(
             #     keys=input_modality_dict["x"], 
             #     roi_size=(img_size, img_size, in_channel), 
@@ -139,7 +139,7 @@ def prepare_dataset(data_div_json, global_config):
         [
             LoadImaged(keys=input_modality, image_only=True),
             EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
-            NormalizeIntensity(keys=input_modality),
+            NormalizeIntensity(),
             # RandSpatialCropd(
             #     keys=input_modality_dict["x"], 
             #     roi_size=(img_size, img_size, in_channel), 
