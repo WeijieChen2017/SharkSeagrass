@@ -131,6 +131,11 @@ if __name__ == "__main__":
     main()
 
 
+# tar -czvf cv0_256.tar.gz cv0_256
+# tar -czvf cv1_256.tar.gz cv1_256
+# tar -czvf cv2_256.tar.gz cv2_256
+# tar -czvf cv3_256.tar.gz cv3_256
+# tar -czvf cv4_256.tar.gz cv4_256
 
 # tar -czvf TOFNAC_CTAC_hash.tar.gz TOFNAC_CTAC_hash
 # <><><><><><><><><><><><><><><><><><><><>
