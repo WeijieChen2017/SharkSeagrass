@@ -45,7 +45,7 @@ def main():
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
     argparser.add_argument('--cross_validation', type=int, default=5, help='Index of the cross validation')
     args = argparser.parse_args()
-    tag = f"fold{args.cross_validation}_256"
+    tag = f"fold{args.cross_validation}_256_zscore"
 
     random_seed = 729
     # set the random seed
@@ -123,7 +123,7 @@ def main():
     }
 
     train_params = {
-        "num_epoch": 51, # 50 epochs
+        "num_epoch": 101, # 100 epochs
         "optimizer": "AdamW",
         "lr": 1e-5,
         "weight_decay": 1e-5,
@@ -288,7 +288,7 @@ def main():
                 print(f"Save the best model with val_loss: {val_loss} at epoch {idx_epoch}")
                 logger.log(idx_epoch, "best_model_epoch", idx_epoch)
                 logger.log(idx_epoch, "best_model_val_loss", val_loss)
-                wandb_run.log_model(path=save_path, name="model_best_eval", aliases=tag+f"cv{cross_validation}")
+                wandb_run.log_model(path=save_path, name="model_best_eval", aliases=tag+f"cv{cross_validation}_zscore")
                 
                 # test the model
                 test_loss = 0
@@ -327,7 +327,7 @@ def main():
             torch.save(model.state_dict(), save_path)
             logger.log(idx_epoch, "save_model_path", save_path)
             print(f"Save model to {save_path}")
-            wandb_run.log_model(path=save_path, name="model_checkpoint", aliases=tag+f"cv{cross_validation}")
+            wandb_run.log_model(path=save_path, name="model_checkpoint", aliases=tag+f"cv{cross_validation}_zscore")
 
 print("Done!")
 
