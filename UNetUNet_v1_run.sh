@@ -25,11 +25,11 @@ echo "============================================"
 du -lh -d 1
 rm -r TC256
 mv cache ./results/
-tar -czvf SharkSeagrass_results_$(date +"%m_%d_%H_%M").tar.gz results
+tar -czvf UNetUnet_256_cv$1.tar.gz results
 echo "============================================"
 ls
 echo "============================================"
-mv SharkSeagrass_results_$(date +"%m_%d_%H_%M").tar.gz ../
+mv UNetUnet_256_cv$1.tar.gz ../
 echo "============================================"
 ls
 echo "============================================"
