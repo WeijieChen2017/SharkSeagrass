@@ -44,7 +44,7 @@ def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
     argparser.add_argument('-c', '--cross_validation', type=int, default=0, help='Index of the cross validation')
-    argparser.add_argument('-p', '--part2', type=bool, default=False, help='Whether to run the second part')
+    argparser.add_argument('-p', '--part2', type=bool, default=True, help='Whether to run the second part')
     args = argparser.parse_args()
     tag = f"fold{args.cross_validation}_256"
 
@@ -242,7 +242,7 @@ def main():
         print("Done!")
     
     else:
-        root_folder = f"B100/TOFNAC_CTACIVV_part2/cv{cross_validation}/"
+        root_folder = f"B100/TOFNAC_CTACIVV_part2/cv{cross_validation}_256/"
         if not os.path.exists(root_folder):
             os.makedirs(root_folder)
         data_folder = f"B100/TOFNAC_CTACIVV_part2/"
@@ -287,17 +287,17 @@ def main():
                 CTAC_pred = np.zeros_like(CTAC_data)
                 for idx_z in range(len_z):
                     if idx_z == 0:
-                        slice_1 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
-                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
-                        slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(400, 400, 1)
+                        slice_1 = TOFNAC_data[:, :, idx_z].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
+                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
+                        slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
                     elif idx_z == len_z - 1:
-                        slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(400, 400, 1)
-                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
-                        slice_3 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1)
+                        slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
+                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
+                        slice_3 = TOFNAC_data[:, :, idx_z].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
                     else:
-                        slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(400, 400, 1)
-                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(400, 400, 1) 
-                        slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(400, 400, 1)
+                        slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
+                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
+                        slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
                     data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
                     # data_x is 400x400x3, convert it to 1x3x400x400
                     data_x = np.transpose(data_x, (2, 0, 1))
