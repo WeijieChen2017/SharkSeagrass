@@ -261,7 +261,10 @@ def main():
                 targets = case_data["STEP2"].to(device)
                 optimizer.zero_grad()
                 outputs = model(inputs)
+                # take target > 1/6 as the mask
+                target_mask = targets > 1/6
                 loss = ds_loss(torch.unbind(outputs, 1), targets-inputs)
+                loss = loss * target_mask
                 loss.backward()
                 optimizer.step()
                 train_loss += loss.item()
@@ -288,7 +291,9 @@ def main():
                         targets = case_data["STEP2"].to(device)
                         with torch.no_grad():
                             outputs = model(inputs)
+                            mask = targets > 1/6
                             loss = output_loss(outputs, targets-inputs)
+                            loss = loss * mask
                             val_loss += loss.item()
                             average_input += torch.mean(inputs).item()
                 
@@ -321,7 +326,9 @@ def main():
                             targets = case_data["STEP2"].to(device)
                             with torch.no_grad():
                                 outputs = model(inputs)
+                                mask = targets > 1/6
                                 loss = output_loss(outputs, targets-inputs)
+                                loss = loss * mask
                                 test_loss += loss.item()
                                 average_input += torch.mean(inputs).item()
                     
