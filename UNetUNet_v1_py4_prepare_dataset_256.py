@@ -44,7 +44,7 @@ def main():
     
     for cv in [0,1,2,3,4]:
 
-        cv = args.cross_validation
+        # cv = args.cross_validation
         train_list = data_div[f"cv_{cv}"]["train"]
         val_list = data_div[f"cv_{cv}"]["val"]
         test_list = data_div[f"cv_{cv}"]["test"]
