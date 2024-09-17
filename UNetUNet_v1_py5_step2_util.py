@@ -94,7 +94,7 @@ def prepare_dataset(data_div_json, global_config):
     train_transforms = Compose(
         [
             LoadImaged(keys=input_modality, image_only=True),
-            EnsureChannelFirstd(keys=input_modality, channel_dim="none"),
+            EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
             RandSpatialCropd(
                 keys=input_modality,
                 roi_size=(cube_size, cube_size, cube_size), 
@@ -116,7 +116,7 @@ def prepare_dataset(data_div_json, global_config):
     val_transforms = Compose(
         [
             LoadImaged(keys=input_modality, image_only=True),
-            EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
+            EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
             RandSpatialCropd(
                 keys=input_modality,
                 roi_size=(cube_size, cube_size, cube_size), 
@@ -137,7 +137,7 @@ def prepare_dataset(data_div_json, global_config):
     test_transforms = Compose(
         [
             LoadImaged(keys=input_modality, image_only=True),
-            EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
+            EnsureChannelFirstd(keys=input_modality, channel_dim='no_channel'),
             RandSpatialCropd(
                 keys=input_modality,
                 roi_size=(cube_size, cube_size, cube_size), 
