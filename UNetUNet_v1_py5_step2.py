@@ -39,7 +39,7 @@ from UNetUNet_v1_py5_step2_util import simple_logger, prepare_dataset
 from monai.networks.nets import DynUNet
 from monai.losses import DeepSupervisionLoss
 
-def is_batch_meaningful(batch_data):
+def is_batch_meaningful(batch_data, meaningful_batch_th=-0.9):
     is_meaningful = True
     key = "STEP1"
     # batch size is 1
