@@ -32,11 +32,13 @@ def two_segment_scale(arr, MIN, MID, MAX, MIQ):
 def printlog(log_file, message):
     with open(log_file, "a") as f:
         f.write(message + "\n")
+    print(message)
 
 def main():
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
     argparser.add_argument('-c', '--cross_validation', type=int, default=0, help='Index of the cross validation')
     args = argparser.parse_args()
+    root_folder = "B100/UNetUnet_best/"
 
     data_div_json = "UNetUNet_v1_data_split.json"
     with open(data_div_json, "r") as f:
@@ -48,7 +50,7 @@ def main():
         train_list = data_div[f"cv_{cv}"]["train"]
         val_list = data_div[f"cv_{cv}"]["val"]
         test_list = data_div[f"cv_{cv}"]["test"]
-        log_file = f"UNetUNet_v1_cv{cv}_log.txt"
+        log_file = f"{root_folder}UNetUNet_v1_cv{cv}_log.txt"
 
         # num_train = len(train_list)
         # num_val = len(val_list)
@@ -67,21 +69,21 @@ def main():
             train_path_list.append({
                 # BPO124_CTAC_pred_cv0.nii.gz
                 # "STEP1": f"B100/UNetUnet_best/cv{cv}/train/{hashname}_CTAC_pred_cv{cv}.nii.gz",
-                "STEP1": f"B100/UNetUnet_best/cv{cv}_256/train/{hashname}_CTAC_pred_cv{cv}.nii.gz",
+                "STEP1": f"{root_folder}cv{cv}_256/train/{hashname}_CTAC_pred_cv{cv}.nii.gz",
                 # BPO124_CTAC.nii.gz
-                "STEP2": f"B100/UNetUnet_best/CTAC/{hashname}_CTAC.nii.gz",
+                "STEP2": f"{root_folder}CTAC/{hashname}_CTAC.nii.gz",
             })
 
         for hashname in val_list:
             val_path_list.append({
-                "STEP1": f"B100/UNetUnet_best/cv{cv}_256/val/{hashname}_CTAC_pred_cv{cv}.nii.gz",
-                "STEP2": f"B100/UNetUnet_best/CTAC/{hashname}_CTAC.nii.gz",
+                "STEP1": f"{root_folder}cv{cv}_256/val/{hashname}_CTAC_pred_cv{cv}.nii.gz",
+                "STEP2": f"{root_folder}CTAC/{hashname}_CTAC.nii.gz",
             })
 
         for hashname in test_list:
             test_path_list.append({
-                "STEP1": f"B100/UNetUnet_best/cv{cv}_256/test/{hashname}_CTAC_pred_cv{cv}.nii.gz",
-                "STEP2": f"B100/UNetUnet_best/CTAC/{hashname}_CTAC.nii.gz",
+                "STEP1": f"{root_folder}cv{cv}_256/test/{hashname}_CTAC_pred_cv{cv}.nii.gz",
+                "STEP2": f"{root_folder}CTAC/{hashname}_CTAC.nii.gz",
             })
 
 
@@ -106,6 +108,7 @@ def main():
 
                 compress_step1_data = np.clip(step1_data, 0, 1).astype(np.float32)
                 compress_step1_path = step1_path.replace(".nii.gz", "_clip.nii.gz")
+                compress_step1_path = step1_path.replace("_256", "_256_clip")
                 compress_step1_nii = nib.Nifti1Image(compress_step1_data, step1_file.affine, step1_file.header)
                 nib.save(compress_step1_nii, compress_step1_path)
                 printlog(log_file, f"Compressed data saved at {compress_step1_path}")
