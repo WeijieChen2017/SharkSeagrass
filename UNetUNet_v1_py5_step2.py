@@ -265,7 +265,7 @@ def main():
                 target_mask = targets > 1/6
                 loss = ds_loss(torch.unbind(outputs, 1), targets-inputs)
                 loss = loss * target_mask
-                loss = torch.mean()
+                loss = torch.mean(loss)
                 loss.backward()
                 optimizer.step()
                 train_loss += loss.item()
@@ -295,7 +295,7 @@ def main():
                             mask = targets > 1/6
                             loss = output_loss(outputs, targets-inputs)
                             loss = loss * mask
-                            loss = torch.mean()
+                            loss = torch.mean(loss)
                             val_loss += loss.item()
                             average_input += torch.mean(inputs).item()
                 
@@ -331,7 +331,7 @@ def main():
                                 mask = targets > 1/6
                                 loss = output_loss(outputs, targets-inputs)
                                 loss = loss * mask
-                                loss = torch.mean()
+                                loss = torch.mean(loss)
                                 test_loss += loss.item()
                                 average_input += torch.mean(inputs).item()
                     
