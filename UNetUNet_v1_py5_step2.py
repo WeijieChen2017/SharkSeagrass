@@ -43,8 +43,9 @@ def is_batch_meaningful(batch_data):
     is_meaningful = True
     key = "STEP1"
     # batch size is 1
-    cube_mean = torch.mean(batch_data[key], dim=(1, 2, 3, 4))
-    if cube_mean[i] < meaningful_batch_th:
+    # batch_data[key].shape = (1, 1, cube_size, cube_size, cube_size)
+    cube_mean = torch.mean(batch_data[key])
+    if cube_mean < meaningful_batch_th:
         is_meaningful = False
     return is_meaningful
 
