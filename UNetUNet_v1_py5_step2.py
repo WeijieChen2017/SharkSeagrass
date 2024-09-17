@@ -248,8 +248,8 @@ def main():
         model.train()
         train_loss = 0
         average_input = 0
-        for idx_case, case_data in enumerate(train_data_loader, train_params["meaningful_batch_th"]):
-            if not is_batch_meaningful(case_data):
+        for idx_case, case_data in enumerate(train_data_loader):
+            if not is_batch_meaningful(case_data, train_params["meaningful_batch_th"]):
                 continue
             
             inputs = case_data["STEP1"].to(device)
@@ -273,7 +273,7 @@ def main():
                 val_loss = 0
                 average_input = 0
                 for idx_case, case_data in enumerate(val_data_loader):
-                    if not is_batch_meaningful(case_data):
+                    if not is_batch_meaningful(case_data, train_params["meaningful_batch_th"]):
                         continue
                     
                     inputs = case_data["STEP1"].to(device)
@@ -303,7 +303,7 @@ def main():
                     test_loss = 0
                     average_input = 0
                     for idx_case, case_data in enumerate(test_data_loader):
-                        if not is_batch_meaningful(case_data):
+                        if not is_batch_meaningful(case_data, train_params["meaningful_batch_th"]):
                             continue
                         
                         inputs = case_data["STEP1"].to(device)
