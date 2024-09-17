@@ -250,6 +250,7 @@ def main():
         model.train()
         train_loss = 0
         average_input = 0
+        average_num_valid = 0
         cnt_meaningful_batch = 0
         while cnt_meaningful_batch < meaningful_batch_per_epoch:
             for idx_case, case_data in enumerate(train_data_loader):
@@ -276,11 +277,14 @@ def main():
                 optimizer.step()
                 train_loss += loss.item()
                 average_input += torch.mean(inputs).item()
+                average_num_valid += num_valid
         
         average_input /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
         train_loss /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
+        average_num_valid /= cnt_meaningful_batch
         logger.log(idx_epoch, "train_loss", train_loss)
         logger.log(idx_epoch, "train_average_input", average_input)
+        logger.log(idx_epoch, "train_average_num_valid", average_num_valid)
 
         # evaluate the model
         if idx_epoch % train_params["val_per_epoch"] == 0:
@@ -288,6 +292,7 @@ def main():
                 val_loss = 0
                 average_input = 0
                 cnt_meaningful_batch = 0
+                average_num_valid = 0
                 while cnt_meaningful_batch < meaningful_batch_per_epoch:
                     for idx_case, case_data in enumerate(val_data_loader):
                         if not is_batch_meaningful(case_data, train_params["meaningful_batch_th"]):
@@ -308,11 +313,14 @@ def main():
                                 loss = torch.tensor(0.0, device=device)
                             val_loss += loss.item()
                             average_input += torch.mean(inputs).item()
+                            average_num_valid += num_valid
                 
                 average_input /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
                 val_loss /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
+                average_num_valid /= cnt_meaningful_batch
                 logger.log(idx_epoch, "val_loss", val_loss)
                 logger.log(idx_epoch, "val_average_input", average_input)
+                logger.log(idx_epoch, "val_average_num_valid", average_num_valid)
     
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
@@ -327,6 +335,7 @@ def main():
                     # test the model
                     test_loss = 0
                     average_input = 0
+                    average_num_valid = 0
                     cnt_meaningful_batch = 0
                     while cnt_meaningful_batch < meaningful_batch_per_epoch:
                         for idx_case, case_data in enumerate(test_data_loader):
@@ -348,11 +357,14 @@ def main():
                                     loss = torch.tensor(0.0, device=device)
                                 test_loss += loss.item()
                                 average_input += torch.mean(inputs).item()
+                                average_num_valid += num_valid
                     
                     average_input /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
                     test_loss /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
+                    average_num_valid /= cnt_meaningful_batch
                     logger.log(idx_epoch, "test_loss", test_loss)
                     logger.log(idx_epoch, "test_average_input", average_input)
+                    logger.log(idx_epoch, "test_average_num_valid", average_num_valid)
         
         # save the model
         if idx_epoch % train_params["save_per_epoch"] == 0:
