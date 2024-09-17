@@ -142,7 +142,8 @@ def main():
     wandb_config = {
         "cross_validation": args.cross_validation,
         "random_seed": random_seed,
-        "model_step1_params": model_step1_params,
+        # "model_step1_params": model_step1_params,
+        "model_step2_params": model_step2_params,
         "data_loader_params": data_loader_params,
         "train_params": train_params,
     }
@@ -157,7 +158,8 @@ def main():
     global_config["wandb_run"] = wandb_run
     global_config["IS_LOGGER_WANDB"] = True
     global_config["input_modality"] = ["STEP1", "STEP2"]
-    global_config["model_step1_params"] = model_step1_params
+    # global_config["model_step1_params"] = model_step1_params
+    global_config["model_step2_params"] = model_step2_params
     global_config["data_loader_params"] = data_loader_params
     global_config["train_params"] = train_params
     global_config["cross_validation"] = args.cross_validation
@@ -188,8 +190,8 @@ def main():
         trans_bias=model_step2_params["trans_bias"],
     )
     
-    model.load_state_dict(torch.load(model_step1_params["ckpt_path"], map_location=torch.device('cpu')), strict=False)
-    print("Model step 1 loaded from", model_step1_params["ckpt_path"])
+    model.load_state_dict(torch.load(model_step2_params["ckpt_path"], map_location=torch.device('cpu')), strict=False)
+    print("Model step 1 loaded from", model_step2_params["ckpt_path"])
     model.to(device)
     model.train()
 
