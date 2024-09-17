@@ -35,7 +35,17 @@ import time
 import random
 import numpy as np
 
-from UNetUNet_v1_py2_train_util import VQModel, simple_logger, prepare_dataset
+from UNetUNet_v1_py5_step2_util.py import simple_logger, prepare_dataset
+
+
+def is_batch_meaningful(batch_data):
+    is_meaningful = True
+    key = "STEP1"
+    # batch size is 1
+    cube_mean = torch.mean(batch_data[key], dim=(1, 2, 3, 4))
+    if cube_mean[i] < meaningful_batch_th:
+        is_meaningful = False
+    return is_meaningful
 
 
 
@@ -100,36 +110,33 @@ def main():
         },
     }
 
-    model_step1_params = {
-        "VQ_NAME": "f4-noattn",
-        "n_embed": 8192,
-        "embed_dim": 3,
-        "img_size" : 256,
-        "input_modality" : ["TOFNAC", "CTAC"],
-        "ckpt_path": "vq_f4_noattn_nn.pth",
-        "ddconfig": {
-            "attn_type": "none",
-            "double_z": False,
-            "z_channels": 3,
-            "resolution": 256,
-            "in_channels": 3,
-            "out_ch": 1,
-            "ch": 128,
-            "ch_mult": [1, 2, 4],
-            "num_res_blocks": 2,
-            "attn_resolutions": [],
-            "dropout": 0.0,
-        }
+    model_step2_params = {
+        "spatial_dims": 3,
+        "in_channels": 1,
+        "out_channels": 1,
+        "kernels": [[3, 3, 3], [3, 3, 3], [3, 3, 3]],
+        "strides": [[1, 1, 1], [2, 2, 2], [2, 2, 2]],
+        "filters": (64, 128, 256),
+        "dropout": 0.,
+        "norm_name": ('INSTANCE', {'affine': True}),
+        "act_name": ('leakyrelu', {'inplace': True, 'negative_slope': 0.01}),
+        "deep_supervision": True,
+        "deep_supr_num": 1,
+        "res_block": True,
+        "trans_bias": False,
+        "ckpt_path": "d3f64_tsv1.pth",
+        "cube_size": 256,
     }
 
     train_params = {
-        "num_epoch": 51, # 50 epochs
+        "num_epoch": 5000, # 50 epochs
         "optimizer": "AdamW",
-        "lr": 1e-5,
+        "lr": 1e-4,
         "weight_decay": 1e-5,
         "loss": "MAE",
-        "val_per_epoch": 5,
-        "save_per_epoch": 10,
+        "val_per_epoch": 50,
+        "save_per_epoch": 100,
+        "meaningful_batch_th": -0.9,
     }
 
     wandb_config = {
@@ -140,23 +147,21 @@ def main():
         "train_params": train_params,
     }
 
-    
-
-
     global_config = {}
 
     # initialize wandb
     wandb.login(key = "41c33ee621453a8afcc7b208674132e0e8bfafdb")
     wandb_run = wandb.init(project="UNetUNet", dir=os.getenv("WANDB_DIR", "cache/wandb"), config=wandb_config)
-    wandb_run.log_code(root=".", name=tag+"UNetUNet_v1_py2_train.py")
+    wandb_run.log_code(root=".", name=tag+"UNetUNet_v1_py5_step2.py")
     global_config["tag"] = tag
     global_config["wandb_run"] = wandb_run
     global_config["IS_LOGGER_WANDB"] = True
-    global_config["input_modality"] = ["TOFNAC", "CTAC"]
+    global_config["input_modality"] = ["STEP1", "STEP2"]
     global_config["model_step1_params"] = model_step1_params
     global_config["data_loader_params"] = data_loader_params
     global_config["train_params"] = train_params
     global_config["cross_validation"] = args.cross_validation
+    global_config["cube_size"] = model_step2_params["cube_size"]
 
 
     cross_validation = args.cross_validation
@@ -167,14 +172,20 @@ def main():
     print("The root folder is: ", root_folder)
     global_config["root_folder"] = root_folder
 
-    # load step 1 model and step 2 model
-    model = VQModel(
-        ddconfig=model_step1_params["ddconfig"],
-        n_embed=model_step1_params["n_embed"],
-        embed_dim=model_step1_params["embed_dim"],
-        # ckpt_path=model_step1_params["ckpt_path"],
-        # ignore_keys=[],
-        # image_key="image",
+    model = DynUNet(
+        spatial_dims=model_step2_params["spatial_dims"],
+        in_channels=model_step2_params["in_channels"],
+        out_channels=model_step2_params["out_channels"],
+        kernels=model_step2_params["kernels"],
+        strides=model_step2_params["strides"],
+        filters=model_step2_params["filters"],
+        dropout=model_step2_params["dropout"],
+        norm_name=model_step2_params["norm_name"],
+        act_name=model_step2_params["act_name"],
+        deep_supervision=model_step2_params["deep_supervision"],
+        deep_supr_num=model_step2_params["deep_supr_num"],
+        res_block=model_step2_params["res_block"],
+        trans_bias=model_step2_params["trans_bias"],
     )
     
     model.load_state_dict(torch.load(model_step1_params["ckpt_path"], map_location=torch.device('cpu')), strict=False)
@@ -204,7 +215,6 @@ def main():
 
     # train the model
     best_val_loss = 1e10
-    LOSS_FACTOR = data_loader_params["norm"]["RANGE_CT"]
     print("Start training")
     for idx_epoch in range(train_params["num_epoch"]):
 
@@ -212,122 +222,72 @@ def main():
         model.train()
         train_loss = 0
         for idx_case, case_data in enumerate(train_data_loader):
-            # this will return a zx400x400 tensor
-            case_loss = 0
-            len_z = case_data["TOFNAC"].shape[1]
-            volume_x = case_data["TOFNAC"].to(device)
-            volume_y = case_data["CTAC"].to(device)
-            # create index list without the first and last slice
-            indices_list = [i for i in range(1, len_z-1)]
+            if not is_batch_meaningful(case_data):
+                continue
             
-            random.shuffle(indices_list)
-            for indices in indices_list:
-                x = volume_x[:, indices-1:indices+2, :, :]
-                y = volume_y[:, indices, :, :].unsqueeze(0)
-
-                optimizer.zero_grad()
-                outputs = model(x)
-                loss = output_loss(outputs, y)
-                loss.backward()
-                optimizer.step()
-
-                case_loss += loss.item()
-                # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
-
-            case_loss /= len(indices_list)
-            case_loss *= LOSS_FACTOR
-            # keep 3 decimal digits like 123.456
-            case_loss = round(case_loss, 3)
-            logger.log(idx_epoch, "train_case_loss", case_loss)
-            # print(f"EPOCH {idx_epoch}, CASE {idx_case}, LOSS {case_loss}")
-            
-            train_loss += case_loss
+            inputs = case_data["STEP1"].to(device)
+            targets = case_data["STEP2"].to(device)
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = output_loss(outputs, targets)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item()
         
-        train_loss /= len(train_data_loader)
+        train_loss /= len(train_data_loader) * data_loader_params["norm"]["RANGE_CT"]
         logger.log(idx_epoch, "train_loss", train_loss)
-    
+
         # evaluate the model
         if idx_epoch % train_params["val_per_epoch"] == 0:
-
-            model.eval()
-            val_loss = 0
-            for idx_case, case_data in enumerate(val_data_loader):
-                case_loss = 0
-                len_z = case_data["TOFNAC"].shape[1]
-                volume_x = case_data["TOFNAC"].to(device)
-                volume_y = case_data["CTAC"].to(device)
-                indices_list = [i for i in range(1, len_z-1)]
-
-                random.shuffle(indices_list)
-                for indices in indices_list:
-                    x = volume_x[:, indices-1:indices+2, :, :]
-                    y = volume_y[:, indices, :, :].unsqueeze(0)
-
+                model.eval()
+                val_loss = 0
+                for idx_case, case_data in enumerate(val_data_loader):
+                    if not is_batch_meaningful(case_data):
+                        continue
+                    
+                    inputs = case_data["STEP1"].to(device)
+                    targets = case_data["STEP2"].to(device)
                     with torch.no_grad():
-                        outputs = model(x)
-                        loss = output_loss(outputs, y)
-                        case_loss += loss.item()
-                        # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
-
-                case_loss /= len(indices_list)
-                case_loss *= LOSS_FACTOR
-                # keep 3 decimal digits like 123.456
-                case_loss = round(case_loss, 3)
-                logger.log(idx_epoch, "val_case_loss", case_loss)
-                val_loss += case_loss
-                # print(f"EPOCH {idx_epoch}, CASE {idx_case}, LOSS {case_loss}")
-
-            val_loss /= len(val_data_loader)
-            logger.log(idx_epoch, "val_loss", val_loss)
-
-            if val_loss < best_val_loss:
-                best_val_loss = val_loss
-                save_path = os.path.join(root_folder, f"best_model_cv{cross_validation}.pth")
-                torch.save(model.state_dict(), save_path)
-                logger.log(idx_epoch, "best_val_loss", best_val_loss)
-                print(f"Save the best model with val_loss: {val_loss} at epoch {idx_epoch}")
-                logger.log(idx_epoch, "best_model_epoch", idx_epoch)
-                logger.log(idx_epoch, "best_model_val_loss", val_loss)
-                wandb_run.log_model(path=save_path, name="model_best_eval", aliases=tag+f"cv{cross_validation}")
+                        outputs = model(inputs)
+                        loss = output_loss(outputs, targets)
+                        val_loss += loss.item()
                 
-                # test the model
-                test_loss = 0
-                for idx_case, case_data in enumerate(test_data_loader):
-                    case_loss = 0
-                    len_z = case_data["TOFNAC"].shape[1]
-                    volume_x = case_data["TOFNAC"].to(device)
-                    volume_y = case_data["CTAC"].to(device)
-                    indices_list = [i for i in range(1, len_z-1)]
-
-                    random.shuffle(indices_list)
-                    for indices in indices_list:
-                        x = volume_x[:, indices-1:indices+2, :, :]
-                        y = volume_y[:, indices, :, :].unsqueeze(0)
+                val_loss /= len(val_data_loader) * data_loader_params["norm"]["RANGE_CT"]
+                logger.log(idx_epoch, "val_loss", val_loss)
+    
+                if val_loss < best_val_loss:
+                    best_val_loss = val_loss
+                    save_path = os.path.join(root_folder, f"best_model_cv{cross_validation}_step2.pth")
+                    torch.save(model.state_dict(), save_path)
+                    logger.log(idx_epoch, "best_val_loss", best_val_loss)
+                    print(f"Save the best model with val_loss: {val_loss} at epoch {idx_epoch}")
+                    logger.log(idx_epoch, "best_model_epoch", idx_epoch)
+                    logger.log(idx_epoch, "best_model_val_loss", val_loss)
+                    wandb_run.log_model(path=save_path, name="model_best_eval", aliases=tag+f"cv{cross_validation}_step2")
+                    
+                    # test the model
+                    test_loss = 0
+                    for idx_case, case_data in enumerate(test_data_loader):
+                        if not is_batch_meaningful(case_data):
+                            continue
                         
+                        inputs = case_data["STEP1"].to(device)
+                        targets = case_data["STEP2"].to(device)
                         with torch.no_grad():
-                            outputs = model(x)
-                            loss = output_loss(outputs, y)
-                            case_loss += loss.item()
-                            # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
-
-                    case_loss /= len(indices_list)
-                    case_loss *= LOSS_FACTOR
-                    # keep 3 decimal digits like 123.456
-                    case_loss = round(case_loss, 3)
-                    logger.log(idx_epoch, "test_case_loss", case_loss)
-                    test_loss += case_loss
-                    # print(f"EPOCH {idx_epoch}, CASE {idx_case}, LOSS {case_loss}")
-
-                test_loss /= len(test_data_loader)
-                logger.log(idx_epoch, "test_loss", test_loss)
+                            outputs = model(inputs)
+                            loss = output_loss(outputs, targets)
+                            test_loss += loss.item()
+                    
+                    test_loss /= len(test_data_loader) * data_loader_params["norm"]["RANGE_CT"]
+                    logger.log(idx_epoch, "test_loss", test_loss)
         
         # save the model
         if idx_epoch % train_params["save_per_epoch"] == 0:
-            save_path = os.path.join(root_folder, f"model_epoch_{idx_epoch}.pth")
+            save_path = os.path.join(root_folder, f"model_epoch_{idx_epoch}_step2.pth")
             torch.save(model.state_dict(), save_path)
             logger.log(idx_epoch, "save_model_path", save_path)
             print(f"Save model to {save_path}")
-            wandb_run.log_model(path=save_path, name="model_checkpoint", aliases=tag+f"cv{cross_validation}")
+            wandb_run.log_model(path=save_path, name="model_checkpoint", aliases=tag+f"cv{cross_validation}_step2")
 
 print("Done!")
 

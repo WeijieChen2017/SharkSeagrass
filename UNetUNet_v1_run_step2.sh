@@ -1,12 +1,13 @@
 unzip SharkSeagrass.zip
 rm SharkSeagrass.zip
 
-tar -xzvf TC256.tar.gz
-tar -xzvf cv($1)_256.tar.gz
+tar -xzvf TC256_.tar.gz
+tar -xzvf cv($1)_256_clip.tar.gz
 rm TC256.tar.gz
 mv TC256 ./SharkSeagrass/
-rm cv($1)_256.tar.gz
-mv cv($1)_256 ./SharkSeagrass/
+rm cv($1)_256_clip.tar.gz
+mv cv($1)_256_clip ./SharkSeagrass/
+mv d3f64_tsv1.pth ./SharkSeagrass/
 
 cd SharkSeagrass
 mkdir results
