@@ -39,7 +39,7 @@ from UNetUNet_v1_py5_step2_util import simple_logger, prepare_dataset
 from monai.networks.nets import DynUNet
 from monai.losses import DeepSupervisionLoss
 
-def is_batch_meaningful(batch_data, meaningful_batch_th=-0.9):
+def is_batch_meaningful(batch_data, meaningful_batch_th):
     is_meaningful = True
     key = "STEP1"
     # batch size is 1
@@ -139,7 +139,7 @@ def main():
         "loss": "MAE",
         "val_per_epoch": 50,
         "save_per_epoch": 100,
-        "meaningful_batch_th": -0.9,
+        "meaningful_batch_th": 0.2,
     }
 
     wandb_config = {
@@ -247,7 +247,8 @@ def main():
         # train the model
         model.train()
         train_loss = 0
-        for idx_case, case_data in enumerate(train_data_loader):
+        average_input = 0
+        for idx_case, case_data in enumerate(train_data_loader, train_params["meaningful_batch_th"]):
             if not is_batch_meaningful(case_data):
                 continue
             
@@ -259,14 +260,18 @@ def main():
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
+            average_input += torch.mean(inputs).item()
         
+        average_input /= len(train_data_loader) * data_loader_params["norm"]["RANGE_CT"]
         train_loss /= len(train_data_loader) * data_loader_params["norm"]["RANGE_CT"]
         logger.log(idx_epoch, "train_loss", train_loss)
+        logger.log(idx_epoch, "train_average_input", average_input)
 
         # evaluate the model
         if idx_epoch % train_params["val_per_epoch"] == 0:
                 model.eval()
                 val_loss = 0
+                average_input = 0
                 for idx_case, case_data in enumerate(val_data_loader):
                     if not is_batch_meaningful(case_data):
                         continue
@@ -277,9 +282,12 @@ def main():
                         outputs = model(inputs)
                         loss = output_loss(outputs, targets-inputs)
                         val_loss += loss.item()
+                        average_input += torch.mean(inputs).item()
                 
+                average_input /= len(val_data_loader) * data_loader_params["norm"]["RANGE_CT"]
                 val_loss /= len(val_data_loader) * data_loader_params["norm"]["RANGE_CT"]
                 logger.log(idx_epoch, "val_loss", val_loss)
+                logger.log(idx_epoch, "val_average_input", average_input)
     
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
@@ -293,6 +301,7 @@ def main():
                     
                     # test the model
                     test_loss = 0
+                    average_input = 0
                     for idx_case, case_data in enumerate(test_data_loader):
                         if not is_batch_meaningful(case_data):
                             continue
@@ -303,9 +312,12 @@ def main():
                             outputs = model(inputs)
                             loss = output_loss(outputs, targets-inputs)
                             test_loss += loss.item()
+                            average_input += torch.mean(inputs).item()
                     
+                    average_input /= len(test_data_loader) * data_loader_params["norm"]["RANGE_CT"]
                     test_loss /= len(test_data_loader) * data_loader_params["norm"]["RANGE_CT"]
                     logger.log(idx_epoch, "test_loss", test_loss)
+                    logger.log(idx_epoch, "test_average_input", average_input)
         
         # save the model
         if idx_epoch % train_params["save_per_epoch"] == 0:
