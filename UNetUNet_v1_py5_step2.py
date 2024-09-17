@@ -277,7 +277,7 @@ def main():
                 optimizer.step()
                 train_loss += loss.item()
                 average_input += torch.mean(inputs).item()
-                average_num_valid += num_valid
+                average_num_valid += num_valid.item()
         
         average_input /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
         train_loss /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
@@ -313,7 +313,7 @@ def main():
                                 loss = torch.tensor(0.0, device=device)
                             val_loss += loss.item()
                             average_input += torch.mean(inputs).item()
-                            average_num_valid += num_valid
+                            average_num_valid += num_valid.item()
                 
                 average_input /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
                 val_loss /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
@@ -357,7 +357,7 @@ def main():
                                     loss = torch.tensor(0.0, device=device)
                                 test_loss += loss.item()
                                 average_input += torch.mean(inputs).item()
-                                average_num_valid += num_valid
+                                average_num_valid += num_valid.item()
                     
                     average_input /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
                     test_loss /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
