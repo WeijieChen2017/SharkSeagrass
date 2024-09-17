@@ -139,7 +139,8 @@ def main():
         "loss": "MAE",
         "val_per_epoch": 50,
         "save_per_epoch": 100,
-        "meaningful_batch_th": 0.2,
+        "meaningful_batch_th": 0.05,
+        "meaningful_batch_per_epoch": 32,
     }
 
     wandb_config = {
@@ -241,6 +242,7 @@ def main():
 
     # train the model
     best_val_loss = 1e10
+    meaningful_batch_per_epoch = train_params["meaningful_batch_per_epoch"]
     print("Start training")
     for idx_epoch in range(train_params["num_epoch"]):
 
@@ -248,22 +250,25 @@ def main():
         model.train()
         train_loss = 0
         average_input = 0
-        for idx_case, case_data in enumerate(train_data_loader):
-            if not is_batch_meaningful(case_data, train_params["meaningful_batch_th"]):
-                continue
-            
-            inputs = case_data["STEP1"].to(device)
-            targets = case_data["STEP2"].to(device)
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = ds_loss(torch.unbind(outputs, 1), targets-inputs)
-            loss.backward()
-            optimizer.step()
-            train_loss += loss.item()
-            average_input += torch.mean(inputs).item()
+        cnt_meaningful_batch = 0
+        while cnt_meaningful_batch < meaningful_batch_per_epoch:
+            for idx_case, case_data in enumerate(train_data_loader):
+                if not is_batch_meaningful(case_data, train_params["meaningful_batch_th"]):
+                    continue
+                cnt_meaningful_batch += 1
+                
+                inputs = case_data["STEP1"].to(device)
+                targets = case_data["STEP2"].to(device)
+                optimizer.zero_grad()
+                outputs = model(inputs)
+                loss = ds_loss(torch.unbind(outputs, 1), targets-inputs)
+                loss.backward()
+                optimizer.step()
+                train_loss += loss.item()
+                average_input += torch.mean(inputs).item()
         
-        average_input /= len(train_data_loader) * data_loader_params["norm"]["RANGE_CT"]
-        train_loss /= len(train_data_loader) * data_loader_params["norm"]["RANGE_CT"]
+        average_input /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
+        train_loss /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
         logger.log(idx_epoch, "train_loss", train_loss)
         logger.log(idx_epoch, "train_average_input", average_input)
 
@@ -272,20 +277,23 @@ def main():
                 model.eval()
                 val_loss = 0
                 average_input = 0
-                for idx_case, case_data in enumerate(val_data_loader):
-                    if not is_batch_meaningful(case_data, train_params["meaningful_batch_th"]):
-                        continue
-                    
-                    inputs = case_data["STEP1"].to(device)
-                    targets = case_data["STEP2"].to(device)
-                    with torch.no_grad():
-                        outputs = model(inputs)
-                        loss = output_loss(outputs, targets-inputs)
-                        val_loss += loss.item()
-                        average_input += torch.mean(inputs).item()
+                cnt_meaningful_batch = 0
+                while cnt_meaningful_batch < meaningful_batch_per_epoch:
+                    for idx_case, case_data in enumerate(val_data_loader):
+                        if not is_batch_meaningful(case_data, train_params["meaningful_batch_th"]):
+                            continue
+                        cnt_meaningful_batch += 1
+                        
+                        inputs = case_data["STEP1"].to(device)
+                        targets = case_data["STEP2"].to(device)
+                        with torch.no_grad():
+                            outputs = model(inputs)
+                            loss = output_loss(outputs, targets-inputs)
+                            val_loss += loss.item()
+                            average_input += torch.mean(inputs).item()
                 
-                average_input /= len(val_data_loader) * data_loader_params["norm"]["RANGE_CT"]
-                val_loss /= len(val_data_loader) * data_loader_params["norm"]["RANGE_CT"]
+                average_input /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
+                val_loss /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
                 logger.log(idx_epoch, "val_loss", val_loss)
                 logger.log(idx_epoch, "val_average_input", average_input)
     
@@ -302,20 +310,23 @@ def main():
                     # test the model
                     test_loss = 0
                     average_input = 0
-                    for idx_case, case_data in enumerate(test_data_loader):
-                        if not is_batch_meaningful(case_data, train_params["meaningful_batch_th"]):
-                            continue
-                        
-                        inputs = case_data["STEP1"].to(device)
-                        targets = case_data["STEP2"].to(device)
-                        with torch.no_grad():
-                            outputs = model(inputs)
-                            loss = output_loss(outputs, targets-inputs)
-                            test_loss += loss.item()
-                            average_input += torch.mean(inputs).item()
+                    cnt_meaningful_batch = 0
+                    while cnt_meaningful_batch < meaningful_batch_per_epoch:
+                        for idx_case, case_data in enumerate(test_data_loader):
+                            if not is_batch_meaningful(case_data, train_params["meaningful_batch_th"]):
+                                continue
+                            cnt_meaningful_batch += 1
+                            
+                            inputs = case_data["STEP1"].to(device)
+                            targets = case_data["STEP2"].to(device)
+                            with torch.no_grad():
+                                outputs = model(inputs)
+                                loss = output_loss(outputs, targets-inputs)
+                                test_loss += loss.item()
+                                average_input += torch.mean(inputs).item()
                     
-                    average_input /= len(test_data_loader) * data_loader_params["norm"]["RANGE_CT"]
-                    test_loss /= len(test_data_loader) * data_loader_params["norm"]["RANGE_CT"]
+                    average_input /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
+                    test_loss /= cnt_meaningful_batch * data_loader_params["norm"]["RANGE_CT"]
                     logger.log(idx_epoch, "test_loss", test_loss)
                     logger.log(idx_epoch, "test_average_input", average_input)
         
