@@ -36,7 +36,8 @@ import random
 import numpy as np
 
 from UNetUNet_v1_py5_step2_util import simple_logger, prepare_dataset
-
+from monai.networks.nets import DynUNet
+from monai.losses import DeepSupervisionLoss
 
 def is_batch_meaningful(batch_data):
     is_meaningful = True
@@ -215,6 +216,12 @@ def main():
     elif train_params["loss"] == "MSE":
         output_loss = torch.nn.MSELoss()
 
+    ds_loss = DeepSupervisionLoss(
+        loss = output_loss,
+        weight_mode = "exp",
+        weights = None,
+    )
+
     # train the model
     best_val_loss = 1e10
     print("Start training")
@@ -231,7 +238,7 @@ def main():
             targets = case_data["STEP2"].to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
-            loss = output_loss(outputs, targets)
+            loss = ds_loss(torch.unbind(outputs, 1), targets-inputs)
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
@@ -251,7 +258,7 @@ def main():
                     targets = case_data["STEP2"].to(device)
                     with torch.no_grad():
                         outputs = model(inputs)
-                        loss = output_loss(outputs, targets)
+                        loss = output_loss(outputs, targets-inputs)
                         val_loss += loss.item()
                 
                 val_loss /= len(val_data_loader) * data_loader_params["norm"]["RANGE_CT"]
@@ -277,7 +284,7 @@ def main():
                         targets = case_data["STEP2"].to(device)
                         with torch.no_grad():
                             outputs = model(inputs)
-                            loss = output_loss(outputs, targets)
+                            loss = output_loss(outputs, targets-inputs)
                             test_loss += loss.item()
                     
                     test_loss /= len(test_data_loader) * data_loader_params["norm"]["RANGE_CT"]
