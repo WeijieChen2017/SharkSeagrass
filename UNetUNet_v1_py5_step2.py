@@ -35,7 +35,7 @@ import time
 import random
 import numpy as np
 
-from UNetUNet_v1_py5_step2_util.py import simple_logger, prepare_dataset
+from UNetUNet_v1_py5_step2_util import simple_logger, prepare_dataset
 
 
 def is_batch_meaningful(batch_data):

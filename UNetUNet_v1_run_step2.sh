@@ -30,7 +30,7 @@ echo "============================================"
 # python UNetUNet_v1_py2_train.py
 du -lh -d 1
 rm -r TC256
-rm -r cv${1}_256
+rm -r cv${1}_256_clip
 mv cache ./results/
 tar -czvf UNetUnet_256_cv${1}_step2.tar.gz results
 echo "============================================"
