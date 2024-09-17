@@ -50,19 +50,19 @@ def prepare_dataset(data_div_json, global_config):
             # BPO124_CTAC_pred_cv0.nii.gz have been normalized and clipped to [0, 1]
             "STEP1": f"cv{cv}_256_clip/{hashname}_CTAC_pred_cv{cv}.nii.gz",
             # BPO124_CTAC.nii.gz have been normalized and clipped to [0, 1]
-            "STEP2": f"CTAC/{hashname}_CTAC.nii.gz",
+            "STEP2": f"TC256/{hashname}_CTAC_256.nii.gz",
         })
 
     for hashname in val_list:
         val_path_list.append({
             "STEP1": f"cv{cv}_256_clip/{hashname}_CTAC_pred_cv{cv}.nii.gz",
-            "STEP2": f"CTAC/{hashname}_CTAC.nii.gz",
+            "STEP2": f"TC256/{hashname}_CTAC_256.nii.gz",
         })
 
     for hashname in test_list:
         test_path_list.append({
             "STEP1": f"cv{cv}_256_clip/{hashname}_CTAC_pred_cv{cv}.nii.gz",
-            "STEP2": f"CTAC/{hashname}_CTAC.nii.gz",
+            "STEP2": f"TC256/{hashname}_CTAC_256.nii.gz",
         })
 
     # save the data division file
