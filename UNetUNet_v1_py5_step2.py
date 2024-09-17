@@ -263,9 +263,15 @@ def main():
                 outputs = model(inputs)
                 # take target > 1/6 as the mask
                 target_mask = targets > 1/6
+                num_valid = target_mask.sum()
                 loss = ds_loss(torch.unbind(outputs, 1), targets-inputs)
-                loss = loss * target_mask
-                loss = torch.mean(loss)
+                masked_loss = loss * target_mask
+                if num_valid > 0:
+                    # Sum the masked loss and normalize by the number of valid (masked) elements
+                    loss = masked_loss.sum() / num_valid
+                else:
+                    # Handle the case where no elements are masked, set loss to zero
+                    loss = torch.tensor(0.0, device=device)
                 loss.backward()
                 optimizer.step()
                 train_loss += loss.item()
@@ -293,9 +299,13 @@ def main():
                         with torch.no_grad():
                             outputs = model(inputs)
                             mask = targets > 1/6
+                            num_valid = mask.sum()
                             loss = output_loss(outputs, targets-inputs)
                             loss = loss * mask
-                            loss = torch.mean(loss)
+                            if num_valid > 0:
+                                loss = loss.sum() / num_valid
+                            else:
+                                loss = torch.tensor(0.0, device=device)
                             val_loss += loss.item()
                             average_input += torch.mean(inputs).item()
                 
@@ -329,9 +339,13 @@ def main():
                             with torch.no_grad():
                                 outputs = model(inputs)
                                 mask = targets > 1/6
+                                num_valid = mask.sum()
                                 loss = output_loss(outputs, targets-inputs)
                                 loss = loss * mask
-                                loss = torch.mean(loss)
+                                if num_valid > 0:
+                                    loss = loss.sum() / num_valid
+                                else:
+                                    loss = torch.tensor(0.0, device=device)
                                 test_loss += loss.item()
                                 average_input += torch.mean(inputs).item()
                     
