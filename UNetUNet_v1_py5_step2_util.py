@@ -81,12 +81,12 @@ def prepare_dataset(data_div_json, global_config):
     with open(data_division_file, "w") as f:
         json.dump(data_division_dict, f, indent=4)
 
-    input_modality = global_config["model_step1_params"]["input_modality"]
+    input_modality = global_config["model_step2_params"]["input_modality"]
     # input_modality_dict = {
     #     "x": input_modality[0],
     #     "y": input_modality[1],
     # }
-    cube_size = global_config["model_step1_params"]["cube_size"]
+    cube_size = global_config["model_step2_params"]["cube_size"]
     # in_channel = global_config["model_step1_params"]["ddconfig"]["in_channels"]
     # out_channel = global_config["model_step1_params"]["ddconfig"]["out_ch"]
 
