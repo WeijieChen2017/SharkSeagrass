@@ -127,6 +127,7 @@ def main():
         "trans_bias": False,
         "ckpt_path": "d3f64_tsv1.pth",
         "cube_size": 256,
+        "input_modality": ["STEP1", "STEP2"],
     }
 
     train_params = {
@@ -158,7 +159,7 @@ def main():
     global_config["tag"] = tag
     global_config["wandb_run"] = wandb_run
     global_config["IS_LOGGER_WANDB"] = True
-    global_config["input_modality"] = ["STEP1", "STEP2"]
+    # global_config["input_modality"] = ["STEP1", "STEP2"]
     # global_config["model_step1_params"] = model_step1_params
     global_config["model_step2_params"] = model_step2_params
     global_config["data_loader_params"] = data_loader_params
