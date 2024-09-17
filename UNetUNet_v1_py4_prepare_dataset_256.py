@@ -51,7 +51,8 @@ def main():
         val_list = data_div[f"cv_{cv}"]["val"]
         test_list = data_div[f"cv_{cv}"]["test"]
         log_file = f"{root_folder}UNetUNet_v1_cv{cv}_log.txt"
-
+        save_folder = f"{root_folder}cv{cv}_256_clip/"
+        os.makedirs(save_folder, exist_ok=True)
         # num_train = len(train_list)
         # num_val = len(val_list)
         # num_test = len(test_list)
@@ -107,8 +108,8 @@ def main():
                 step2_data = step2_file.get_fdata()
 
                 compress_step1_data = np.clip(step1_data, 0, 1).astype(np.float32)
-                compress_step1_path = step1_path.replace(".nii.gz", "_clip.nii.gz")
-                compress_step1_path = step1_path.replace("_256", "_256_clip")
+                compress_step1_path = save_folder+os.path.basename(step1_path)
+                
                 compress_step1_nii = nib.Nifti1Image(compress_step1_data, step1_file.affine, step1_file.header)
                 nib.save(compress_step1_nii, compress_step1_path)
                 printlog(log_file, f"Compressed data saved at {compress_step1_path}")
