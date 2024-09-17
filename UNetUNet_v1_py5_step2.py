@@ -127,7 +127,7 @@ def main():
         "res_block": True,
         "trans_bias": False,
         "ckpt_path": "d3f64_tsv1.pth",
-        "cube_size": 256,
+        "cube_size": 128,
         "input_modality": ["STEP1", "STEP2"],
     }
 
