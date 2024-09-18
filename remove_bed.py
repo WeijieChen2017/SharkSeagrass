@@ -65,7 +65,7 @@ for case in case_list:
     case_tag = os.path.basename(case).split("_")[1]
     # print(f"\"{case_tag}\", ")
     print("> " * 50)
-    TOFNAC_path = case.replace("CTACIVV", "TOFNAC")
+    TOFNAC_path = "B100/TOFNAC_CTACIVV_part2/TC256_part2/TOFNAC_" + case_tag + "_256.nii.gz"
     CTACIVV_path = case
 
     TOFNAC_file = nib.load(TOFNAC_path)
