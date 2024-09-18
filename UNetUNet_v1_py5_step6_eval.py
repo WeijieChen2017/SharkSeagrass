@@ -244,8 +244,9 @@ def main():
                     buffer_steps=None,
                 ) # f(x) -> y-x
             
-            print(f"{split} -> {casename} -> output_diff shape: {output_diff.shape}")
-            output_STEP2 = input_STEP1 + output_diff.squeeze().detach().cpu().numpy()
+            input_STEP1 = input_STEP1.squeeze().detach().cpu().numpy()
+            output_diff = output_diff.squeeze().detach().cpu().numpy()
+            output_STEP2 = input_STEP1 + output_diff
             output_STEP2 = output_STEP2 * RANGE_CT + MIN_CT
             print(f"{split} -> {casename} -> output_STEP2 shape: {output_STEP2.shape}")
 
