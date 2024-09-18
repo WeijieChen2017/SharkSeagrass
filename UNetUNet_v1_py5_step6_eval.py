@@ -259,7 +259,7 @@ def main():
             # compute the loss
             CTAC_HU = CTAC_data * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
             CTAC_mask = CTAC_HU > -500
-            MAE = np.mean(np.abs(CTAC_HU[CTAC_mask] - CTAC_pred[CTAC_mask]))
+            MAE = np.mean(np.abs(CTAC_HU[CTAC_mask] - output_STEP2[CTAC_mask]))
             print(f"{split} -> {casename} -> MAE: {MAE:.4f}")
             split_loss.append(MAE)
             with open(log_file, "a") as f:
