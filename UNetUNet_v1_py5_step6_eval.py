@@ -247,7 +247,7 @@ def main():
 
 
                 # save the CTAC_pred
-                CTAC_pred_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
+                CTAC_pred_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_cv{cross_validation}_step2.nii.gz")
                 CTAC_pred_nii = nib.Nifti1Image(CTAC_pred, STEP1_file.affine, STEP1_file.header)
                 nib.save(CTAC_pred_nii, CTAC_pred_path)
 
