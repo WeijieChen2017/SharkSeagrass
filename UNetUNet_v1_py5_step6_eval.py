@@ -46,7 +46,7 @@ def two_segment_scale(arr, MIN, MID, MAX, MIQ):
 def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
-    argparser.add_argument('--cross_validation', type=int, default=5, help='Index of the cross validation')
+    argparser.add_argument('--cross_validation', type=int, default=0, help='Index of the cross validation')
     args = argparser.parse_args()
     tag = f"fold{args.cross_validation}_256"
 
