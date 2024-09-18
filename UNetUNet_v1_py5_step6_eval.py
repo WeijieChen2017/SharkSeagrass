@@ -207,17 +207,17 @@ def main():
                 # casenme "FGX078"
                 # TOFNAC_path "FGX078_CTAC.nii.gz" is not normalized
                 # CTAC_path "FGX078_TOFNAC.nii.gz" is not normalized
-                TOFNAC_path = os.path.join(f"B100/TOFNAC_CTACIVV_part2/cv{cross_validation}_256/test/{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
+                STEP1_path = os.path.join(f"B100/TOFNAC_CTACIVV_part2/cv{cross_validation}_256/test/{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
                 CTAC_path = os.path.join(f"B100/TOFNAC_CTACIVV_part2/CTACIVV_{casename}_256.nii.gz")
                 # load the data
-                TOFNAC_file = nib.load(TOFNAC_path)
+                STEP1_file = nib.load(STEP1_path)
                 CTAC_file = nib.load(CTAC_path)
 
                 # normalize the data
-                TOFNAC_data = TOFNAC_file.get_fdata()
+                STEP1_data = STEP1_file.get_fdata()
                 # from 299 to 256
                 CTAC_data = CTAC_file.get_fdata()[22:278, 22:278, :]
-                print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
+                print(f"{split} -> {casename} -> STEP1_data shape: {STEP1_data.shape}, CTAC shape: {CTAC_data.shape}")
                 
                 # slide window
                 input_STEP1 = np.expand_dims(np.expand_dims(STEP1_data, axis=0), axis=0)
