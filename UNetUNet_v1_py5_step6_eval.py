@@ -207,7 +207,7 @@ def main():
                 # casenme "FGX078"
                 # TOFNAC_path "FGX078_CTAC.nii.gz" is not normalized
                 # CTAC_path "FGX078_TOFNAC.nii.gz" is not normalized
-                TOFNAC_path = os.path.join(f"B100/TOFNAC_CTACIVV_part2/cv{cross_validation}_256/test/TOFNAC_{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
+                TOFNAC_path = os.path.join(f"B100/TOFNAC_CTACIVV_part2/cv{cross_validation}_256/test/{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
                 CTAC_path = os.path.join(f"B100/TOFNAC_CTACIVV_part2/CTACIVV_{casename}_256.nii.gz")
                 # load the data
                 TOFNAC_file = nib.load(TOFNAC_path)
