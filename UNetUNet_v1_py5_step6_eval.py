@@ -1,21 +1,10 @@
 import os
 
-# Define the base cache directory
-base_cache_dir = './cache'
-
-# Create the base cache directory if it doesn't exist
-os.makedirs(base_cache_dir, exist_ok=True)
-
-# Create the necessary subdirectories and set the environment variables
-for key, path in cache_dirs.items():
-    os.makedirs(path, exist_ok=True)
-    os.environ[key] = path
-
 # set the environment variable to use the GPU if available
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import torch
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
 
 import argparse
