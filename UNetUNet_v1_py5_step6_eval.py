@@ -243,9 +243,9 @@ def main():
                     sw_device=device,
                     buffer_steps=None,
                 ) # f(x) -> y-x
-
-            output_diff = output_diff.squeeze().detach().cpu().numpy()
-            output_STEP2 = input_STEP1 + output_diff
+            
+            print(f"{split} -> {casename} -> output_diff shape: {output_diff.shape}")
+            output_STEP2 = input_STEP1 + output_diff.squeeze().detach().cpu().numpy()
             output_STEP2 = output_STEP2 * RANGE_CT + MIN_CT
             print(f"{split} -> {casename} -> output_STEP2 shape: {output_STEP2.shape}")
 
