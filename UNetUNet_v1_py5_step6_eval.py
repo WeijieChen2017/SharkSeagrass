@@ -215,6 +215,7 @@ def main():
 
                 # normalize the data
                 STEP1_data = STEP1_file.get_fdata()
+                STEP1_data = two_segment_scale(STEP1_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
                 # from 299 to 256
                 CTAC_data = CTAC_file.get_fdata()[22:278, 22:278, :]
                 print(f"{split} -> {casename} -> STEP1_data shape: {STEP1_data.shape}, CTAC shape: {CTAC_data.shape}")
