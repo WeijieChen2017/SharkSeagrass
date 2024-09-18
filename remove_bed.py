@@ -50,11 +50,7 @@ def two_segment_scale(arr, MIN, MID, MAX, MIQ):
     scaled_arr[mask2] = MIQ + (arr[mask2] - MID) / (MAX - MID) * (1 - MIQ)
     
     return scaled_arr
-    
-itksnap_z = 252
-mask = nib.load("B100/TOFNAC_CTACIVV_part2/CTAC_bed.nii.gz")
-mask_data = mask.get_fdata()[21:277, 21:277, itksnap_z-1]
-mask_data = 1 - mask_data
+
 save_folder = "B100/TOFNAC_CTACIVV_part2/TC256_part2_norm/"
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
@@ -92,9 +88,19 @@ for case in case_list:
     CTACIVV_data = (CTACIVV_data - MIN_CT) / RANGE_CT
 
     # masking, the mask part should be set to 0, while the mask is 1
-    len_z = TOFNAC_data.shape[2]
-    for z in range(len_z):
-        CTACIVV_data[:, :, z] = CTACIVV_data[:, :, z] * mask_data
+    if case_tag in ["E4143", "E4162", "E4172"]:
+        if case_tag == "E4143":
+            itksnap_z = 208
+        elif case_tag == "E4162":
+            itksnap_z = 275
+        elif case_tag == "E4172":
+            itksnap_z = 250
+        mask = nib.load(f"B100/TOFNAC_CTACIVV_part2/bed_{case_tag}_{itksnap_z}.nii.gz")
+        mask_data = mask.get_fdata()[21:277, 21:277, itksnap_z-1]
+        mask_data = 1 - mask_data
+        len_z = TOFNAC_data.shape[2]
+        for z in range(len_z):
+            CTACIVV_data[:, :, z] = CTACIVV_data[:, :, z] * mask_data
 
     new_name = get_random_name() + case_tag[2:]
     new_path_TOFNAC = os.path.join(save_folder, f"{new_name}_TOFNAC_256.nii.gz")
