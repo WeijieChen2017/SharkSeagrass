@@ -233,7 +233,7 @@ def main():
                     inputs = input_STEP1, 
                     roi_size = model_step2_params["cube_size"],
                     sw_batch_size = 4,
-                    predictor = model_step_2,
+                    predictor = model,
                     overlap=0.25, 
                     mode="gaussian", 
                     sigma_scale=0.125, 
