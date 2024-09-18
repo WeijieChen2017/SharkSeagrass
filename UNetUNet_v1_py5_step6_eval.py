@@ -47,7 +47,8 @@ def two_segment_scale(arr, MIN, MID, MAX, MIQ):
 def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
-    argparser.add_argument('--cross_validation', type=int, default=0, help='Index of the cross validation')
+    argparser.add_argument('-c', '--cross_validation', type=int, default=0, help='Index of the cross validation')
+    argparser.add_argument('-p', '--part2', type=bool, default=True, help='Whether to run the second part')
     args = argparser.parse_args()
     tag = f"fold{args.cross_validation}_256"
 
@@ -178,98 +179,185 @@ def main():
     model.to(device)
     model.eval()
 
-
-    data_split = ["train", "val", "test"]
-    # load json
-    with open(data_div_json, "r") as f:
-        data_div = json.load(f)
-    data_div_cv = data_div[f"cv_{cross_validation}"]
-
-    log_file = os.path.join(root_folder, "log.txt")
-    with open(log_file, "w") as f:
-        print(f"Training division: {data_div_cv['train']}")
-        print(f"Validation division: {data_div_cv['val']}")
-        print(f"Testing division: {data_div_cv['test']}")
-
-    for split in data_split:
-        data_split_folder = os.path.join(root_folder, split)
-        if not os.path.exists(data_split_folder):
-            os.makedirs(data_split_folder)
+    if args.part2:
+        root_folder = f"B100/TOFNAC_CTACIVV_part2/cv{cross_validation}_256_step2/"
+        if not os.path.exists(root_folder):
+            os.makedirs(root_folder)
+        data_split = ["test"]
+        # load json
+        with open(data_div_json, "r") as f:
+            data_div = json.load(f)
         
-        split_list = data_div_cv[split]
-        split_loss = []
-        # now there will be a list of file names
-        for casename in split_list:
-            print(f"{split} -> Processing {casename}")
-            # casenme "FGX078"
-            # JQR130_CTAC_pred_cv2.nii.gz
-            STEP1_path = os.path.join(f"B100/UNetUNet_best/cv{cross_validation}_256_clip/{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
-            CTAC_path = os.path.join(f"B100/TC256/{casename}_CTAC_256.nii.gz")
-            # load the data
-            STEP1_file = nib.load(STEP1_path)
-            CTAC_file = nib.load(CTAC_path)
+        data_div_cv = data_div[f"part2"]
 
-            STEP1_data = STEP1_file.get_fdata()
-            CTAC_data = CTAC_file.get_fdata()
-            print(f"{split} -> {casename} -> STEP1 shape: {STEP1_data.shape}, CTAC shape: {CTAC_data.shape}")
-
-            # now it is using slide_window to process the 3d data
-            # synthetic_CT_data_step_1 # 400, 400, z
-            # convert to 1, 1, 400, 400, z
-            # norm_step1_data = np.expand_dims(np.expand_dims(norm_step1_data, axis=0), axis=0)
-            # norm_step1_data = torch.from_numpy(norm_step1_data).float().cpu()
-
-            input_STEP1 = np.expand_dims(np.expand_dims(STEP1_data, axis=0), axis=0)
-            input_STEP1 = torch.from_numpy(input_STEP1).float().to(device)
-            # the sliding window method takes 
-            # sw_device and device arguments for 
-           # the window data and the output volume respectively. 
-            # print("Processing step 1 in the shape of ", norm_step1_data.shape)
-            # print("Please prepare the data and press enter to continue")
-            # time.sleep(30)
-            # print("Continuing...")
-            with torch.no_grad():
-                output_diff = sliding_window_inference(
-                    inputs = input_STEP1, 
-                    roi_size = model_step2_params["cube_size"],
-                    sw_batch_size = 4,
-                    predictor = model,
-                    overlap=0.25, 
-                    mode="gaussian", 
-                    sigma_scale=0.125, 
-                    padding_mode="constant", 
-                    cval=0.0,
-                    device=torch.device('cpu'),
-                    sw_device=device,
-                    buffer_steps=None,
-                ) # f(x) -> y-x
+        log_file = os.path.join(root_folder, "log_part2.txt")
+        with open(log_file, "w") as f:
+            print(f"Part 2 division: {data_div_cv['test']}")
+        
+        for split in data_split:
+            data_split_folder = os.path.join(root_folder, split)
+            if not os.path.exists(data_split_folder):
+                os.makedirs(data_split_folder)
             
-            input_STEP1 = input_STEP1.squeeze().detach().cpu().numpy()
-            output_diff = output_diff.squeeze().detach().cpu().numpy()
-            output_STEP2 = input_STEP1 + output_diff
-            output_STEP2 = output_STEP2 * RANGE_CT + MIN_CT
-            print(f"{split} -> {casename} -> output_STEP2 shape: {output_STEP2.shape}")
+            split_list = data_div_cv[split]
+            split_loss = []
+            # now there will be a list of file names
+            for casename in split_list:
+                print(f"{split} -> Processing {casename}")
+                # casenme "FGX078"
+                # TOFNAC_path "FGX078_CTAC.nii.gz" is not normalized
+                # CTAC_path "FGX078_TOFNAC.nii.gz" is not normalized
+                TOFNAC_path = os.path.join(f"B100/TOFNAC_CTACIVV_part2/cv{cross_validation}_256/test/TOFNAC_{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
+                CTAC_path = os.path.join(f"B100/TOFNAC_CTACIVV_part2/CTACIVV_{casename}_256.nii.gz")
+                # load the data
+                TOFNAC_file = nib.load(TOFNAC_path)
+                CTAC_file = nib.load(CTAC_path)
 
-            # save the CTAC_pred
-            CTAC_pred_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_cv{cross_validation}_step2.nii.gz")
-            CTAC_pred_nii = nib.Nifti1Image(output_STEP2, CTAC_file.affine, CTAC_file.header)
-            nib.save(CTAC_pred_nii, CTAC_pred_path)
-            print(f"Save the CTAC_pred to {CTAC_pred_path}")
+                # normalize the data
+                TOFNAC_data = TOFNAC_file.get_fdata()
+                # from 299 to 256
+                CTAC_data = CTAC_file.get_fdata()[22:278, 22:278, :]
+                print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
+                
+                # slide window
+                input_STEP1 = np.expand_dims(np.expand_dims(STEP1_data, axis=0), axis=0)
+                input_STEP1 = torch.from_numpy(input_STEP1).float().to(device)
+                with torch.no_grad():
+                    output_diff = sliding_window_inference(
+                        inputs = input_STEP1, 
+                        roi_size = model_step2_params["cube_size"],
+                        sw_batch_size = 4,
+                        predictor = model,
+                        overlap=0.25, 
+                        mode="gaussian", 
+                        sigma_scale=0.125, 
+                        padding_mode="constant", 
+                        cval=0.0,
+                        device=torch.device('cpu'),
+                        sw_device=device,
+                        buffer_steps=None,
+                    ) # f(x) -> y-x
+                
+                input_STEP1 = input_STEP1.squeeze().detach().cpu().numpy()
+                output_diff = output_diff.squeeze().detach().cpu().numpy()
+                output_STEP2 = input_STEP1 + output_diff
+                CTAC_pred = output_STEP2 * RANGE_CT + MIN_CT
+                print(f"{split} -> {casename} -> output_STEP2 shape: {output_STEP2.shape}")
 
-            # compute the loss
-            CTAC_HU = CTAC_data * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
-            CTAC_mask = CTAC_HU > -500
-            MAE = np.mean(np.abs(CTAC_HU[CTAC_mask] - output_STEP2[CTAC_mask]))
-            print(f"{split} -> {casename} -> MAE: {MAE:.4f}")
-            split_loss.append(MAE)
+
+                # save the CTAC_pred
+                CTAC_pred_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
+                CTAC_pred_nii = nib.Nifti1Image(CTAC_pred, TOFNAC_file.affine, TOFNAC_file.header)
+                nib.save(CTAC_pred_nii, CTAC_pred_path)
+
+                # compute the loss
+                CTGT_mask = CTAC_data > -500
+                MAE = np.mean(np.abs(CTAC_data[CTGT_mask] - CTAC_pred[CTGT_mask]))
+                print(f"{split} -> {casename} -> MAE: {MAE:.4f}")
+                split_loss.append(MAE)
+
+                with open(log_file, "a") as f:
+                    f.write(f"{split} -> {casename} -> MAE: {MAE:.4f}\n")
+            
+            split_loss = np.asarray(split_loss)
+            split_loss = np.mean(split_loss)
+            print(f"{split} -> Average MAE: {split_loss:.4f}")
             with open(log_file, "a") as f:
-                f.write(f"{split} -> {casename} -> MAE: {MAE:.4f}\n")
-        
-        split_loss = np.asarray(split_loss)
-        split_loss = np.mean(split_loss)
-        print(f"{split} -> Average MAE: {split_loss:.4f}")
-        with open(log_file, "a") as f:
-            f.write(f"{split} -> Average MAE: {split_loss:.4f}\n")
+                f.write(f"{split} -> Average MAE: {split_loss:.4f}\n")
+
+
+    else:
+        data_split = ["train", "val", "test"]
+        # load json
+        with open(data_div_json, "r") as f:
+            data_div = json.load(f)
+        data_div_cv = data_div[f"cv_{cross_validation}"]
+
+        log_file = os.path.join(root_folder, "log.txt")
+        with open(log_file, "w") as f:
+            print(f"Training division: {data_div_cv['train']}")
+            print(f"Validation division: {data_div_cv['val']}")
+            print(f"Testing division: {data_div_cv['test']}")
+
+        for split in data_split:
+            data_split_folder = os.path.join(root_folder, split)
+            if not os.path.exists(data_split_folder):
+                os.makedirs(data_split_folder)
+            
+            split_list = data_div_cv[split]
+            split_loss = []
+            # now there will be a list of file names
+            for casename in split_list:
+                print(f"{split} -> Processing {casename}")
+                # casenme "FGX078"
+                # JQR130_CTAC_pred_cv2.nii.gz
+                STEP1_path = os.path.join(f"B100/UNetUNet_best/cv{cross_validation}_256_clip/{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
+                CTAC_path = os.path.join(f"B100/TC256/{casename}_CTAC_256.nii.gz")
+                # load the data
+                STEP1_file = nib.load(STEP1_path)
+                CTAC_file = nib.load(CTAC_path)
+
+                STEP1_data = STEP1_file.get_fdata()
+                CTAC_data = CTAC_file.get_fdata()
+                print(f"{split} -> {casename} -> STEP1 shape: {STEP1_data.shape}, CTAC shape: {CTAC_data.shape}")
+
+                # now it is using slide_window to process the 3d data
+                # synthetic_CT_data_step_1 # 400, 400, z
+                # convert to 1, 1, 400, 400, z
+                # norm_step1_data = np.expand_dims(np.expand_dims(norm_step1_data, axis=0), axis=0)
+                # norm_step1_data = torch.from_numpy(norm_step1_data).float().cpu()
+
+                input_STEP1 = np.expand_dims(np.expand_dims(STEP1_data, axis=0), axis=0)
+                input_STEP1 = torch.from_numpy(input_STEP1).float().to(device)
+                # the sliding window method takes 
+                # sw_device and device arguments for 
+                # the window data and the output volume respectively. 
+                # print("Processing step 1 in the shape of ", norm_step1_data.shape)
+                # print("Please prepare the data and press enter to continue")
+                # time.sleep(30)
+                # print("Continuing...")
+                with torch.no_grad():
+                    output_diff = sliding_window_inference(
+                        inputs = input_STEP1, 
+                        roi_size = model_step2_params["cube_size"],
+                        sw_batch_size = 4,
+                        predictor = model,
+                        overlap=0.25, 
+                        mode="gaussian", 
+                        sigma_scale=0.125, 
+                        padding_mode="constant", 
+                        cval=0.0,
+                        device=torch.device('cpu'),
+                        sw_device=device,
+                        buffer_steps=None,
+                    ) # f(x) -> y-x
+                
+                input_STEP1 = input_STEP1.squeeze().detach().cpu().numpy()
+                output_diff = output_diff.squeeze().detach().cpu().numpy()
+                output_STEP2 = input_STEP1 + output_diff
+                output_STEP2 = output_STEP2 * RANGE_CT + MIN_CT
+                print(f"{split} -> {casename} -> output_STEP2 shape: {output_STEP2.shape}")
+
+                # save the CTAC_pred
+                CTAC_pred_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_cv{cross_validation}_step2.nii.gz")
+                CTAC_pred_nii = nib.Nifti1Image(output_STEP2, CTAC_file.affine, CTAC_file.header)
+                nib.save(CTAC_pred_nii, CTAC_pred_path)
+                print(f"Save the CTAC_pred to {CTAC_pred_path}")
+
+                # compute the loss
+                CTAC_HU = CTAC_data * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
+                CTAC_mask = CTAC_HU > -500
+                MAE = np.mean(np.abs(CTAC_HU[CTAC_mask] - output_STEP2[CTAC_mask]))
+                print(f"{split} -> {casename} -> MAE: {MAE:.4f}")
+                split_loss.append(MAE)
+                with open(log_file, "a") as f:
+                    f.write(f"{split} -> {casename} -> MAE: {MAE:.4f}\n")
+            
+            split_loss = np.asarray(split_loss)
+            split_loss = np.mean(split_loss)
+            print(f"{split} -> Average MAE: {split_loss:.4f}")
+            with open(log_file, "a") as f:
+                f.write(f"{split} -> Average MAE: {split_loss:.4f}\n")
 
     print("Done!")
 
