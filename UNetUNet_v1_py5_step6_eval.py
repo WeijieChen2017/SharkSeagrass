@@ -211,7 +211,7 @@ def main():
 
             STEP1_data = STEP1_file.get_fdata()
             CTAC_data = CTAC_file.get_fdata()
-            print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
+            print(f"{split} -> {casename} -> STEP1 shape: {STEP1_data.shape}, CTAC shape: {CTAC_data.shape}")
 
             # now it is using slide_window to process the 3d data
             # synthetic_CT_data_step_1 # 400, 400, z
