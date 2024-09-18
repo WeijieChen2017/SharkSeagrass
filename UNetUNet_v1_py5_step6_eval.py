@@ -29,20 +29,6 @@ RANGE_CT = MAX_CT - MIN_CT
 RANGE_PET = MAX_PET - MIN_PET
 
 
-def two_segment_scale(arr, MIN, MID, MAX, MIQ):
-    # Create an empty array to hold the scaled results
-    scaled_arr = np.zeros_like(arr, dtype=np.float32)
-
-    # First segment: where arr <= MID
-    mask1 = arr <= MID
-    scaled_arr[mask1] = (arr[mask1] - MIN) / (MID - MIN) * MIQ
-
-    # Second segment: where arr > MID
-    mask2 = arr > MID
-    scaled_arr[mask2] = MIQ + (arr[mask2] - MID) / (MAX - MID) * (1 - MIQ)
-    
-    return scaled_arr
-
 
 def main():
     # here I will use argparse to parse the arguments
@@ -215,7 +201,7 @@ def main():
 
                 # normalize the data
                 STEP1_data = STEP1_file.get_fdata()
-                STEP1_data = two_segment_scale(STEP1_data, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
+                STEP1_data = (STEP1_data - MIN_CT) / RANGE_CT
                 # from 299 to 256
                 CTAC_data = CTAC_file.get_fdata()[22:278, 22:278, :]
                 print(f"{split} -> {casename} -> STEP1_data shape: {STEP1_data.shape}, CTAC shape: {CTAC_data.shape}")
