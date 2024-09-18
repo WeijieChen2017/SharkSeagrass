@@ -8,4 +8,4 @@ data_folder = "B100/TOFNAC_CTACIVV_part2/TC256_part2/"
 case_list = sorted(glob.glob(data_folder + "CTACIVV_*_256.nii.gz"))
 for case in case_list:
     case_tag = os.path.basename(case).split("_")[1]
-    print(f"\"case_tag\", ")
+    print(f"\"{case_tag}\", ")
