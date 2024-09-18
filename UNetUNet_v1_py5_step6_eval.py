@@ -203,7 +203,7 @@ def main():
             print(f"{split} -> Processing {casename}")
             # casenme "FGX078"
             # JQR130_CTAC_pred_cv2.nii.gz
-            STEP1_path = os.path.join(f"B100/UNetUNet_best/cv{cross_validation}_256_clip/{casename}_TOFNAC_CTAC_pred_cv{cross_validation}.nii.gz")
+            STEP1_path = os.path.join(f"B100/UNetUNet_best/cv{cross_validation}_256_clip/{casename}_CTAC_pred_cv{cross_validation}.nii.gz")
             CTAC_path = os.path.join(f"B100/TC256/{casename}_CTAC_256.nii.gz")
             # load the data
             STEP1_file = nib.load(STEP1_path)
