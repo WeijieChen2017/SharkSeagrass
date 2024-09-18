@@ -12,6 +12,7 @@ import json
 import time
 import random
 import numpy as np
+import nibabel as nib
 
 from UNetUNet_v1_py5_step2_util import simple_logger, prepare_dataset
 from monai.networks.nets import DynUNet
