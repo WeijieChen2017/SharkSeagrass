@@ -36,10 +36,126 @@ import time
 import random
 import numpy as np
 
-from UNetUNet_v1_py2_train_util import VQModel, simple_logger, prepare_dataset
+from UNetUNet_v1_py2_train_acs_util import VQModel, simple_logger, prepare_dataset
 
 
+def train_or_eval(train_or_eval, model, volume_x, volume_y, optimizer, output_loss, LOSS_FACTOR):
+    
+    # 1, z, 256, 256 tensor
+    axial_case_loss = 0
+    coronal_case_loss = 0
+    sagittal_case_loss = 0
 
+    # if z is not divided by 4, pad the volume_x and volume_y
+    if volume_x.shape[1] % 4 != 0:
+        pad_size = 4 - volume_x.shape[1] % 4
+        volume_x = torch.nn.functional.pad(volume_x, (0, 0, 0, pad_size, 0, 0, 0, 0), mode='constant', value=0)
+        volume_y = torch.nn.functional.pad(volume_y, (0, 0, 0, pad_size, 0, 0, 0, 0), mode='constant', value=0)
+
+    indices_list_axial = [i for i in range(1, volume_x.shape[1]-1)]
+    indices_list_coronal = [i for i in range(1, volume_x.shape[2]-1)]
+    indices_list_sagittal = [i for i in range(1, volume_x.shape[3]-1)]
+    random.shuffle(indices_list_axial)
+    random.shuffle(indices_list_coronal)
+    random.shuffle(indices_list_sagittal)
+
+    if train_or_eval == "train":
+        # axial slices
+        for indices in indices_list_axial:
+            x = volume_x[:, indices-1:indices+2, :, :]
+            y = volume_y[:, indices, :, :].unsqueeze(0)
+        
+            optimizer.zero_grad()
+            outputs = model(x)
+            loss = output_loss(outputs, y)
+            loss.backward()
+            optimizer.step()
+
+            axial_case_loss += loss.item()
+            # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+
+        axial_case_loss /= len(indices_list_axial)
+        axial_case_loss *= LOSS_FACTOR
+
+        # coronal slices
+        for indices in indices_list_coronal:
+            x = volume_x[:, :, indices-1:indices+2, :]
+            y = volume_y[:, :, indices, :].unsqueeze(0)
+
+            optimizer.zero_grad()
+            outputs = model(x)
+            loss = output_loss(outputs, y)
+            loss.backward()
+            optimizer.step()
+
+            coronal_case_loss += loss.item()
+            # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+        
+        coronal_case_loss /= len(indices_list_coronal)
+        coronal_case_loss *= LOSS_FACTOR
+
+        # sagittal slices
+        for indices in indices_list_sagittal:
+            x = volume_x[:, :, :, indices-1:indices+2]
+            y = volume_y[:, :, :, indices].unsqueeze(0)
+
+            optimizer.zero_grad()
+            outputs = model(x)
+            loss = output_loss(outputs, y)
+            loss.backward()
+            optimizer.step()
+
+            sagittal_case_loss += loss.item()
+            # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+        
+        sagittal_case_loss /= len(indices_list_sagittal)
+        sagittal_case_loss *= LOSS_FACTOR
+
+    elif train_or_eval == "val":
+
+        # axial slices
+        for indices in indices_list_axial:
+            x = volume_x[:, indices-1:indices+2, :, :]
+            y = volume_y[:, indices, :, :].unsqueeze(0)
+
+            with torch.no_grad():
+                outputs = model(x)
+                loss = output_loss(outputs, y)
+                axial_case_loss += loss.item()
+                # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+        
+        axial_case_loss /= len(indices_list_axial)
+        axial_case_loss *= LOSS_FACTOR
+
+        # coronal slices
+        for indices in indices_list_coronal:
+            x = volume_x[:, :, indices-1:indices+2, :]
+            y = volume_y[:, :, indices, :].unsqueeze(0)
+
+            with torch.no_grad():
+                outputs = model(x)
+                loss = output_loss(outputs, y)
+                coronal_case_loss += loss.item()
+                # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+        
+        coronal_case_loss /= len(indices_list_coronal)
+        coronal_case_loss *= LOSS_FACTOR
+
+        # sagittal slices
+        for indices in indices_list_sagittal:
+            x = volume_x[:, :, :, indices-1:indices+2]
+            y = volume_y[:, :, :, indices].unsqueeze(0)
+
+            with torch.no_grad():
+                outputs = model(x)
+                loss = output_loss(outputs, y)
+                sagittal_case_loss += loss.item()
+                # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+        
+        sagittal_case_loss /= len(indices_list_sagittal)
+        sagittal_case_loss *= LOSS_FACTOR
+
+    return axial_case_loss, coronal_case_loss, sagittal_case_loss
 
 def main():
     # here I will use argparse to parse the arguments
@@ -211,74 +327,74 @@ def main():
 
         # train the model
         model.train()
-        train_loss = 0
+        axial_train_loss = 0
+        coronal_train_loss = 0
+        sagittal_train_loss = 0
+
         for idx_case, case_data in enumerate(train_data_loader):
             # this will return a zx400x400 tensor
-            case_loss = 0
-            len_z = case_data["TOFNAC"].shape[1]
             volume_x = case_data["TOFNAC"].to(device)
             volume_y = case_data["CTAC"].to(device)
-            # create index list without the first and last slice
-            indices_list = [i for i in range(1, len_z-1)]
-            
-            random.shuffle(indices_list)
-            for indices in indices_list:
-                x = volume_x[:, indices-1:indices+2, :, :]
-                y = volume_y[:, indices, :, :].unsqueeze(0)
 
-                optimizer.zero_grad()
-                outputs = model(x)
-                loss = output_loss(outputs, y)
-                loss.backward()
-                optimizer.step()
+            axial_case_loss, coronal_case_loss, sagittal_case_loss = train_or_eval("train", model, volume_x, volume_y, optimizer, output_loss, LOSS_FACTOR)
 
-                case_loss += loss.item()
-                # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
-
-            case_loss /= len(indices_list)
-            case_loss *= LOSS_FACTOR
             # keep 3 decimal digits like 123.456
-            case_loss = round(case_loss, 3)
-            logger.log(idx_epoch, "train_case_loss", case_loss)
+            axial_case_loss = round(axial_case_loss, 3)
+            coronal_case_loss = round(coronal_case_loss, 3)
+            sagittal_case_loss = round(sagittal_case_loss, 3)
+            
+            logger.log(idx_epoch, "train_axial_case_loss", axial_case_loss)
+            logger.log(idx_epoch, "train_coronal_case_loss", coronal_case_loss)
+            logger.log(idx_epoch, "train_sagittal_case_loss", sagittal_case_loss)
             # print(f"EPOCH {idx_epoch}, CASE {idx_case}, LOSS {case_loss}")
             
-            train_loss += case_loss
+            axial_train_loss += axial_case_loss
+            coronal_train_loss += coronal_case_loss
+            sagittal_train_loss += sagittal_case_loss
         
-        train_loss /= len(train_data_loader)
+        axial_train_loss /= len(train_data_loader)
+        coronal_train_loss /= len(train_data_loader)
+        sagittal_train_loss /= len(train_data_loader)
+        train_loss = (axial_train_loss + coronal_train_loss + sagittal_train_loss) / 3
+
+        logger.log(idx_epoch, "train_axial_loss", axial_train_loss)
+        logger.log(idx_epoch, "train_coronal_loss", coronal_train_loss)
+        logger.log(idx_epoch, "train_sagittal_loss", sagittal_train_loss)
         logger.log(idx_epoch, "train_loss", train_loss)
     
         # evaluate the model
         if idx_epoch % train_params["val_per_epoch"] == 0:
 
             model.eval()
-            val_loss = 0
+            axial_val_loss = 0
+            coronal_val_loss = 0
+            sagittal_val_loss = 0
             for idx_case, case_data in enumerate(val_data_loader):
-                case_loss = 0
-                len_z = case_data["TOFNAC"].shape[1]
                 volume_x = case_data["TOFNAC"].to(device)
                 volume_y = case_data["CTAC"].to(device)
-                indices_list = [i for i in range(1, len_z-1)]
 
-                random.shuffle(indices_list)
-                for indices in indices_list:
-                    x = volume_x[:, indices-1:indices+2, :, :]
-                    y = volume_y[:, indices, :, :].unsqueeze(0)
+                axial_case_loss, coronal_case_loss, sagittal_case_loss = train_or_eval("val", model, volume_x, volume_y, optimizer, output_loss, LOSS_FACTOR)
 
-                    with torch.no_grad():
-                        outputs = model(x)
-                        loss = output_loss(outputs, y)
-                        case_loss += loss.item()
-                        # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+                axial_val_loss += axial_case_loss
+                coronal_val_loss += coronal_case_loss
+                sagittal_val_loss += sagittal_case_loss
 
-                case_loss /= len(indices_list)
-                case_loss *= LOSS_FACTOR
-                # keep 3 decimal digits like 123.456
-                case_loss = round(case_loss, 3)
-                logger.log(idx_epoch, "val_case_loss", case_loss)
-                val_loss += case_loss
-                # print(f"EPOCH {idx_epoch}, CASE {idx_case}, LOSS {case_loss}")
+                axial_case_loss = round(axial_case_loss, 3)
+                coronal_case_loss = round(coronal_case_loss, 3)
+                sagittal_case_loss = round(sagittal_case_loss, 3)
+                
+                logger.log(idx_epoch, "val_axial_case_loss", axial_case_loss)
+                logger.log(idx_epoch, "val_coronal_case_loss", coronal_case_loss)
+                logger.log(idx_epoch, "val_sagittal_case_loss", sagittal_case_loss)
 
-            val_loss /= len(val_data_loader)
+            axial_val_loss /= len(val_data_loader)
+            coronal_val_loss /= len(val_data_loader)
+            sagittal_val_loss /= len(val_data_loader)
+            val_loss = (axial_val_loss + coronal_val_loss + sagittal_val_loss) / 3
+            
+            logger.log(idx_epoch, "val_axial_loss", axial_val_loss)
+            logger.log(idx_epoch, "val_coronal_loss", coronal_val_loss)
+            logger.log(idx_epoch, "val_sagittal_loss", sagittal_val_loss)
             logger.log(idx_epoch, "val_loss", val_loss)
 
             if val_loss < best_val_loss:
@@ -292,34 +408,35 @@ def main():
                 wandb_run.log_model(path=save_path, name="model_best_eval", aliases=tag+f"cv{cross_validation}_zscore")
                 
                 # test the model
-                test_loss = 0
+                axial_test_loss = 0
+                coronal_test_loss = 0
+                sagittal_test_loss = 0
                 for idx_case, case_data in enumerate(test_data_loader):
-                    case_loss = 0
-                    len_z = case_data["TOFNAC"].shape[1]
                     volume_x = case_data["TOFNAC"].to(device)
                     volume_y = case_data["CTAC"].to(device)
-                    indices_list = [i for i in range(1, len_z-1)]
+                    
+                    axial_case_loss, coronal_case_loss, sagittal_case_loss = train_or_eval("val", model, volume_x, volume_y, optimizer, output_loss, LOSS_FACTOR)
 
-                    random.shuffle(indices_list)
-                    for indices in indices_list:
-                        x = volume_x[:, indices-1:indices+2, :, :]
-                        y = volume_y[:, indices, :, :].unsqueeze(0)
-                        
-                        with torch.no_grad():
-                            outputs = model(x)
-                            loss = output_loss(outputs, y)
-                            case_loss += loss.item()
-                            # print(f"EPOCH {idx_epoch}, CASE {idx_case}, SLICE {indices}, LOSS {loss.item()*LOSS_FACTOR:.3f}")
+                    axial_test_loss += axial_case_loss
+                    coronal_test_loss += coronal_case_loss
+                    sagittal_test_loss += sagittal_case_loss
 
-                    case_loss /= len(indices_list)
-                    case_loss *= LOSS_FACTOR
-                    # keep 3 decimal digits like 123.456
-                    case_loss = round(case_loss, 3)
-                    logger.log(idx_epoch, "test_case_loss", case_loss)
-                    test_loss += case_loss
-                    # print(f"EPOCH {idx_epoch}, CASE {idx_case}, LOSS {case_loss}")
+                    axial_case_loss = round(axial_case_loss, 3)
+                    coronal_case_loss = round(coronal_case_loss, 3)
+                    sagittal_case_loss = round(sagittal_case_loss, 3)
+                    
+                    logger.log(idx_epoch, "test_axial_case_loss", axial_case_loss)
+                    logger.log(idx_epoch, "test_coronal_case_loss", coronal_case_loss)
+                    logger.log(idx_epoch, "test_sagittal_case_loss", sagittal_case_loss)
 
-                test_loss /= len(test_data_loader)
+                axial_test_loss /= len(test_data_loader)
+                coronal_test_loss /= len(test_data_loader)
+                sagittal_test_loss /= len(test_data_loader)
+                test_loss = (axial_test_loss + coronal_test_loss + sagittal_test_loss) / 3
+
+                logger.log(idx_epoch, "test_axial_loss", axial_test_loss)
+                logger.log(idx_epoch, "test_coronal_loss", coronal_test_loss)
+                logger.log(idx_epoch, "test_sagittal_loss", sagittal_test_loss)
                 logger.log(idx_epoch, "test_loss", test_loss)
         
         # save the model
