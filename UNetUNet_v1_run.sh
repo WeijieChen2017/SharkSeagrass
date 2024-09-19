@@ -1,9 +1,9 @@
 unzip SharkSeagrass.zip
 rm SharkSeagrass.zip
 
-tar -xzvf TC256.tar.gz
-rm TC256.tar.gz
-mv TC256 ./SharkSeagrass/
+tar -xzvf TC256_v2.tar.gz
+rm TC256_v2.tar.gz
+mv TC256_v2 ./SharkSeagrass/
 mv vq_f4_noattn_nn.pth ./SharkSeagrass/
 
 cd SharkSeagrass
@@ -19,11 +19,12 @@ ls
 # echo "============================================"
 # pip list
 echo "============================================"
-python UNetUNet_v1_py2_train.py --cross_validation $1
+# python UNetUNet_v1_py2_train.py --cross_validation $1
+python UNetUNet_v1_py2_train_acs.py --cross_validation $1
 echo "============================================"
 # python UNetUNet_v1_py2_train.py
 du -lh -d 1
-rm -r TC256
+rm -r TC256_v2
 mv cache ./results/
 tar -czvf UNetUnet_256_cv$1.tar.gz results
 echo "============================================"
