@@ -20,7 +20,7 @@ data_cv = {
 }
 
 for idx, path in enumerate(path_list):
-    cv_idx = idx % n_c
+    cv_idx = idx % n_cv
     case_name = os.path.basename(path).split("_")[0]
     data_cv[f"cv_{cv_idx}"].append(case_name)
 
