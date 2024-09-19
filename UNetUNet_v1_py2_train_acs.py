@@ -55,8 +55,8 @@ def train_or_eval(train_or_eval, model, volume_x, volume_y, optimizer, output_lo
         # The first two values (left, right) correspond to the last dimension.
         # The next two values (top, bottom) correspond to the second-to-last dimension.
         # The final two values (front, back) correspond to the third-to-last dimension.
-        volume_x = torch.nn.functional.pad(volume_x, (0, 0, pad_size, 0, 0, 0, 0, 0), mode='constant', value=0)
-        volume_y = torch.nn.functional.pad(volume_y, (0, 0, pad_size, 0, 0, 0, 0, 0), mode='constant', value=0)
+        volume_x = torch.nn.functional.pad(volume_x, (0, 0, 0, 0, 0, 0, 0, pad_size), mode='constant', value=0)
+        volume_y = torch.nn.functional.pad(volume_y, (0, 0, 0, 0, 0, 0, 0, pad_size), mode='constant', value=0)
     # print("After padding: ", volume_x.shape, volume_y.shape)
 
     indices_list_axial = [i for i in range(1, volume_x.shape[1]-1)]
