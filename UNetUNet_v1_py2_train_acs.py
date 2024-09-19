@@ -70,7 +70,7 @@ def train_or_eval(train_or_eval, model, volume_x, volume_y, optimizer, output_lo
         # axial slices
         for indices in indices_list_axial:
             x = volume_x[:, indices-1:indices+2, :, :]
-            y = volume_y[:, indices, :, :].unsqueeze(0)
+            y = volume_y[:, indices, :, :].unsqueeze(0) # 1, 1, 256, 256
             # print(x.shape, y.shape)
         
             optimizer.zero_grad()
@@ -90,8 +90,8 @@ def train_or_eval(train_or_eval, model, volume_x, volume_y, optimizer, output_lo
             x = volume_x[:, :, indices-1:indices+2, :] # 1, 720, 3, 256
             # convert it to 1, 3, 720, 256
             x = x.permute(0, 2, 1, 3)
-            y = volume_y[:, :, indices, :].unsqueeze(0) # 1, 720, 1, 256
-            y = y.permute(0, 2, 1, 3)
+            y = volume_y[:, :, indices, :].unsqueeze(0) # 1, 1, 720, 256
+            # y = y.permute(0, 2, 1, 3)
 
             optimizer.zero_grad()
             outputs = model(x)
@@ -110,7 +110,7 @@ def train_or_eval(train_or_eval, model, volume_x, volume_y, optimizer, output_lo
             x = volume_x[:, :, :, indices-1:indices+2] # 1, 720, 256, 3
             x = x.permute(0, 3, 1, 2) # 1, 3, 720, 256
             y = volume_y[:, :, :, indices].unsqueeze(0)
-            y = y.permute(0, 3, 1, 2)
+            # y = y.permute(0, 3, 1, 2)
 
             optimizer.zero_grad()
             outputs = model(x)
@@ -143,6 +143,7 @@ def train_or_eval(train_or_eval, model, volume_x, volume_y, optimizer, output_lo
         # coronal slices
         for indices in indices_list_coronal:
             x = volume_x[:, :, indices-1:indices+2, :]
+            x = x.permute(0, 2, 1, 3)
             y = volume_y[:, :, indices, :].unsqueeze(0)
 
             with torch.no_grad():
@@ -157,6 +158,7 @@ def train_or_eval(train_or_eval, model, volume_x, volume_y, optimizer, output_lo
         # sagittal slices
         for indices in indices_list_sagittal:
             x = volume_x[:, :, :, indices-1:indices+2]
+            x = x.permute(0, 3, 1, 2)
             y = volume_y[:, :, :, indices].unsqueeze(0)
 
             with torch.no_grad():
