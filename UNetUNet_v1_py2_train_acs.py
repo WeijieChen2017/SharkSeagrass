@@ -47,13 +47,17 @@ def train_or_eval(train_or_eval, model, volume_x, volume_y, optimizer, output_lo
     sagittal_case_loss = 0
 
     # print shape
-    print(volume_x.shape, volume_y.shape)
+    # print(volume_x.shape, volume_y.shape)
     # if z is not divided by 4, pad the volume_x and volume_y
     if volume_x.shape[1] % 4 != 0:
         pad_size = 4 - volume_x.shape[1] % 4
-        volume_x = torch.nn.functional.pad(volume_x, (0, 0, 0, pad_size, 0, 0, 0, 0), mode='constant', value=0)
-        volume_y = torch.nn.functional.pad(volume_y, (0, 0, 0, pad_size, 0, 0, 0, 0), mode='constant', value=0)
-    print("After padding: ", volume_x.shape, volume_y.shape)
+        # The torch.nn.functional.pad function uses a specific order for padding dimensions, which is: (left, right, top, bottom, front, back) for 4D tensors. This means that when padding in 4D, the padding should apply as follows:
+        # The first two values (left, right) correspond to the last dimension.
+        # The next two values (top, bottom) correspond to the second-to-last dimension.
+        # The final two values (front, back) correspond to the third-to-last dimension.
+        volume_x = torch.nn.functional.pad(volume_x, (0, 0, pad_size, 0, 0, 0, 0, 0), mode='constant', value=0)
+        volume_y = torch.nn.functional.pad(volume_y, (0, 0, pad_size, 0, 0, 0, 0, 0), mode='constant', value=0)
+    # print("After padding: ", volume_x.shape, volume_y.shape)
 
     indices_list_axial = [i for i in range(1, volume_x.shape[1]-1)]
     indices_list_coronal = [i for i in range(1, volume_x.shape[2]-1)]
@@ -67,7 +71,7 @@ def train_or_eval(train_or_eval, model, volume_x, volume_y, optimizer, output_lo
         for indices in indices_list_axial:
             x = volume_x[:, indices-1:indices+2, :, :]
             y = volume_y[:, indices, :, :].unsqueeze(0)
-            print(x.shape, y.shape)
+            # print(x.shape, y.shape)
         
             optimizer.zero_grad()
             outputs = model(x)
