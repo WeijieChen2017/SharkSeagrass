@@ -67,8 +67,8 @@ for tag in tag_list:
     else:
         len_CTAC = CTAC_data.shape[2]
         len_pred = pred_data.shape[2]
-        pad = (len_CTAC - len_pred) // 2
-        full_data[21:277, 21:277, pad:pad+len_pred] = pred_data
+        pad_diff = (len_CTAC - len_pred)
+        full_data[21:277, 21:277, :pad_diff] = pred_data
     full_data = np.clip(full_data, 0, 1)
 
     # rescale the data
