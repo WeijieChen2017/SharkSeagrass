@@ -28,7 +28,7 @@ for tag in tag_list:
     # CTAC_path = f"{CTAC_data_folder}CTACIVV_{tag[1:]}.nii.gz"
     CTAC_resample_path = f"{CTAC_resample_folder}CTACIVV_{tag[1:]}.nii.gz"
     # check if the file exists
-    if not os.path.exists(CTAC_path):
+    if not os.path.exists(CTAC_resample_path):
         print(f"CTAC file not found for {tag}")
         # continue
     pred_path = glob.glob(os.path.join(pred_folder, f"*{tag[3:]}_CTAC_pred*.nii.gz"))[0]
