@@ -34,7 +34,7 @@ WRONG_RANGE_CT = WRONG_MAX_CT - MIN_CT
 # if not os.path.exists(save_folder):
 #     os.makedirs(save_folder)
 
-save_folder = "B100/ForCatilin/
+save_folder = "B100/ForCatilin/"
 save_folder_TOFNAC = save_folder + "TOFNAC/"
 save_folder_CTAC = save_folder + "CTAC/"
 save_folder_DLCT = save_folder + "DLCT/"
