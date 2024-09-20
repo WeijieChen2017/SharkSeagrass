@@ -4,6 +4,7 @@ CTAC_bed_folder = "B100/CTAC_bed/"
 CTAC_resample_folder = "B100/CTACIVV_resample/"
 TC256_folder = "B100/TC256/"
 DLCTAC_folder = "B100/DLCTAC/"
+DLCTAC_bed_fillholes_folder = "B100/DLCTAC_bed/"
 pred_folder = "B100/UNetUnet_best/test/"
 
 import os
@@ -169,7 +170,7 @@ for tag in tag_list:
 
     src_TOFNAC_path = f"{TOFNAC_data_folder}PET_TOFNAC_{tag}.nii.gz"
     src_CTAC_path = sorted(glob.glob(f"{CTAC_bed_folder}*_{tag[1:]}_*.nii"))[0]
-    src_DLCT_path = f"{DLCTAC_folder}E4{tag[2:]}_CTAC_DL_bed_fillholes.nii.gz"
+    src_DLCT_path = f"{DLCTAC_bed_fillholes_folder}E4{tag[2:]}_CTAC_DL_bed_fillholes.nii.gz"
 
     dst_TOFNAC_path = f"{save_folder_TOFNAC}TOFNAC_{tag}.nii.gz"
     dst_CTAC_path = f"{save_folder_CTAC}CTAC_{tag}.nii.gz"
