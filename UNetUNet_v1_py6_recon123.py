@@ -11,7 +11,7 @@ import numpy as np
 
 tag_list = [
     "E4055", "E4058", "E4061",          "E4066",
-    "E4068", "E4069",          "E4074", "E4077",
+    "E4068", "E4069", "E4073", "E4074", "E4077",
     "E4078", "E4079",          "E4081", "E4084",
              "E4091", "E4092", "E4094", "E4096",
              "E4098", "E4099",          "E4103",
@@ -51,7 +51,6 @@ for tag in tag_list:
 
     # CTAC_resample_data = CTAC_resample_file.get_fdata()
     pred_data = pred_file.get_fdata()
-    len_z = pred_data.shape[2]
 
     print("<" * 50)
     print(f"Processing {tag}")
@@ -63,7 +62,13 @@ for tag in tag_list:
 
     # pad to CTAC size
     full_data = np.zeros(CTAC_data.shape, dtype=np.float32)
-    full_data[21:277, 21:277, :] = pred_data
+    if CTAC_data.shape[1] == pred_data.shape[1]:
+        full_data[21:277, 21:277, :] = pred_data
+    else:
+        len_CTAC = CTAC_data.shape[1]
+        len_pred = pred_data.shape[1]
+        pad = (len_CTAC - len_pred) // 2
+        full_data[21:277, 21:277, pad:pad+len_pred] = pred_data
     full_data = np.clip(full_data, 0, 1)
 
     # rescale the data
