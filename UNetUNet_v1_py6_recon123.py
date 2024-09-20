@@ -53,6 +53,14 @@ for tag in tag_list:
     pred_data = pred_file.get_fdata()
     len_z = pred_data.shape[2]
 
+    print("<" * 50)
+    print(f"Processing {tag}")
+    print(f"CTAC path: {CTAC_path}")
+    print(f"pred path: {pred_path}")
+    print(f"CTAC shape: {CTAC_data.shape}")
+    print(f"pred shape: {pred_data.shape}")
+
+
     # pad to CTAC size
     full_data = np.zeros(CTAC_data.shape, dtype=np.float32)
     full_data[21:277, 21:277, :] = pred_data
