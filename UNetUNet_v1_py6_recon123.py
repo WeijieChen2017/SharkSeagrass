@@ -30,9 +30,14 @@ RANGE_CT = MAX_CT - MIN_CT
 WRONG_MAX_CT = 1976
 WRONG_RANGE_CT = WRONG_MAX_CT - MIN_CT
 
-save_folder = "B100/DLCTAC_bed/"
-if not os.path.exists(save_folder):
-    os.makedirs(save_folder)
+# save_folder = "B100/DLCTAC_bed/"
+# if not os.path.exists(save_folder):
+#     os.makedirs(save_folder)
+
+save_folder = "B100/ForCatilin/
+save_folder_TOFNAC = save_folder + "TOFNAC/"
+save_folder_CTAC = save_folder + "CTAC/"
+save_folder_DLCT = save_folder + "DLCT/"
 
 # for tag in tag_list:
 #     CTAC_path = f"{CTAC_data_folder}CTACIVV_{tag[1:]}_256.nii.gz"
@@ -86,38 +91,38 @@ if not os.path.exists(save_folder):
 #     print(f"Data saved at {save_path}")
 
 
-for tag in tag_list:
+# for tag in tag_list:
 
-    CTbed_path = sorted(glob.glob(f"{CTAC_bed_folder}*_{tag[1:]}_*.nii"))[0]
-    CTbed_file = nib.load(CTbed_path)
-    CTbed_data = CTbed_file.get_fdata()
-    # print(f"For tag {tag}, CT bed path: {CTbed_path}")
-    # print()
+#     CTbed_path = sorted(glob.glob(f"{CTAC_bed_folder}*_{tag[1:]}_*.nii"))[0]
+#     CTbed_file = nib.load(CTbed_path)
+#     CTbed_data = CTbed_file.get_fdata()
+#     # print(f"For tag {tag}, CT bed path: {CTbed_path}")
+#     # print()
 
-    DLCTAC_path = f"{DLCTAC_folder}E4{tag[2:]}_CTAC_DL_oriCTAC.nii.gz"
-    DLCTAC_file = nib.load(DLCTAC_path)
-    DLCTAC_data = DLCTAC_file.get_fdata()[:-1, :-1, :]
+#     DLCTAC_path = f"{DLCTAC_folder}E4{tag[2:]}_CTAC_DL_oriCTAC.nii.gz"
+#     DLCTAC_file = nib.load(DLCTAC_path)
+#     DLCTAC_data = DLCTAC_file.get_fdata()[:-1, :-1, :]
 
-    # renormalize the DLCTAC data
-    DLCTAC_data = (DLCTAC_data - MIN_CT) / WRONG_RANGE_CT
-    DLCTAC_data = DLCTAC_data * RANGE_CT + MIN_CT
+#     # renormalize the DLCTAC data
+#     DLCTAC_data = (DLCTAC_data - MIN_CT) / WRONG_RANGE_CT
+#     DLCTAC_data = DLCTAC_data * RANGE_CT + MIN_CT
 
-    # print(f"{tag}: ORIGINAL {CTbed_data.shape}, DLCTAC {DLCTAC_data.shape}")
+#     # print(f"{tag}: ORIGINAL {CTbed_data.shape}, DLCTAC {DLCTAC_data.shape}")
 
-    # print("<" * 50)
-    DL_mask = DLCTAC_data > -500
-    for z in range(DLCTAC_data.shape[2]):
-        DL_mask[:, :, z] = binary_fill_holes(DL_mask[:, :, z])
-    # iterate through the z axis for filling holes
+#     # print("<" * 50)
+#     DL_mask = DLCTAC_data > -500
+#     for z in range(DLCTAC_data.shape[2]):
+#         DL_mask[:, :, z] = binary_fill_holes(DL_mask[:, :, z])
+#     # iterate through the z axis for filling holes
 
-    # replace the CT bed with DLCTAC using the mask
-    CTbed_data[DL_mask] = DLCTAC_data[DL_mask]
+#     # replace the CT bed with DLCTAC using the mask
+#     CTbed_data[DL_mask] = DLCTAC_data[DL_mask]
 
-    # save the data
-    save_path = os.path.join(save_folder, f"E4{tag[2:]}_CTAC_DL_bed_fillholes.nii.gz")
-    save_nii = nib.Nifti1Image(CTbed_data, CTbed_file.affine, CTbed_file.header)
-    nib.save(save_nii, save_path)
-    print(f"Data saved at {save_path}")
+#     # save the data
+#     save_path = os.path.join(save_folder, f"E4{tag[2:]}_CTAC_DL_bed_fillholes.nii.gz")
+#     save_nii = nib.Nifti1Image(CTbed_data, CTbed_file.affine, CTbed_file.header)
+#     nib.save(save_nii, save_path)
+#     print(f"Data saved at {save_path}")
 
 # E4055: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
 # E4058: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
@@ -155,3 +160,28 @@ for tag in tag_list:
 # E4137: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
 # E4138: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
 # E4139: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+
+
+for tag in tag_list:
+
+    src_TOFNAC_path = f"{TOFNAC_data_folder}PET_TOFNAC_{tag}.nii.gz"
+    src_CTAC_path = sorted(glob.glob(f"{CTAC_bed_folder}*_{tag[1:]}_*.nii"))[0]
+    src_DLCT_path = f"{DLCTAC_folder}E4{tag[2:]}_CTAC_DL_bed_fillholes.nii.gz"
+
+    dst_TOFNAC_path = f"{save_folder_TOFNAC}TOFNAC_{tag}.nii.gz"
+    dst_CTAC_path = f"{save_folder_CTAC}CTAC_{tag}.nii.gz"
+    dst_DLCT_path = f"{save_folder_DLCT}DLCT_{tag}.nii.gz"
+
+    cmd_TOFNAC = f"cp {src_TOFNAC_path} {dst_TOFNAC_path}"
+    cmd_CTAC = f"cp {src_CTAC_path} {dst_CTAC_path}"
+    cmd_DLCT = f"cp {src_DLCT_path} {dst_DLCT_path}"
+
+    os.system(cmd_TOFNAC)
+    os.system(cmd_CTAC)
+    os.system(cmd_DLCT)
+
+    print(f"{tag}: {src_TOFNAC_path} -> {dst_TOFNAC_path}")
+    print(f"{tag}: {src_CTAC_path} -> {dst_CTAC_path}")
+    print(f"{tag}: {src_DLCT_path} -> {dst_DLCT_path}")
+
+    print()
