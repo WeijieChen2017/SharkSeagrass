@@ -1,5 +1,6 @@
 TOFNAC_data_folder = "B100/TOFNAC/"
 CTAC_data_folder = "B100/CTACIVV/"
+CTAC_resample_folder = "B100/CTACIVV_resample/"
 pred_folder = "B100/UNetUnet_best/test/"
 
 import os
@@ -24,11 +25,11 @@ if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
 for tag in tag_list:
-    # TOFNAC_path = glob.glob(os.path.join(TOFNAC_data_folder, f"TOFNAC_{tag}.nii.gz"))[0]
-    CTAC_path = f"{CTAC_data_folder}CTACIVV_{tag[1:]}.nii.gz"
+    # CTAC_path = f"{CTAC_data_folder}CTACIVV_{tag[1:]}.nii.gz"
+    CTAC_resample_path = f"{CTAC_resample_folder}CTACIVV_{tag[1:]}.nii.gz"
     # check if the file exists
     if not os.path.exists(CTAC_path):
         print(f"CTAC file not found for {tag}")
         # continue
-    pred_path = glob.glob(os.path.join(pred_folder, f"*{tag[3:]}_CTAC_pred*.nii.gz"))
-    print(f"{len(pred_path)} files found for {tag}")
+    pred_path = glob.glob(os.path.join(pred_folder, f"*{tag[3:]}_CTAC_pred*.nii.gz"))[0]
+    print(f"{len(pred_path)} files found for {tag}, using {pred_path}")
