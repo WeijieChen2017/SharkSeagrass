@@ -10,6 +10,7 @@ import os
 import glob
 import nibabel as nib
 import numpy as np
+from scipy.ndimage import binary_fill_holes
 
 tag_list = [
     "E4055", "E4058", "E4061",          "E4066",
@@ -105,12 +106,15 @@ for tag in tag_list:
 
     # print("<" * 50)
     DL_mask = DLCTAC_data > -500
+    for z in range(DLCTAC_data.shape[2]):
+        DL_mask[:, :, z] = binary_fill_holes(DL_mask[:, :, z])
+    # iterate through the z axis for filling holes
 
     # replace the CT bed with DLCTAC using the mask
     CTbed_data[DL_mask] = DLCTAC_data[DL_mask]
 
     # save the data
-    save_path = os.path.join(save_folder, f"E4{tag[2:]}_CTAC_DL_bed.nii.gz")
+    save_path = os.path.join(save_folder, f"E4{tag[2:]}_CTAC_DL_bed_fillholes.nii.gz")
     save_nii = nib.Nifti1Image(CTbed_data, CTbed_file.affine, CTbed_file.header)
     nib.save(save_nii, save_path)
     print(f"Data saved at {save_path}")
