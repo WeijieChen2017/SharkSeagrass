@@ -41,7 +41,7 @@ for tag in tag_list:
     #     print(f"CTAC file not found for {tag}")
         # continue
     # TC256_path = glob.glob(os.path.join(TC256_folder, f"*{tag[3:]}_CTAC_256.nii.gz"))[0]
-    pred_path = glob.glob(os.path.join(pred_folder, f"*{tag[3:]}_CTAC_pred*.nii.gz"))[0]
+    pred_path = glob.glob(os.path.join(pred_folder, f"*{tag[2:]}_CTAC_pred*.nii.gz"))[0]
     # print(f"TC256_path: {TC256_path}")
     # print(f"pred_path: {pred_path}")
     # print(f"{len(pred_path)} files found for {tag}, using {pred_path}")
@@ -62,7 +62,7 @@ for tag in tag_list:
     full_data = full_data * RANGE_CT + MIN_CT
     
     # save the data
-    save_path = os.path.join(save_folder, f"E{tag[3:]}_CTAC_DL.nii.gz")
+    save_path = os.path.join(save_folder, f"E4{tag[2:]}_CTAC_DL.nii.gz")
     save_nii = nib.Nifti1Image(full_data, CTAC_file.affine, CTAC_file.header)
     nib.save(save_nii, save_path)
     print(f"Data saved at {save_path}")
