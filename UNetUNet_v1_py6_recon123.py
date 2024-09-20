@@ -112,6 +112,8 @@ for tag in tag_list:
     # save the data
     save_path = os.path.join(save_folder, f"E4{tag[2:]}_CTAC_DL_bed.nii.gz")
     save_nii = nib.Nifti1Image(CTbed_data, CTbed_file.affine, CTbed_file.header)
+    nib.save(save_nii, save_path)
+    print(f"Data saved at {save_path}")
 
 # E4055: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
 # E4058: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
