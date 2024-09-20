@@ -23,7 +23,7 @@ tag_list = [
 ]
 
 
-MAX_CT = 1976
+MAX_CT = 2976
 MIN_CT = -1024
 RANGE_CT = MAX_CT - MIN_CT
 
@@ -86,12 +86,24 @@ if not os.path.exists(save_folder):
 for tag in tag_list:
 
     CTbed_path = sorted(glob.glob(f"{CTAC_bed_folder}*_{tag[1:]}_*.nii"))[0]
-    print(f"For tag {tag}, CT bed path: {CTbed_path}")
-    print()
+    CTbed_file = nib.load(CTbed_path)
+    CTbed_data = CTbed_file.get_fdata()
+    # print(f"For tag {tag}, CT bed path: {CTbed_path}")
+    # print()
 
-    # DLCTAC_path = f"{save_folder}E4{tag[2:]}_CTAC_DL.nii.gz"
-    # DLCTAC_file = nib.load(DLCTAC_path)
-    # DLCTAC_data = DLCTAC_file.get_fdata()
+    DLCTAC_path = f"{save_folder}E4{tag[2:]}_CTAC_DL.nii.gz"
+    DLCTAC_file = nib.load(DLCTAC_path)
+    DLCTAC_data = DLCTAC_file.get_fdata()
 
-    # print("<" * 50)
+    print(f"{tag}: ORIGINAL {CTbed_data.shape}, DLCTAC {DLCTAC_data.shape}")
+
+    # # print("<" * 50)
     # DL_mask = DLCTAC_data > -500
+
+    # # replace the CT bed with DLCTAC using the mask
+    # CTbed_data[DL_mask] = DLCTAC_data[DL_mask]
+
+    # # save the data
+    # save_path = os.path.join(save_folder, f"E4{tag[2:]}_CTAC_DL_bed.nii.gz")
+    # save_nii = nib.Nifti1Image(CTbed_data, CTbed_file.affine, CTbed_file.header)
+
