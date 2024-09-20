@@ -14,7 +14,12 @@ for filepath in file_list:
     # os.system(cmd)
     # print(f"---Resampled data saved at {new_filename}")
 
+    # filename = os.path.basename(filepath)
+    # new_filename = filename.replace(".nii.gz", "_256.nii.gz")
+    # cmd = f"3dresample -dxyz 2.344 2.344 2.344 -rmode Cu -prefix {new_filename} -input {filename}"
+    # print(cmd)
+
     filename = os.path.basename(filepath)
-    new_filename = filename.replace(".nii.gz", "_256.nii.gz")
-    cmd = f"3dresample -dxyz 2.344 2.344 2.344 -rmode Cu -prefix {new_filename} -input {filename}"
+    new_filename = filename.replace(".nii.gz", "_oriCTAC.nii.gz")
+    cmd = f"3dresample -dxyz 1.367 1.367 3.27 -rmode Cu -prefix {new_filename} -input {filename}"
     print(cmd)

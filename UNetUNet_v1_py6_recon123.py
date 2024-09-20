@@ -85,7 +85,7 @@ if not os.path.exists(save_folder):
 
 for tag in tag_list:
 
-    CTbed_path = sorted(glob.glob(f"{CTAC_bed_folder}*_{tag[1:]}_*.nii"))
+    CTbed_path = sorted(glob.glob(f"{CTAC_bed_folder}*_{tag[1:]}_*.nii"))[0]
     print(f"For tag {tag}, CT bed path: {CTbed_path}")
     print()
 
