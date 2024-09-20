@@ -38,6 +38,9 @@ save_folder = "B100/ForCatilin/"
 save_folder_TOFNAC = save_folder + "TOFNAC/"
 save_folder_CTAC = save_folder + "CTAC/"
 save_folder_DLCT = save_folder + "DLCT/"
+for folder in [save_folder_TOFNAC, save_folder_CTAC, save_folder_DLCT]:
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
 # for tag in tag_list:
 #     CTAC_path = f"{CTAC_data_folder}CTACIVV_{tag[1:]}_256.nii.gz"
