@@ -30,5 +30,5 @@ for tag in tag_list:
     if not os.path.exists(CTAC_path):
         print(f"CTAC file not found for {tag}")
         # continue
-    pred_path = glob.glob(os.path.join(pred_folder, f"{tag[3:]}_CTAC_pred*.nii.gz"))
+    pred_path = glob.glob(os.path.join(pred_folder, f"*{tag[3:]}_CTAC_pred*.nii.gz"))
     print(f"{len(pred_path)} files found for {tag}")
