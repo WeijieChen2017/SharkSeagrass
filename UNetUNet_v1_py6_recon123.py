@@ -64,11 +64,12 @@ for tag in tag_list:
     full_data = np.zeros(CTAC_data.shape, dtype=np.float32)
     if CTAC_data.shape[2] == pred_data.shape[2]:
         full_data[21:277, 21:277, :] = pred_data
-    else:
-        len_CTAC = CTAC_data.shape[2]
-        len_pred = pred_data.shape[2]
-        pad_diff = (len_CTAC - len_pred)
-        full_data[21:277, 21:277, :pad_diff] = pred_data
+    elif CTAC_data.shape[2] < pred_data.shape[2]:
+        len_diff = pred_data.shape[2] - CTAC_data.shape[2]
+        full_data[21:277, 21:277, :] = pred_data[:, :, :CTAC_data.shape[2]]
+    elif CTAC_data.shape[2] > pred_data.shape[2]:
+        len_diff = CTAC_data.shape[2] - pred_data.shape[2]
+        full_data[21:277, 21:277, :pred_data.shape[2]] = pred_data
     full_data = np.clip(full_data, 0, 1)
 
     # rescale the data
