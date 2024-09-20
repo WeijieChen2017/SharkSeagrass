@@ -23,7 +23,8 @@ tag_list = [
     "E4139",
 ]
 
-
+WRONG_MAX_CT = 1976
+WRONG_RANGE_CT = WRONG_MAX_CT - MIN_CT
 MAX_CT = 2976
 MIN_CT = -1024
 RANGE_CT = MAX_CT - MIN_CT
@@ -94,17 +95,57 @@ for tag in tag_list:
 
     DLCTAC_path = f"{DLCTAC_folder}E4{tag[2:]}_CTAC_DL_oriCTAC.nii.gz"
     DLCTAC_file = nib.load(DLCTAC_path)
-    DLCTAC_data = DLCTAC_file.get_fdata()
+    DLCTAC_data = DLCTAC_file.get_fdata()[:-1, :-1, :]
 
-    print(f"{tag}: ORIGINAL {CTbed_data.shape}, DLCTAC {DLCTAC_data.shape}")
+    # renormalize the DLCTAC data
+    DLCTAC_data = (DLCTAC_data - MIN_CT) / WRONG_RANGE_CT
+    DLCTAC_data = DLCTAC_data * RANGE_CT + MIN_CT
 
-    # # print("<" * 50)
-    # DL_mask = DLCTAC_data > -500
+    # print(f"{tag}: ORIGINAL {CTbed_data.shape}, DLCTAC {DLCTAC_data.shape}")
 
-    # # replace the CT bed with DLCTAC using the mask
-    # CTbed_data[DL_mask] = DLCTAC_data[DL_mask]
+    # print("<" * 50)
+    DL_mask = DLCTAC_data > -500
 
-    # # save the data
-    # save_path = os.path.join(save_folder, f"E4{tag[2:]}_CTAC_DL_bed.nii.gz")
-    # save_nii = nib.Nifti1Image(CTbed_data, CTbed_file.affine, CTbed_file.header)
+    # replace the CT bed with DLCTAC using the mask
+    CTbed_data[DL_mask] = DLCTAC_data[DL_mask]
 
+    # save the data
+    save_path = os.path.join(save_folder, f"E4{tag[2:]}_CTAC_DL_bed.nii.gz")
+    save_nii = nib.Nifti1Image(CTbed_data, CTbed_file.affine, CTbed_file.header)
+
+# E4055: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4058: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4061: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4066: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4068: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4069: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4073: ORIGINAL (512, 512, 515), DLCTAC (513, 513, 515)
+# E4074: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4077: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4078: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4079: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4081: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4084: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4091: ORIGINAL (512, 512, 515), DLCTAC (513, 513, 515)
+# E4092: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4094: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4096: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4098: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4099: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4103: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4105: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4106: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4114: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4115: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4118: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4120: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4124: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4125: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4128: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4129: ORIGINAL (512, 512, 551), DLCTAC (513, 513, 551)
+# E4130: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4131: ORIGINAL (512, 512, 299), DLCTAC (513, 513, 299)
+# E4134: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4137: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4138: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
+# E4139: ORIGINAL (512, 512, 335), DLCTAC (513, 513, 335)
