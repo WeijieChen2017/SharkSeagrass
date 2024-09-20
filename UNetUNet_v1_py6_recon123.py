@@ -65,8 +65,8 @@ for tag in tag_list:
     if CTAC_data.shape[1] == pred_data.shape[1]:
         full_data[21:277, 21:277, :] = pred_data
     else:
-        len_CTAC = CTAC_data.shape[1]
-        len_pred = pred_data.shape[1]
+        len_CTAC = CTAC_data.shape[2]
+        len_pred = pred_data.shape[2]
         pad = (len_CTAC - len_pred) // 2
         full_data[21:277, 21:277, pad:pad+len_pred] = pred_data
     full_data = np.clip(full_data, 0, 1)
