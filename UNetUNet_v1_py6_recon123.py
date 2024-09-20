@@ -1,6 +1,7 @@
 TOFNAC_data_folder = "B100/TOFNAC/"
 CTAC_data_folder = "B100/CTACIVV/"
 CTAC_resample_folder = "B100/CTACIVV_resample/"
+TC256_folder = "B100/TC256/"
 pred_folder = "B100/UNetUnet_best/test/"
 
 import os
@@ -20,16 +21,48 @@ tag_list = [
     "E4139",
 ]
 
+
+MAX_CT = 1976
+MIN_CT = -1024
+RANGE_CT = MAX_CT - MIN_CT
+
 save_folder = "B100/DLCTAC/"
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
 for tag in tag_list:
-    # CTAC_path = f"{CTAC_data_folder}CTACIVV_{tag[1:]}.nii.gz"
-    CTAC_resample_path = f"{CTAC_resample_folder}CTACIVV_{tag[1:]}.nii.gz"
+    CTAC_path = f"{CTAC_data_folder}CTACIVV_{tag[1:]}_256.nii.gz"
+    CTAC_file = nib.load(CTAC_path)
+    CTAC_data = CTAC_file.get_fdata()
+
+    # CTAC_resample_path = f"{CTAC_resample_folder}CTACIVV_{tag[1:]}.nii.gz"
     # check if the file exists
-    if not os.path.exists(CTAC_resample_path):
-        print(f"CTAC file not found for {tag}")
+    # if not os.path.exists(CTAC_resample_path):
+    #     print(f"CTAC file not found for {tag}")
         # continue
+    # TC256_path = glob.glob(os.path.join(TC256_folder, f"*{tag[3:]}_CTAC_256.nii.gz"))[0]
     pred_path = glob.glob(os.path.join(pred_folder, f"*{tag[3:]}_CTAC_pred*.nii.gz"))[0]
-    print(f"{len(pred_path)} files found for {tag}, using {pred_path}")
+    print(f"TC256_path: {TC256_path}")
+    # print(f"pred_path: {pred_path}")
+    # print(f"{len(pred_path)} files found for {tag}, using {pred_path}")
+
+    # CTAC_resample_file = nib.load(CTAC_resample_path)
+    pred_file = nib.load(pred_path)
+
+    # CTAC_resample_data = CTAC_resample_file.get_fdata()
+    pred_data = pred_file.get_fdata()
+    len_z = pred_data.shape[2]
+
+    # pad to CTAC size
+    full_data = np.zeros(CTAC_data.shape, dtype=np.float32)
+    full_data[21:277, 21:277, :] = pred_data
+    full_data = np.clip(full_data, 0, 1)
+
+    # rescale the data
+    full_data = full_data * RANGE_CT + MIN_CT
+    
+    # save the data
+    save_path = os.path.join(save_folder, f"E{tag[3:]}_CTAC_DL.nii.gz")
+    save_nii = nib.Nifti1Image(full_data, CTAC_file.affine, CTAC_file.header)
+    nib.save(save_nii, save_path)
+
