@@ -23,11 +23,11 @@ tag_list = [
     "E4139",
 ]
 
+MIN_CT = -1024
+MAX_CT = 2976
+RANGE_CT = MAX_CT - MIN_CT
 WRONG_MAX_CT = 1976
 WRONG_RANGE_CT = WRONG_MAX_CT - MIN_CT
-MAX_CT = 2976
-MIN_CT = -1024
-RANGE_CT = MAX_CT - MIN_CT
 
 save_folder = "B100/DLCTAC_bed/"
 if not os.path.exists(save_folder):
