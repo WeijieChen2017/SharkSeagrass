@@ -3,6 +3,7 @@ CTAC_data_folder = "B100/CTACIVV/"
 CTAC_bed_folder = "B100/CTAC_bed/"
 CTAC_resample_folder = "B100/CTACIVV_resample/"
 TC256_folder = "B100/TC256/"
+DLCTAC_folder = "B100/DLCTAC/"
 pred_folder = "B100/UNetUnet_best/test/"
 
 import os
@@ -91,7 +92,7 @@ for tag in tag_list:
     # print(f"For tag {tag}, CT bed path: {CTbed_path}")
     # print()
 
-    DLCTAC_path = f"{save_folder}E4{tag[2:]}_CTAC_DL.nii.gz"
+    DLCTAC_path = f"{DLCTAC_folder}E4{tag[2:]}_CTAC_DL_oriCTAC.nii.gz"
     DLCTAC_file = nib.load(DLCTAC_path)
     DLCTAC_data = DLCTAC_file.get_fdata()
 
