@@ -62,7 +62,7 @@ for tag in tag_list:
 
     # pad to CTAC size
     full_data = np.zeros(CTAC_data.shape, dtype=np.float32)
-    if CTAC_data.shape[1] == pred_data.shape[1]:
+    if CTAC_data.shape[2] == pred_data.shape[2]:
         full_data[21:277, 21:277, :] = pred_data
     else:
         len_CTAC = CTAC_data.shape[2]
