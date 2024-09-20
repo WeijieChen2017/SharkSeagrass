@@ -1,6 +1,6 @@
 TOFNAC_data_folder = "B100/TOFNAC/"
 CTAC_data_folder = "B100/CTACIVV/"
-CTAC_bed_folder = "B100/CTACIVV_bed/"
+CTAC_bed_folder = "B100/CTAC_bed/"
 CTAC_resample_folder = "B100/CTACIVV_resample/"
 TC256_folder = "B100/TC256/"
 pred_folder = "B100/UNetUnet_best/test/"
