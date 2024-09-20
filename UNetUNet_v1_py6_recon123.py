@@ -1,6 +1,6 @@
 TOFNAC_data_folder = "B100/TOFNAC/"
 CTAC_data_folder = "B100/CTACIVV/"
-CTAC_bed_folde = "B100/CTACIVV_bed/"
+CTAC_bed_folder = "B100/CTACIVV_bed/"
 CTAC_resample_folder = "B100/CTACIVV_resample/"
 TC256_folder = "B100/TC256/"
 pred_folder = "B100/UNetUnet_best/test/"
@@ -85,7 +85,7 @@ if not os.path.exists(save_folder):
 
 for tag in tag_list:
 
-    CTbed_path = sorted(glob.glob(f"{CTAC_bed_folde}*_{tag[1:]}_*.nii.gz"))
+    CTbed_path = sorted(glob.glob(f"{CTAC_bed_folder}*_{tag[1:]}_*.nii"))
     print(f"For tag {tag}, CT bed path: {CTbed_path}")
     print()
 
