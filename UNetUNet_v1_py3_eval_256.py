@@ -44,7 +44,7 @@ def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
     argparser.add_argument('-c', '--cross_validation', type=int, default=0, help='Index of the cross validation')
-    argparser.add_argument('-p', '--part2', type=bool, default=True, help='Whether to run the second part')
+    argparser.add_argument('-p', '--part2', type=bool, default=False, help='Whether to run the second part')
     args = argparser.parse_args()
     tag = f"fold{args.cross_validation}_256"
 
@@ -59,7 +59,8 @@ def main():
     torch.backends.cudnn.benchmark = False
 
     cross_validation = args.cross_validation
-    root_folder = f"B100/UNetUNet_best/cv{cross_validation}_256/"
+    # root_folder = f"B100/UNetUNet_best/cv{cross_validation}_256/"
+    root_folder = f"results/cv{cross_validation}_256/"
     data_div_json = "UNetUNet_v1_data_split.json"
     if not os.path.exists(root_folder):
         os.makedirs(root_folder)
@@ -114,7 +115,8 @@ def main():
         "embed_dim": 3,
         "img_size" : 256,
         "input_modality" : ["TOFNAC", "CTAC"],
-        "ckpt_path": f"B100/TC256_best_ckpt/best_model_cv{cross_validation}.pth",
+        # "ckpt_path": f"B100/TC256_best_ckpt/best_model_cv{cross_validation}.pth",
+        "ckpt_path": root_folder+f"best_model_cv{cross_validation}.pth",
         "ddconfig": {
             "attn_type": "none",
             "double_z": False,
