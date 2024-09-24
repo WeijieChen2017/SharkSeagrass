@@ -181,6 +181,7 @@ def main():
             split_loss_coronal = []
             split_loss_sagittal = []
             split_loss_average = []
+            split_loss_median = []
 
             # now there will be a list of file names
             for casename in split_list:
@@ -309,38 +310,55 @@ def main():
                         CTAC_pred_sagittal[idx_x, :, :] = pred_y
                 
                 CTAC_pred_average = (CTAC_pred_axial + CTAC_pred_coronal + CTAC_pred_sagittal) / 3
+                CTAC_pred_axial = np.newaxis(CTAC_pred_axial, 0)
+                CTAC_pred_coronal = np.newaxis(CTAC_pred_coronal, 0)
+                CTAC_pred_sagittal = np.newaxis(CTAC_pred_sagittal, 0)
+                CTAC_pred_median = np.stack([CTAC_pred_axial, CTAC_pred_coronal, CTAC_pred_sagittal], axis=0)
+                CTAC_pred_median = np.median(CTAC_pred_median, axis=0)
+
+                CTAC_pred_axial = np.squeeze(CTAC_pred_axial, axis=0)
+                CTAC_pred_coronal = np.squeeze(CTAC_pred_coronal, axis=0)
+                CTAC_pred_sagittal = np.squeeze(CTAC_pred_sagittal, axis=0)
+                CTAC_pred_median = np.squeeze(CTAC_pred_median, axis=0)
+
                 # save the CTAC_pred
                 CTAC_pred_axial = np.clip(CTAC_pred_axial, 0, 1).astype(np.float32)
                 CTAC_pred_coronal = np.clip(CTAC_pred_coronal, 0, 1).astype(np.float32)
                 CTAC_pred_sagittal = np.clip(CTAC_pred_sagittal, 0, 1).astype(np.float32)
                 CTAC_pred_average = np.clip(CTAC_pred_average, 0, 1).astype(np.float32)
+                CTAC_pred_median = np.clip(CTAC_pred_median, 0, 1).astype(np.float32)
 
                 CTAC_pred_axial_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_axial_cv{cross_validation}.nii.gz")
                 CTAC_pred_coronal_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_coronal_cv{cross_validation}.nii.gz")
                 CTAC_pred_sagittal_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_sagittal_cv{cross_validation}.nii.gz")
                 CTAC_pred_average_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_average_cv{cross_validation}.nii.gz")
+                CTAC_pred_median_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_median_cv{cross_validation}.nii.gz")
 
                 # renorm
                 CTAC_pred_axial = CTAC_pred_axial * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
                 CTAC_pred_coronal = CTAC_pred_coronal * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
                 CTAC_pred_sagittal = CTAC_pred_sagittal * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
                 CTAC_pred_average = CTAC_pred_average * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
+                CTAC_pred_median = CTAC_pred_median * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
                 
                 # save the .nii.gz
                 CTAC_pred_axial_nii = nib.Nifti1Image(CTAC_pred_axial, CTAC_file.affine, CTAC_file.header)
                 CTAC_pred_coronal_nii = nib.Nifti1Image(CTAC_pred_coronal, CTAC_file.affine, CTAC_file.header)
                 CTAC_pred_sagittal_nii = nib.Nifti1Image(CTAC_pred_sagittal, CTAC_file.affine, CTAC_file.header)
                 CTAC_pred_average_nii = nib.Nifti1Image(CTAC_pred_average, CTAC_file.affine, CTAC_file.header)
+                CTAC_pred_median_nii = nib.Nifti1Image(CTAC_pred_median, CTAC_file.affine, CTAC_file.header)
                 
                 nib.save(CTAC_pred_axial_nii, CTAC_pred_axial_path)
                 nib.save(CTAC_pred_coronal_nii, CTAC_pred_coronal_path)
                 nib.save(CTAC_pred_sagittal_nii, CTAC_pred_sagittal_path)
                 nib.save(CTAC_pred_average_nii, CTAC_pred_average_path)
+                nib.save(CTAC_pred_median_nii, CTAC_pred_median_path)
 
                 print(f"Save the CTAC_pred_axial to {CTAC_pred_axial_path}")
                 print(f"Save the CTAC_pred_coronal to {CTAC_pred_coronal_path}")
                 print(f"Save the CTAC_pred_sagittal to {CTAC_pred_sagittal_path}")
                 print(f"Save the CTAC_pred_average to {CTAC_pred_average_path}")
+                print(f"Save the CTAC_pred_median to {CTAC_pred_median_path}")
                 
                 # compute the loss
                 CTAC_HU = CTAC_data * data_loader_params["norm"]["RANGE_CT"] + data_loader_params["norm"]["MIN_CT"]
@@ -349,28 +367,32 @@ def main():
                 MAE_coronal = np.mean(np.abs(CTAC_HU[CTAC_mask] - CTAC_pred_coronal[CTAC_mask]))
                 MAE_sagittal = np.mean(np.abs(CTAC_HU[CTAC_mask] - CTAC_pred_sagittal[CTAC_mask]))
                 MAE_average = np.mean(np.abs(CTAC_HU[CTAC_mask] - CTAC_pred_average[CTAC_mask]))
-                print(f"{split} -> {casename} -> MAE_axial: {MAE_axial:.4f}, MAE_coronal: {MAE_coronal:.4f}, MAE_sagittal: {MAE_sagittal:.4f}, MAE_average: {MAE_average:.4f}")
+                MAE_median = np.mean(np.abs(CTAC_HU[CTAC_mask] - CTAC_pred_median[CTAC_mask]))
+                print(f"{split} -> {casename} -> MAE_axial: {MAE_axial:.4f}, MAE_coronal: {MAE_coronal:.4f}, MAE_sagittal: {MAE_sagittal:.4f}, MAE_average: {MAE_average:.4f}, MAE_median: {MAE_median:.4f}")
                 split_loss_axial.append(MAE_axial)
                 split_loss_coronal.append(MAE_coronal)
                 split_loss_sagittal.append(MAE_sagittal)
                 split_loss_average.append(MAE_average)
+                split_loss_median.append(MAE_median)
 
                 with open(log_file, "a") as f:
-                    f.write(f"{split} -> {casename} -> MAE_axial: {MAE_axial:.4f}, MAE_coronal: {MAE_coronal:.4f}, MAE_sagittal: {MAE_sagittal:.4f}, MAE_average: {MAE_average:.4f}\n")
+                    f.write(f"{split} -> {casename} -> MAE_axial: {MAE_axial:.4f}, MAE_coronal: {MAE_coronal:.4f}, MAE_sagittal: {MAE_sagittal:.4f}, MAE_average: {MAE_average:.4f}, MAE_median: {MAE_median:.4f}\n")
             
             split_loss_axial = np.array(split_loss_axial)
             split_loss_coronal = np.array(split_loss_coronal)
             split_loss_sagittal = np.array(split_loss_sagittal)
             split_loss_average = np.array(split_loss_average)
+            split_loss_median = np.array(split_loss_median)
 
             split_loss_average = np.mean(split_loss_average)
             split_loss_axial = np.mean(split_loss_axial)
             split_loss_coronal = np.mean(split_loss_coronal)
             split_loss_sagittal = np.mean(split_loss_sagittal)
+            split_loss_average = np.mean(split_loss_average)
 
-            print(f"{split} -> Average MAE_axial: {split_loss_axial:.4f}, MAE_coronal: {split_loss_coronal:.4f}, MAE_sagittal: {split_loss_sagittal:.4f}, MAE_average: {split_loss_average:.4f}")
+            print(f"{split} -> Average MAE_axial: {split_loss_axial:.4f}, MAE_coronal: {split_loss_coronal:.4f}, MAE_sagittal: {split_loss_sagittal:.4f}, MAE_average: {split_loss_average:.4f} MAE_median: {split_loss_median:.4f}")
             with open(log_file, "a") as f:
-                f.write(f"{split} -> Average MAE_axial: {split_loss_axial:.4f}, MAE_coronal: {split_loss_coronal:.4f}, MAE_sagittal: {split_loss_sagittal:.4f}, MAE_average: {split_loss_average:.4f}\n")
+                f.write(f"{split} -> Average MAE_axial: {split_loss_axial:.4f}, MAE_coronal: {split_loss_coronal:.4f}, MAE_sagittal: {split_loss_sagittal:.4f}, MAE_average: {split_loss_average:.4f} MAE_median: {split_loss_median:.4f}\n")
 
         print("Done!")
     
