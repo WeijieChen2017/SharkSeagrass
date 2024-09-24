@@ -261,6 +261,7 @@ def main():
                         pred_y = model(data_x)
                         pred_y = pred_y.cpu().detach().numpy()
                         pred_y = np.squeeze(pred_y, axis=0) # 720, 256
+                        print(pred_y.shape)
                         pred_y = np.transpose(pred_y, (1, 0)) # 256, 720
                         CTAC_pred_coronal[:, idx_y, :] = pred_y
                 
