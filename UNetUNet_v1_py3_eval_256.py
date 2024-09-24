@@ -196,6 +196,13 @@ def main():
 
                 TOFNAC_data = TOFNAC_file.get_fdata()
                 CTAC_data = CTAC_file.get_fdata()
+
+                len_z = TOFNAC_data.shape[2]
+                if len_z % 4 != 0:
+                    len_z = len_z - len_z % 4
+                    TOFNAC_data = TOFNAC_data[:, :, :len_z]
+                    CTAC_data = CTAC_data[:, :, :len_z]
+
                 print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
 
                 CTAC_pred_axial = np.zeros_like(CTAC_data)
