@@ -205,14 +205,20 @@ def main():
                 # for axial
                 for idx_z in range(TOFNAC_data.shape[2]):
                     if idx_z == 0:
-                        slice_1 = TOFNAC_data[:, :, idx_z].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
-                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
-                        slice_3 = TOFNAC_data[:, :, idx_z+1].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
+                        slice_1 = TOFNAC_data[:, :, idx_z]
+                        slice_2 = TOFNAC_data[:, :, idx_z]
+                        slice_3 = TOFNAC_data[:, :, idx_z+1]
+                        slice_1 = np.expand_dims(slice_1, axis=2)
+                        slice_2 = np.expand_dims(slice_2, axis=2)
+                        slice_3 = np.expand_dims(slice_3, axis=2)
                         data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
                     elif idx_z == TOFNAC_data.shape[2] - 1:
-                        slice_1 = TOFNAC_data[:, :, idx_z-1].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
-                        slice_2 = TOFNAC_data[:, :, idx_z].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
-                        slice_3 = TOFNAC_data[:, :, idx_z].reshape(model_step1_params["img_size"], model_step1_params["img_size"], 1)
+                        slice_1 = TOFNAC_data[:, :, idx_z-1]
+                        slice_2 = TOFNAC_data[:, :, idx_z]
+                        slice_3 = TOFNAC_data[:, :, idx_z]
+                        slice_1 = np.expand_dims(slice_1, axis=2)
+                        slice_2 = np.expand_dims(slice_2, axis=2)
+                        slice_3 = np.expand_dims(slice_3, axis=2)
                         data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
                     else:
                         data_x = TOFNAC_data[:, :, idx_z-1:idx_z+2]
@@ -232,12 +238,18 @@ def main():
                         slice_1 = TOFNAC_data[:, idx_y, :]
                         slice_2 = TOFNAC_data[:, idx_y, :]
                         slice_3 = TOFNAC_data[:, idx_y, :]
-                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+                        slice_1 = np.expand_dims(slice_1, axis=1)
+                        slice_2 = np.expand_dims(slice_2, axis=1)
+                        slice_3 = np.expand_dims(slice_3, axis=1)
+                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=1)
                     elif idx_y == TOFNAC_data.shape[1] - 1:
                         slice_1 = TOFNAC_data[:, idx_y-1, :]
                         slice_2 = TOFNAC_data[:, idx_y, :]
                         slice_3 = TOFNAC_data[:, idx_y, :]
-                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+                        slice_1 = np.expand_dims(slice_1, axis=1)
+                        slice_2 = np.expand_dims(slice_2, axis=1)
+                        slice_3 = np.expand_dims(slice_3, axis=1)
+                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=1)
                     else:
                         data_x = TOFNAC_data[:, idx_y-1:idx_y+2, :]
                     # data_x is 256, 3, 720
@@ -258,12 +270,18 @@ def main():
                         slice_1 = TOFNAC_data[idx_x, :, :]
                         slice_2 = TOFNAC_data[idx_x, :, :]
                         slice_3 = TOFNAC_data[idx_x, :, :]
-                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+                        slice_1 = np.expand_dims(slice_1, axis=0)
+                        slice_2 = np.expand_dims(slice_2, axis=0)
+                        slice_3 = np.expand_dims(slice_3, axis=0)
+                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=0)
                     elif idx_x == TOFNAC_data.shape[0] - 1:
                         slice_1 = TOFNAC_data[idx_x-1, :, :]
                         slice_2 = TOFNAC_data[idx_x, :, :]
                         slice_3 = TOFNAC_data[idx_x, :, :]
-                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+                        slice_1 = np.expand_dims(slice_1, axis=0)
+                        slice_2 = np.expand_dims(slice_2, axis=0)
+                        slice_3 = np.expand_dims(slice_3, axis=0)
+                        data_x = np.concatenate([slice_1, slice_2, slice_3], axis=0)
                     else:
                         data_x = TOFNAC_data[idx_x-1:idx_x+2, :, :]
                     # data_x is 3, 256, 720
