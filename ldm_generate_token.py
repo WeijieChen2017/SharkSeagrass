@@ -639,8 +639,8 @@ for idx_tag, name_tag in enumerate(total_file_list):
     print()
     print(f"Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}]")
 
-    CT_res_path = f"/B100/TC256_v2/{name_tag}_CTAC_256.nii.gz"
-    PET_path = f"/B100/TC256_v2/{name_tag}_TOFNAC_256.nii.gz"
+    CT_res_path = f"/TC256_v2/{name_tag}_CTAC_256.nii.gz"
+    PET_path = f"/TC256_v2/{name_tag}_TOFNAC_256.nii.gz"
 
     CT_res_file = nib.load(CT_res_path)
     PET_file = nib.load(PET_path)
