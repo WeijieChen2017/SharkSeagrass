@@ -137,6 +137,8 @@ if __name__ == "__main__":
 # tar -czvf cv3_256.tar.gz cv3_256
 # tar -czvf cv4_256.tar.gz cv4_256
 
+tar -czvf TC256_v2.tar.gz TC256_v2
+
 # tar -czvf TOFNAC_CTAC_hash.tar.gz TOFNAC_CTAC_hash
 # <><><><><><><><><><><><><><><><><><><><>
 # data_dict = {
