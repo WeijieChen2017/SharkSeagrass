@@ -381,6 +381,7 @@ def main():
             split_loss_coronal = np.mean(split_loss_coronal)
             split_loss_sagittal = np.mean(split_loss_sagittal)
             split_loss_average = np.mean(split_loss_average)
+            split_loss_median = np.mean(split_loss_median)
 
             print(f"{split} -> Average MAE_axial: {split_loss_axial:.4f}, MAE_coronal: {split_loss_coronal:.4f}, MAE_sagittal: {split_loss_sagittal:.4f}, MAE_average: {split_loss_average:.4f} MAE_median: {split_loss_median:.4f}")
             with open(log_file, "a") as f:
