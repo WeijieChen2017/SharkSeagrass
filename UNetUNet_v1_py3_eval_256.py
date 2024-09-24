@@ -159,7 +159,7 @@ def main():
 
     if args.acs:
         data_folder = "B100/TC256/"
-        data_split = ["train", "val", "test"]
+        data_split = ["test", "train", "val"]
         # load json
         with open(data_div_json, "r") as f:
             data_div = json.load(f)
