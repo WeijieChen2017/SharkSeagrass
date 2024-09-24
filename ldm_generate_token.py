@@ -537,7 +537,7 @@ VQ_NAME = "f4-noattn"
 
 import yaml
 
-config_yaml_path = f"models/first_stage_models/vq-{VQ_NAME}/config.yaml"
+config_yaml_path = f"ldm_models/first_stage_models/vq-{VQ_NAME}/config.yaml"
 with open(config_yaml_path, 'r') as file:
     config = yaml.safe_load(file)
 
@@ -767,4 +767,9 @@ x_axial_mae_list = np.array(x_axial_mae_list)
 y_axial_mae_list = np.array(y_axial_mae_list)
 print(f"x_axial_mae mean: {np.mean(x_axial_mae_list)}, std: {np.std(x_axial_mae_list)}")
 print(f"y_axial_mae mean: {np.mean(y_axial_mae_list)}, std: {np.std(y_axial_mae_list)}")
-x_axial_mae
+
+# save the mae
+x_axial_mae_savename = f"{root_folder}{name_tag}_x_axial_mae.npy"
+y_axial_mae_savename = f"{root_folder}{name_tag}_y_axial_mae.npy"
+np.save(x_axial_mae_savename, x_axial_mae_list)
+np.save(y_axial_mae_savename, y_axial_mae_list)
