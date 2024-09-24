@@ -199,9 +199,10 @@ def main():
 
                 len_z = TOFNAC_data.shape[2]
                 if len_z % 4 != 0:
-                    len_z = len_z - len_z % 4
-                    TOFNAC_data = TOFNAC_data[:, :, :len_z]
-                    CTAC_data = CTAC_data[:, :, :len_z]
+                    # pad it to the nearest multiple of 4 at the end
+                    pad_len = 4 - len_z % 4
+                    TOFNAC_data = np.pad(TOFNAC_data, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
+                    CTAC_data = np.pad(CTAC_data, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
 
                 print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
 
