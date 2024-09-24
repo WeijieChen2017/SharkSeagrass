@@ -254,12 +254,15 @@ def main():
                         data_x = TOFNAC_data[:, idx_y-1:idx_y+2, :]
                     # data_x is 256, 3, 720
                     # convert it to 1, 3, 720, 256
+                    print(data_x.shape)
                     data_x = np.transpose(data_x, (1, 2, 0))
                     data_x = np.expand_dims(data_x, axis=0)
                     data_x = torch.tensor(data_x, dtype=torch.float32).to(device)
+                    print(data_x.shape)
                     with torch.no_grad():
                         pred_y = model(data_x)
                         pred_y = pred_y.cpu().detach().numpy()
+                        print(pred_y.shape)
                         pred_y = np.squeeze(pred_y, axis=0) # 720, 256
                         print(pred_y.shape)
                         pred_y = np.transpose(pred_y, (1, 0)) # 256, 720
