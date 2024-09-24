@@ -310,16 +310,8 @@ def main():
                         CTAC_pred_sagittal[idx_x, :, :] = pred_y
                 
                 CTAC_pred_average = (CTAC_pred_axial + CTAC_pred_coronal + CTAC_pred_sagittal) / 3
-                CTAC_pred_axial = np.newaxis(CTAC_pred_axial, 0)
-                CTAC_pred_coronal = np.newaxis(CTAC_pred_coronal, 0)
-                CTAC_pred_sagittal = np.newaxis(CTAC_pred_sagittal, 0)
-                CTAC_pred_median = np.stack([CTAC_pred_axial, CTAC_pred_coronal, CTAC_pred_sagittal], axis=0)
-                CTAC_pred_median = np.median(CTAC_pred_median, axis=0)
-
-                CTAC_pred_axial = np.squeeze(CTAC_pred_axial, axis=0)
-                CTAC_pred_coronal = np.squeeze(CTAC_pred_coronal, axis=0)
-                CTAC_pred_sagittal = np.squeeze(CTAC_pred_sagittal, axis=0)
-                CTAC_pred_median = np.squeeze(CTAC_pred_median, axis=0)
+                # axial, coronal, sagittal are both 256, 256, 720
+                CTAC_pred_median = np.median(np.stack([CTAC_pred_axial, CTAC_pred_coronal, CTAC_pred_sagittal]), axis=0)
 
                 # save the CTAC_pred
                 CTAC_pred_axial = np.clip(CTAC_pred_axial, 0, 1).astype(np.float32)
