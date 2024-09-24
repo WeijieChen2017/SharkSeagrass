@@ -67,6 +67,7 @@ def main():
             train_path_list.append({
                 # BPO124_CTAC_pred_cv0.nii.gz
                 "STEP1": f"B100/UNetUnet_best/cv{cv}/train/{hashname}_CTAC_pred_cv{cv}.nii.gz",
+                # "STEP1": f"B100/cv{cv}_256/test/{hashname}_CTAC_pred_cv{cv}.nii.gz",
                 # BPO124_CTAC.nii.gz
                 "STEP2": f"B100/UNetUnet_best/CTAC/{hashname}_CTAC.nii.gz",
             })

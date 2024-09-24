@@ -134,3 +134,13 @@ if __name__ == "__main__":
 
 
 # tar -czvf TOFNAC_CTAC_hash.tar.gz TOFNAC_CTAC_hash
+# tar -czvf cv0_256_clip.tar.gz cv0_256_clip
+# tar -czvf cv1_256_clip.tar.gz cv1_256_clip
+# tar -czvf cv2_256_clip.tar.gz cv2_256_clip
+# tar -czvf cv3_256_clip.tar.gz cv3_256_clip
+# tar -czvf cv4_256_clip.tar.gz cv4_256_clip
+# scp cv0_256_clip.tar.gz wchen376@ap2001.chtc.wisc.edu:~/SharkSeagrass/
+# scp cv1_256_clip.tar.gz wchen376@ap2001.chtc.wisc.edu:~/SharkSeagrass/
+# scp cv2_256_clip.tar.gz wchen376@ap2001.chtc.wisc.edu:~/SharkSeagrass/
+# scp cv3_256_clip.tar.gz wchen376@ap2001.chtc.wisc.edu:~/SharkSeagrass/
+# scp cv4_256_clip.tar.gz wchen376@ap2001.chtc.wisc.edu:~/SharkSeagrass/
