@@ -696,9 +696,9 @@ for idx_tag, name_tag in enumerate(total_file_list):
             slice_3 = np.expand_dims(slice_3, axis=2)
             data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
 
-            slice_1 = CT_res_data[:, :, idx_z]
-            slice_2 = CT_res_data[:, :, idx_z]
-            slice_3 = CT_res_data[:, :, idx_z+1]
+            slice_1 = CTAC_data[:, :, idx_z]
+            slice_2 = CTAC_data[:, :, idx_z]
+            slice_3 = CTAC_data[:, :, idx_z+1]
             slice_1 = np.expand_dims(slice_1, axis=2)
             slice_2 = np.expand_dims(slice_2, axis=2)
             slice_3 = np.expand_dims(slice_3, axis=2)
@@ -712,16 +712,16 @@ for idx_tag, name_tag in enumerate(total_file_list):
             slice_3 = np.expand_dims(slice_3, axis=2)
             data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
 
-            slice_1 = CT_res_data[:, :, idx_z-1]
-            slice_2 = CT_res_data[:, :, idx_z]
-            slice_3 = CT_res_data[:, :, idx_z]
+            slice_1 = CTAC_data[:, :, idx_z-1]
+            slice_2 = CTAC_data[:, :, idx_z]
+            slice_3 = CTAC_data[:, :, idx_z]
             slice_1 = np.expand_dims(slice_1, axis=2)
             slice_2 = np.expand_dims(slice_2, axis=2)
             slice_3 = np.expand_dims(slice_3, axis=2)
             data_y = np.concatenate([slice_1, slice_2, slice_3], axis=2)
         else:
             data_x = TOFNAC_data[:, :, idx_z-1:idx_z+2]
-            data_y = CT_res_data[:, :, idx_z-1:idx_z+2]
+            data_y = CTAC_data[:, :, idx_z-1:idx_z+2]
         # data_x is 400x400x3, convert it to 1x3x256x256
         data_x = np.transpose(data_x, (2, 0, 1))
         data_x = np.expand_dims(data_x, axis=0)
@@ -743,7 +743,7 @@ for idx_tag, name_tag in enumerate(total_file_list):
         recon_x = np.squeeze(recon_x, axis=0)[:, :, 1]
         recon_y = np.squeeze(recon_y, axis=0)[:, :, 1]
         gt_x = TOFNAC_data[:, :, idx_z]
-        gt_y = CT_res_data[:, :, idx_z]
+        gt_y = CTAC_data[:, :, idx_z]
         # [-1 to 1] -> [0 to 1]
         recon_x = np.clip(recon_x, -1, 1)
         recon_y = np.clip(recon_y, -1, 1)
