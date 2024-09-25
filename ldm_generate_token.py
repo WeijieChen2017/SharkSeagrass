@@ -867,6 +867,8 @@ for idx_tag, name_tag in enumerate(total_file_list):
             gt_y = gt_y * RANGE_CT + MIN_CT
 
             # compute the l1 loss
+            recon_x = np.transpose(recon_x, (1, 0))
+            recon_y = np.transpose(recon_y, (1, 0))
             x_coronal_mae = np.mean(np.abs(gt_x - recon_x))
             y_coronal_mae = np.mean(np.abs(gt_y - recon_y))
 
