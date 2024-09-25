@@ -668,7 +668,7 @@ for idx_tag, name_tag in enumerate(total_file_list):
         TOFNAC_data = np.pad(TOFNAC_data, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
         CTAC_data = np.pad(CTAC_data, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
 
-    print(f"{split} -> {casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
+    print(f"{casename} -> TOFNAC shape: {TOFNAC_data.shape}, CTAC shape: {CTAC_data.shape}")
     
     len_x, len_y, len_z = TOFNAC_data.shape
     x_axial_mae_list = []
