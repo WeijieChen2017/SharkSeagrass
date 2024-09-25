@@ -686,7 +686,6 @@ for idx_tag, name_tag in enumerate(total_file_list):
 
     # for axial
     for idx_z in range(TOFNAC_data.shape[2]):
-        print(f">> Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] z=[{idx_z}]/[{len_z-1}]")
         if idx_z == 0:
             slice_1 = TOFNAC_data[:, :, idx_z]
             slice_2 = TOFNAC_data[:, :, idx_z]
@@ -761,15 +760,18 @@ for idx_tag, name_tag in enumerate(total_file_list):
         y_axial_mae = np.mean(np.abs(gt_y - recon_y))
         x_axial_mae_list.append(x_axial_mae)
         y_axial_mae_list.append(y_axial_mae)
+        print(f">> Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] z=[{idx_z}]/[{len_z-1}], x_axial_mae: {x_axial_mae:.3f}, y_axial_mae: {y_axial_mae:.3f}")
+        
 
-# print the mae
-x_axial_mae_list = np.array(x_axial_mae_list)
-y_axial_mae_list = np.array(y_axial_mae_list)
-print(f"x_axial_mae mean: {np.mean(x_axial_mae_list)}, std: {np.std(x_axial_mae_list)}")
-print(f"y_axial_mae mean: {np.mean(y_axial_mae_list)}, std: {np.std(y_axial_mae_list)}")
+    # print the mae
+    x_axial_mae_list = np.array(x_axial_mae_list)
+    y_axial_mae_list = np.array(y_axial_mae_list)
+    print(f"x_axial_mae mean: {np.mean(x_axial_mae_list)}, std: {np.std(x_axial_mae_list)}")
+    print(f"y_axial_mae mean: {np.mean(y_axial_mae_list)}, std: {np.std(y_axial_mae_list)}")
 
-# save the mae
-x_axial_mae_savename = f"{root_folder}{name_tag}_x_axial_mae.npy"
-y_axial_mae_savename = f"{root_folder}{name_tag}_y_axial_mae.npy"
-np.save(x_axial_mae_savename, x_axial_mae_list)
-np.save(y_axial_mae_savename, y_axial_mae_list)
+    # save the mae
+    x_axial_mae_savename = f"{root_folder}{name_tag}_x_axial_mae.npy"
+    y_axial_mae_savename = f"{root_folder}{name_tag}_y_axial_mae.npy"
+    np.save(x_axial_mae_savename, x_axial_mae_list)
+    np.save(y_axial_mae_savename, y_axial_mae_list)
+    print(f"Save {x_axial_mae_savename} and {y_axial_mae_savename}")
