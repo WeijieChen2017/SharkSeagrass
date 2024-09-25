@@ -160,9 +160,10 @@ def main():
             if not os.path.exists(mask_save_folder):
                 os.makedirs(mask_save_folder)
                 
+            split_list = data_div_cv[split]
             for casename in split_list:
                 print(f"{split} -> Processing {casename}")
-                
+
                 CTAC_pred_axial_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_axial_cv{cross_validation}.nii.gz")
                 CTAC_pred_coronal_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_coronal_cv{cross_validation}.nii.gz")
                 CTAC_pred_sagittal_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_sagittal_cv{cross_validation}.nii.gz")
