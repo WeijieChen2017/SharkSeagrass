@@ -676,9 +676,11 @@ for idx_tag, name_tag in enumerate(total_file_list):
     else:
         ValueError("VQ_NAME should be 4, 8, or 16")
 
+    
     if len_z % len_factor != 0:
         # pad it to the nearest multiple of 4 at the end
-        pad_len = 4 - len_z % 4
+        print(f"Padding the z-axis to the nearest multiple of {len_factor}")
+        pad_len = len_factor - len_z % len_factor
         TOFNAC_data = np.pad(TOFNAC_data, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
         CTAC_data = np.pad(CTAC_data, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
 
