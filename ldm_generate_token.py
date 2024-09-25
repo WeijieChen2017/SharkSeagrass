@@ -686,7 +686,7 @@ for idx_tag, name_tag in enumerate(total_file_list):
 
     # for axial
     for idx_z in range(TOFNAC_data.shape[2]):
-        print(f">> Processing {name_tag}:[{idx_tag}]/[{len(tag_list)}] z=[{idx_z}]/[{len_z-1}]")
+        print(f">> Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] z=[{idx_z}]/[{len_z-1}]")
         if idx_z == 0:
             slice_1 = TOFNAC_data[:, :, idx_z]
             slice_2 = TOFNAC_data[:, :, idx_z]
