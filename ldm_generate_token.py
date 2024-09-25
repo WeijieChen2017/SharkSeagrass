@@ -646,15 +646,15 @@ for idx_tag, name_tag in enumerate(total_file_list):
     PET_file = nib.load(PET_path)
 
     CT_res_data = CT_res_file.get_fdata()
-    PET_data = PET_file.get_fdata()
+    TOFNAC_data = PET_file.get_fdata()
 
     # clip to [0, 1]
     CT_res_data = np.clip(CT_res_data, MIN_CT, MAX_CT)
-    PET_data = np.clip(PET_data, MIN_PET, MAX_PET)
+    TOFNAC_data = np.clip(TOFNAC_data, MIN_PET, MAX_PET)
 
     # normalize the CT and PET data
     CT_res_data = (CT_res_data - 0.5) * 2 # [0 -> 1] to [-1 -> 1]
-    PET_data = (PET_data - 0.5) * 2
+    TOFNAC_data = (TOFNAC_data - 0.5) * 2
 
     # convert the img to be channel first, from 256, 256, 3 to 3, 256, 256
     # CT_res_data = np.moveaxis(CT_res_data, -1, 0)
