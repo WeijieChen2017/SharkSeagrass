@@ -639,21 +639,21 @@ for idx_tag, name_tag in enumerate(total_file_list):
     print()
     print(f"Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}]")
 
-    CT_res_path = f"TC256_v2/{name_tag}_CTAC_256.nii.gz"
-    PET_path = f"TC256_v2/{name_tag}_TOFNAC_256.nii.gz"
+    CTAC_path = f"TC256_v2/{name_tag}_CTAC_256.nii.gz"
+    TOFNAC_path = f"TC256_v2/{name_tag}_TOFNAC_256.nii.gz"
 
-    CT_res_file = nib.load(CT_res_path)
-    PET_file = nib.load(PET_path)
+    CTAC_file = nib.load(CTAC_path)
+    TOFNAC_file = nib.load(TOFNAC_path)
 
-    CT_res_data = CT_res_file.get_fdata()
-    TOFNAC_data = PET_file.get_fdata()
+    CTAC_data = CTAC_file.get_fdata()
+    TOFNAC_data = TOFNAC_file.get_fdata()
 
     # clip to [0, 1]
-    CT_res_data = np.clip(CT_res_data, MIN_CT, MAX_CT)
+    CTAC_data = np.clip(CTAC_data, MIN_CT, MAX_CT)
     TOFNAC_data = np.clip(TOFNAC_data, MIN_PET, MAX_PET)
 
     # normalize the CT and PET data
-    CT_res_data = (CT_res_data - 0.5) * 2 # [0 -> 1] to [-1 -> 1]
+    CTAC_data = (CTAC_data - 0.5) * 2 # [0 -> 1] to [-1 -> 1]
     TOFNAC_data = (TOFNAC_data - 0.5) * 2
 
     # convert the img to be channel first, from 256, 256, 3 to 3, 256, 256
