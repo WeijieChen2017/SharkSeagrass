@@ -164,11 +164,11 @@ def main():
             for casename in split_list:
                 print(f"{split} -> Processing {casename}")
 
-                CTAC_pred_axial_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_axial_cv{cross_validation}.nii.gz")
-                CTAC_pred_coronal_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_coronal_cv{cross_validation}.nii.gz")
-                CTAC_pred_sagittal_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_sagittal_cv{cross_validation}.nii.gz")
-                CTAC_pred_average_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_average_cv{cross_validation}.nii.gz")
-                CTAC_pred_median_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_median_cv{cross_validation}.nii.gz")
+                CT_pred_axial_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_axial_cv{cross_validation}.nii.gz")
+                CT_pred_coronal_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_coronal_cv{cross_validation}.nii.gz")
+                CT_pred_sagittal_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_sagittal_cv{cross_validation}.nii.gz")
+                CT_pred_average_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_average_cv{cross_validation}.nii.gz")
+                CT_pred_median_path = os.path.join(data_split_folder, f"{casename}_CTAC_pred_median_cv{cross_validation}.nii.gz")
 
                 CT_pred_axial_file = nib.load(CT_pred_axial_path)
                 CT_pred_coronal_file = nib.load(CT_pred_coronal_path)
