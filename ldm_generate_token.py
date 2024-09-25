@@ -531,7 +531,7 @@ class VQModel(pl.LightningModule):
         return x
 
 
-VQ_NAME = "f16"
+VQ_NAME = "f8"
 
 # load the configuration yaml files
 
@@ -666,7 +666,17 @@ for idx_tag, name_tag in enumerate(total_file_list):
     # print(f"CT_res_data shape: {CT_res_data.shape}, PET_data shape: {PET_data.shape}")
 
     len_z = TOFNAC_data.shape[2]
-    if len_z % 4 != 0:
+    
+    if "4" in VQ_NAME:
+        len_factor = 4
+    elif "8" in VQ_NAME:
+        len_factor = 8
+    elif "16" in VQ_NAME:
+        len_factor = 16
+    else:
+        ValueError("VQ_NAME should be 4, 8, or 16")
+
+    if len_z % len_factor != 0:
         # pad it to the nearest multiple of 4 at the end
         pad_len = 4 - len_z % 4
         TOFNAC_data = np.pad(TOFNAC_data, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
