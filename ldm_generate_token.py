@@ -740,8 +740,8 @@ for idx_tag, name_tag in enumerate(total_file_list):
         recon_x = return_x.detach().cpu().numpy()
         recon_y = return_y.detach().cpu().numpy()
         # move the channel dim to the last
-        recon_x = np.squeeze(recon_x)[:, :, 1]
-        recon_y = np.squeeze(recon_y)[:, :, 1]
+        recon_x = np.squeeze(recon_x)[1, :, :]
+        recon_y = np.squeeze(recon_y)[1, :, :]
         gt_x = TOFNAC_data[:, :, idx_z]
         gt_y = CTAC_data[:, :, idx_z]
         # [-1 to 1] -> [0 to 1]
