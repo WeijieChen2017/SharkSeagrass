@@ -622,9 +622,13 @@ MIN_PET = 0
 RANGE_CT = MAX_CT - MIN_CT
 RANGE_PET = MAX_PET - MIN_PET
 
+done_axial = False
+done_coronal = False
+done_sagittal = False
+
 n_cut = 8
 zoom_factors = [256/512, 256/512, 1]
-root_folder = "/B100/TC256_v2_vq/"
+root_folder = "B100/TC256_v2_vq/"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 
@@ -684,94 +688,325 @@ for idx_tag, name_tag in enumerate(total_file_list):
     y_coronal_ind_list = []
     y_sagittal_ind_list = []
 
-    # for axial
-    for idx_z in range(TOFNAC_data.shape[2]):
-        if idx_z == 0:
-            slice_1 = TOFNAC_data[:, :, idx_z]
-            slice_2 = TOFNAC_data[:, :, idx_z]
-            slice_3 = TOFNAC_data[:, :, idx_z+1]
-            slice_1 = np.expand_dims(slice_1, axis=2)
-            slice_2 = np.expand_dims(slice_2, axis=2)
-            slice_3 = np.expand_dims(slice_3, axis=2)
-            data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+    if not done_axial:
+        # for axial
+        for idx_z in range(TOFNAC_data.shape[2]):
+            if idx_z == 0:
+                slice_1 = TOFNAC_data[:, :, idx_z]
+                slice_2 = TOFNAC_data[:, :, idx_z]
+                slice_3 = TOFNAC_data[:, :, idx_z+1]
+                slice_1 = np.expand_dims(slice_1, axis=2)
+                slice_2 = np.expand_dims(slice_2, axis=2)
+                slice_3 = np.expand_dims(slice_3, axis=2)
+                data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
 
-            slice_1 = CTAC_data[:, :, idx_z]
-            slice_2 = CTAC_data[:, :, idx_z]
-            slice_3 = CTAC_data[:, :, idx_z+1]
-            slice_1 = np.expand_dims(slice_1, axis=2)
-            slice_2 = np.expand_dims(slice_2, axis=2)
-            slice_3 = np.expand_dims(slice_3, axis=2)
-            data_y = np.concatenate([slice_1, slice_2, slice_3], axis=2)
-        elif idx_z == TOFNAC_data.shape[2] - 1:
-            slice_1 = TOFNAC_data[:, :, idx_z-1]
-            slice_2 = TOFNAC_data[:, :, idx_z]
-            slice_3 = TOFNAC_data[:, :, idx_z]
-            slice_1 = np.expand_dims(slice_1, axis=2)
-            slice_2 = np.expand_dims(slice_2, axis=2)
-            slice_3 = np.expand_dims(slice_3, axis=2)
-            data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+                slice_1 = CTAC_data[:, :, idx_z]
+                slice_2 = CTAC_data[:, :, idx_z]
+                slice_3 = CTAC_data[:, :, idx_z+1]
+                slice_1 = np.expand_dims(slice_1, axis=2)
+                slice_2 = np.expand_dims(slice_2, axis=2)
+                slice_3 = np.expand_dims(slice_3, axis=2)
+                data_y = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+            elif idx_z == TOFNAC_data.shape[2] - 1:
+                slice_1 = TOFNAC_data[:, :, idx_z-1]
+                slice_2 = TOFNAC_data[:, :, idx_z]
+                slice_3 = TOFNAC_data[:, :, idx_z]
+                slice_1 = np.expand_dims(slice_1, axis=2)
+                slice_2 = np.expand_dims(slice_2, axis=2)
+                slice_3 = np.expand_dims(slice_3, axis=2)
+                data_x = np.concatenate([slice_1, slice_2, slice_3], axis=2)
 
-            slice_1 = CTAC_data[:, :, idx_z-1]
-            slice_2 = CTAC_data[:, :, idx_z]
-            slice_3 = CTAC_data[:, :, idx_z]
-            slice_1 = np.expand_dims(slice_1, axis=2)
-            slice_2 = np.expand_dims(slice_2, axis=2)
-            slice_3 = np.expand_dims(slice_3, axis=2)
-            data_y = np.concatenate([slice_1, slice_2, slice_3], axis=2)
-        else:
-            data_x = TOFNAC_data[:, :, idx_z-1:idx_z+2]
-            data_y = CTAC_data[:, :, idx_z-1:idx_z+2]
-        # data_x is 400x400x3, convert it to 1x3x256x256
-        data_x = np.transpose(data_x, (2, 0, 1))
-        data_x = np.expand_dims(data_x, axis=0)
-        data_x = torch.tensor(data_x, dtype=torch.float32).to(device)
+                slice_1 = CTAC_data[:, :, idx_z-1]
+                slice_2 = CTAC_data[:, :, idx_z]
+                slice_3 = CTAC_data[:, :, idx_z]
+                slice_1 = np.expand_dims(slice_1, axis=2)
+                slice_2 = np.expand_dims(slice_2, axis=2)
+                slice_3 = np.expand_dims(slice_3, axis=2)
+                data_y = np.concatenate([slice_1, slice_2, slice_3], axis=2)
+            else:
+                data_x = TOFNAC_data[:, :, idx_z-1:idx_z+2]
+                data_y = CTAC_data[:, :, idx_z-1:idx_z+2]
+            # data_x is 400x400x3, convert it to 1x3x256x256
+            data_x = np.transpose(data_x, (2, 0, 1))
+            data_x = np.expand_dims(data_x, axis=0)
+            data_x = torch.tensor(data_x, dtype=torch.float32).to(device)
 
-        # data_y is 400x400x3, convert it to 1x3x256x256
-        data_y = np.transpose(data_y, (2, 0, 1))
-        data_y = np.expand_dims(data_y, axis=0)
-        data_y = torch.tensor(data_y, dtype=torch.float32).to(device)
-        with torch.no_grad():
-            return_x, _, ind_x = model(data_x, return_pred_indices=True)
-            return_y, _, ind_y = model(data_y, return_pred_indices=True)
+            # data_y is 400x400x3, convert it to 1x3x256x256
+            data_y = np.transpose(data_y, (2, 0, 1))
+            data_y = np.expand_dims(data_y, axis=0)
+            data_y = torch.tensor(data_y, dtype=torch.float32).to(device)
+            with torch.no_grad():
+                return_x, _, ind_x = model(data_x, return_pred_indices=True)
+                return_y, _, ind_y = model(data_y, return_pred_indices=True)
+            
+            x_axial_ind_list.append(ind_x.detach().cpu().numpy())
+            y_axial_ind_list.append(ind_y.detach().cpu().numpy())
+            recon_x = return_x.detach().cpu().numpy()
+            recon_y = return_y.detach().cpu().numpy()
+            # move the channel dim to the last
+            recon_x = np.squeeze(recon_x)[1, :, :]
+            recon_y = np.squeeze(recon_y)[1, :, :]
+            gt_x = TOFNAC_data[:, :, idx_z]
+            gt_y = CTAC_data[:, :, idx_z]
+            # [-1 to 1] -> [0 to 1]
+            recon_x = np.clip(recon_x, -1, 1)
+            recon_y = np.clip(recon_y, -1, 1)
+            recon_x = (recon_x + 1) / 2
+            recon_y = (recon_y + 1) / 2
+            gt_x = (gt_x + 1) / 2
+            gt_y = (gt_y + 1) / 2
+            # reverse the scale
+            recon_x = reverse_two_segment_scale(recon_x, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
+            gt_x = reverse_two_segment_scale(gt_x, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
+            recon_y = recon_y * RANGE_CT + MIN_CT
+            gt_y = gt_y * RANGE_CT + MIN_CT
+            # compute the l1 loss
+            x_axial_mae = np.mean(np.abs(gt_x - recon_x))
+            y_axial_mae = np.mean(np.abs(gt_y - recon_y))
+            x_axial_mae_list.append(x_axial_mae)
+            y_axial_mae_list.append(y_axial_mae)
+            print(f">> Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] z=[{idx_z}]/[{len_z-1}], x_axial_mae: {x_axial_mae:.3f}, y_axial_mae: {y_axial_mae:.3f}")
+
+        # print the mae
+        x_axial_mae_list = np.array(x_axial_mae_list)
+        y_axial_mae_list = np.array(y_axial_mae_list)
+        print(f"x_axial_mae mean: {np.mean(x_axial_mae_list)}, std: {np.std(x_axial_mae_list)}")
+        print(f"y_axial_mae mean: {np.mean(y_axial_mae_list)}, std: {np.std(y_axial_mae_list)}")
+
+        # save the mae
+        x_axial_mae_savename = f"{root_folder}{name_tag}_x_axial_mae.npy"
+        y_axial_mae_savename = f"{root_folder}{name_tag}_y_axial_mae.npy"
+        np.save(x_axial_mae_savename, x_axial_mae_list)
+        np.save(y_axial_mae_savename, y_axial_mae_list)
+        print(f"Save {x_axial_mae_savename} and {y_axial_mae_savename}")
+
+        # save the indices
+        x_axial_ind = np.array(x_axial_ind_list)
+        y_axial_ind = np.array(y_axial_ind_list)
+        x_axial_ind_savename = f"{root_folder}{name_tag}_x_axial_ind.npy"
+        y_axial_ind_savename = f"{root_folder}{name_tag}_y_axial_ind.npy"
+        np.save(x_axial_ind_savename, x_axial_ind_list)
+        np.save(y_axial_ind_savename, y_axial_ind_list)
+        print(f"Save {x_axial_ind_savename} and {y_axial_ind_savename}")
+
+    if not done_coronal:
+
+        # for axial
+        for idx_y in range(TOFNAC_data.shape[1]):
+            if idx_y == 0:
+                slice_1 = TOFNAC_data[:, idx_y, :]
+                slice_2 = TOFNAC_data[:, idx_y, :]
+                slice_3 = TOFNAC_data[:, idx_y+1, :]
+                slice_1 = np.expand_dims(slice_1, axis=1)
+                slice_2 = np.expand_dims(slice_2, axis=1)
+                slice_3 = np.expand_dims(slice_3, axis=1)
+                data_x = np.concatenate([slice_1, slice_2, slice_3], axis=1)
+
+                slice_1 = CTAC_data[:, idx_y, :]
+                slice_2 = CTAC_data[:, idx_y, :]
+                slice_3 = CTAC_data[:, idx_y+1, :]
+                slice_1 = np.expand_dims(slice_1, axis=1)
+                slice_2 = np.expand_dims(slice_2, axis=1)
+                slice_3 = np.expand_dims(slice_3, axis=1)
+                data_y = np.concatenate([slice_1, slice_2, slice_3], axis=1)
+            elif idx_y == TOFNAC_data.shape[1] - 1:
+                slice_1 = TOFNAC_data[:, idx_y-1, :]
+                slice_2 = TOFNAC_data[:, idx_y, :]
+                slice_3 = TOFNAC_data[:, idx_y, :]
+                slice_1 = np.expand_dims(slice_1, axis=1)
+                slice_2 = np.expand_dims(slice_2, axis=1)
+                slice_3 = np.expand_dims(slice_3, axis=1)
+                data_x = np.concatenate([slice_1, slice_2, slice_3], axis=1)
+
+                slice_1 = CTAC_data[:, idx_y-1, :]
+                slice_2 = CTAC_data[:, idx_y, :]
+                slice_3 = CTAC_data[:, idx_y, :]
+                slice_1 = np.expand_dims(slice_1, axis=1)
+                slice_2 = np.expand_dims(slice_2, axis=1)
+                slice_3 = np.expand_dims(slice_3, axis=1)
+                data_y = np.concatenate([slice_1, slice_2, slice_3], axis=1)
+            else:
+                data_x = TOFNAC_data[:, idx_y-1:idx_y+2, :]
+                data_y = CTAC_data[:, idx_y-1:idx_y+2, :]
+            # data_x is 256, 3, 720, convert it to 1, 3, 720, 256
+            data_x = np.transpose(data_x, (1, 2, 0))
+            data_x = np.expand_dims(data_x, axis=0)
+            data_x = torch.tensor(data_x, dtype=torch.float32).to(device)
+
+            data_y = np.transpose(data_y, (1, 2, 0))
+            data_y = np.expand_dims(data_y, axis=0)
+            data_y = torch.tensor(data_y, dtype=torch.float32).to(device)
+
+            with torch.no_grad():
+                return_x, _, ind_x = model(data_x, return_pred_indices=True)
+                return_y, _, ind_y = model(data_y, return_pred_indices=True)
+            
+            x_coronal_ind_list.append(ind_x.detach().cpu().numpy())
+            y_coronal_ind_list.append(ind_y.detach().cpu().numpy())
+            recon_x = return_x.detach().cpu().numpy()
+            recon_y = return_y.detach().cpu().numpy()
+            # move the channel dim to the last
+            recon_x = np.squeeze(recon_x)[1, :, :]
+            recon_y = np.squeeze(recon_y)[1, :, :]
+            gt_x = TOFNAC_data[:, idx_y, :]
+            gt_y = CTAC_data[:, idx_y, :]
+
+            # [-1 to 1] -> [0 to 1]
+            recon_x = np.clip(recon_x, -1, 1)
+            recon_y = np.clip(recon_y, -1, 1)
+            recon_x = (recon_x + 1) / 2
+            recon_y = (recon_y + 1) / 2
+
+            gt_x = (gt_x + 1) / 2
+            gt_y = (gt_y + 1) / 2
+            
+            # reverse the scale
+            recon_x = reverse_two_segment_scale(recon_x, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
+            gt_x = reverse_two_segment_scale(gt_x, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
+            recon_y = recon_y * RANGE_CT + MIN_CT
+            gt_y = gt_y * RANGE_CT + MIN_CT
+
+            # compute the l1 loss
+            x_coronal_mae = np.mean(np.abs(gt_x - recon_x))
+            y_coronal_mae = np.mean(np.abs(gt_y - recon_y))
+
+            x_coronal_mae_list.append(x_coronal_mae)
+            y_coronal_mae_list.append(y_coronal_mae)
+
+            print(f">> Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] y=[{idx_y}]/[{len_y-1}], x_coronal_mae: {x_coronal_mae:.3f}, y_coronal_mae: {y_coronal_mae:.3f}")
+
+        # print the mae
+        x_coronal_mae_list = np.array(x_coronal_mae_list)
+        y_coronal_mae_list = np.array(y_coronal_mae_list)
+        print(f"x_coronal_mae mean: {np.mean(x_coronal_mae_list)}, std: {np.std(x_coronal_mae_list)}")
+        print(f"y_coronal_mae mean: {np.mean(y_coronal_mae_list)}, std: {np.std(y_coronal_mae_list)}")
+
+        # save the mae
+        x_coronal_mae_savename = f"{root_folder}{name_tag}_x_coronal_mae.npy"
+        y_coronal_mae_savename = f"{root_folder}{name_tag}_y_coronal_mae.npy"
+        np.save(x_coronal_mae_savename, x_coronal_mae_list)
+        np.save(y_coronal_mae_savename, y_coronal_mae_list)
+        print(f"Save {x_coronal_mae_savename} and {y_coronal_mae_savename}")
+
+        # save the indices
+        x_coronal_ind = np.array(x_coronal_ind_list)
+        y_coronal_ind = np.array(y_coronal_ind_list)
+        x_coronal_ind_savename = f"{root_folder}{name_tag}_x_coronal_ind.npy"
+        y_coronal_ind_savename = f"{root_folder}{name_tag}_y_coronal_ind.npy"
+        np.save(x_coronal_ind_savename, x_coronal_ind_list)
+        np.save(y_coronal_ind_savename, y_coronal_ind_list)
+        print(f"Save {x_coronal_ind_savename} and {y_coronal_ind_savename}")
+
+    if not done_sagittal:
         
-        x_axial_ind_list.append(ind_x.detach().cpu().numpy())
-        y_axial_ind_list.append(ind_y.detach().cpu().numpy())
-        recon_x = return_x.detach().cpu().numpy()
-        recon_y = return_y.detach().cpu().numpy()
-        # move the channel dim to the last
-        recon_x = np.squeeze(recon_x)[1, :, :]
-        recon_y = np.squeeze(recon_y)[1, :, :]
-        gt_x = TOFNAC_data[:, :, idx_z]
-        gt_y = CTAC_data[:, :, idx_z]
-        # [-1 to 1] -> [0 to 1]
-        recon_x = np.clip(recon_x, -1, 1)
-        recon_y = np.clip(recon_y, -1, 1)
-        recon_x = (recon_x + 1) / 2
-        recon_y = (recon_y + 1) / 2
-        gt_x = (gt_x + 1) / 2
-        gt_y = (gt_y + 1) / 2
-        # reverse the scale
-        recon_x = reverse_two_segment_scale(recon_x, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
-        gt_x = reverse_two_segment_scale(gt_x, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
-        recon_y = recon_y * RANGE_CT + MIN_CT
-        gt_y = gt_y * RANGE_CT + MIN_CT
-        # compute the l1 loss
-        x_axial_mae = np.mean(np.abs(gt_x - recon_x))
-        y_axial_mae = np.mean(np.abs(gt_y - recon_y))
-        x_axial_mae_list.append(x_axial_mae)
-        y_axial_mae_list.append(y_axial_mae)
-        print(f">> Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] z=[{idx_z}]/[{len_z-1}], x_axial_mae: {x_axial_mae:.3f}, y_axial_mae: {y_axial_mae:.3f}")
-        
+        for idx_x in range(TOFNAC_data.shape[0]):
+            if idx_x == 0:
+                slice_1 = TOFNAC_data[idx_x, :, :]
+                slice_2 = TOFNAC_data[idx_x, :, :]
+                slice_3 = TOFNAC_data[idx_x+1, :, :]
+                slice_1 = np.expand_dims(slice_1, axis=0)
+                slice_2 = np.expand_dims(slice_2, axis=0)
+                slice_3 = np.expand_dims(slice_3, axis=0)
+                data_x = np.concatenate([slice_1, slice_2, slice_3], axis=0)
 
-    # print the mae
-    x_axial_mae_list = np.array(x_axial_mae_list)
-    y_axial_mae_list = np.array(y_axial_mae_list)
-    print(f"x_axial_mae mean: {np.mean(x_axial_mae_list)}, std: {np.std(x_axial_mae_list)}")
-    print(f"y_axial_mae mean: {np.mean(y_axial_mae_list)}, std: {np.std(y_axial_mae_list)}")
+                slice_1 = CTAC_data[idx_x, :, :]
+                slice_2 = CTAC_data[idx_x, :, :]
+                slice_3 = CTAC_data[idx_x+1, :, :]
+                slice_1 = np.expand_dims(slice_1, axis=0)
+                slice_2 = np.expand_dims(slice_2, axis=0)
+                slice_3 = np.expand_dims(slice_3, axis=0)
+                data_y = np.concatenate([slice_1, slice_2, slice_3], axis=0)
+            elif idx_x == TOFNAC_data.shape[0] - 1:
+                slice_1 = TOFNAC_data[idx_x-1, :, :]
+                slice_2 = TOFNAC_data[idx_x, :, :]
+                slice_3 = TOFNAC_data[idx_x, :, :]
+                slice_1 = np.expand_dims(slice_1, axis=0)
+                slice_2 = np.expand_dims(slice_2, axis=0)
+                slice_3 = np.expand_dims(slice_3, axis=0)
+                data_x = np.concatenate([slice_1, slice_2, slice_3], axis=0)
 
-    # save the mae
-    x_axial_mae_savename = f"{root_folder}{name_tag}_x_axial_mae.npy"
-    y_axial_mae_savename = f"{root_folder}{name_tag}_y_axial_mae.npy"
-    np.save(x_axial_mae_savename, x_axial_mae_list)
-    np.save(y_axial_mae_savename, y_axial_mae_list)
-    print(f"Save {x_axial_mae_savename} and {y_axial_mae_savename}")
+                slice_1 = CTAC_data[idx_x-1, :, :]
+                slice_2 = CTAC_data[idx_x, :, :]
+                slice_3 = CTAC_data[idx_x, :, :]
+                slice_1 = np.expand_dims(slice_1, axis=0)
+                slice_2 = np.expand_dims(slice_2, axis=0)
+                slice_3 = np.expand_dims(slice_3, axis=0)
+                data_y = np.concatenate([slice_1, slice_2, slice_3], axis=0)
+            else:
+                data_x = TOFNAC_data[idx_x-1:idx_x+2, :, :]
+                data_y = CTAC_data[idx_x-1:idx_x+2, :, :]
+            # data_x is 3, 256, 720, convert it to 1, 3, 720, 256
+
+            data_x = np.transpose(data_x, (0, 2, 1))
+            data_x = np.expand_dims(data_x, axis=0)
+            data_x = torch.tensor(data_x, dtype=torch.float32).to(device)
+
+            data_y = np.transpose(data_y, (0, 2, 1))
+            data_y = np.expand_dims(data_y, axis=0)
+            data_y = torch.tensor(data_y, dtype=torch.float32).to(device)
+
+            with torch.no_grad():
+                return_x, _, ind_x = model(data_x, return_pred_indices=True)
+                return_y, _, ind_y = model(data_y, return_pred_indices=True)
+
+            x_sagittal_ind_list.append(ind_x.detach().cpu().numpy())
+            y_sagittal_ind_list.append(ind_y.detach().cpu().numpy())
+            recon_x = return_x.detach().cpu().numpy()
+            recon_y = return_y.detach().cpu().numpy()
+
+            # move the channel dim to the last
+            recon_x = np.squeeze(recon_x)[1, :, :]
+            recon_y = np.squeeze(recon_y)[1, :, :]
+            gt_x = TOFNAC_data[idx_x, :, :]
+            gt_y = CTAC_data[idx_x, :, :]
+
+            # [-1 to 1] -> [0 to 1]
+            recon_x = np.clip(recon_x, -1, 1)
+            recon_y = np.clip(recon_y, -1, 1)
+            recon_x = (recon_x + 1) / 2
+            recon_y = (recon_y + 1) / 2
+
+            gt_x = (gt_x + 1) / 2
+            gt_y = (gt_y + 1) / 2
+
+            # reverse the scale
+            recon_x = reverse_two_segment_scale(recon_x, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
+            gt_x = reverse_two_segment_scale(gt_x, MIN_PET, MID_PET, MAX_PET, MIQ_PET)
+            recon_y = recon_y * RANGE_CT + MIN_CT
+            gt_y = gt_y * RANGE_CT + MIN_CT
+
+            # compute the l1 loss
+            x_sagittal_mae = np.mean(np.abs(gt_x - recon_x))
+            y_sagittal_mae = np.mean(np.abs(gt_y - recon_y))
+
+            x_sagittal_mae_list.append(x_sagittal_mae)
+            y_sagittal_mae_list.append(y_sagittal_mae)
+
+            print(f">> Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] x=[{idx_x}]/[{len_x-1}], x_sagittal_mae: {x_sagittal_mae:.3f}, y_sagittal_mae: {y_sagittal_mae:.3f}")
+
+        # print the mae
+        x_sagittal_mae_list = np.array(x_sagittal_mae_list)
+        y_sagittal_mae_list = np.array(y_sagittal_mae_list)
+        print(f"x_sagittal_mae mean: {np.mean(x_sagittal_mae_list)}, std: {np.std(x_sagittal_mae_list)}")
+        print(f"y_sagittal_mae mean: {np.mean(y_sagittal_mae_list)}, std: {np.std(y_sagittal_mae_list)}")
+
+        # save the mae
+        x_sagittal_mae_savename = f"{root_folder}{name_tag}_x_sagittal_mae.npy"
+        y_sagittal_mae_savename = f"{root_folder}{name_tag}_y_sagittal_mae.npy"
+        np.save(x_sagittal_mae_savename, x_sagittal_mae_list)
+        np.save(y_sagittal_mae_savename, y_sagittal_mae_list)
+        print(f"Save {x_sagittal_mae_savename} and {y_sagittal_mae_savename}")
+
+        # save the indices
+        x_sagittal_ind = np.array(x_sagittal_ind_list)
+        y_sagittal_ind = np.array(y_sagittal_ind_list)
+        x_sagittal_ind_savename = f"{root_folder}{name_tag}_x_sagittal_ind.npy"
+        y_sagittal_ind_savename = f"{root_folder}{name_tag}_y_sagittal_ind.npy"
+
+        np.save(x_sagittal_ind_savename, x_sagittal_ind_list)
+        np.save(y_sagittal_ind_savename, y_sagittal_ind_list)
+        print(f"Save {x_sagittal_ind_savename} and {y_sagittal_ind_savename}")
+
+    print(f"Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] done.")
+
+print("All done.")
