@@ -155,6 +155,7 @@ def main():
             print(f"Testing division: {data_div_cv['test']}")
 
         for split in data_split:
+            data_split_folder = os.path.join(root_folder, split)
             mask_save_folder = os.path.join(root_folder, split+"_mask")
             if not os.path.exists(mask_save_folder):
                 os.makedirs(mask_save_folder)
