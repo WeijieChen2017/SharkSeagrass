@@ -531,7 +531,7 @@ class VQModel(pl.LightningModule):
         return x
 
 
-VQ_NAME = "f4-noattn"
+VQ_NAME = "f16"
 
 # load the configuration yaml files
 
@@ -628,7 +628,7 @@ done_sagittal = False
 
 n_cut = 8
 zoom_factors = [256/512, 256/512, 1]
-root_folder = "B100/TC256_v2_vq/"
+root_folder = f"B100/TC256_v2_vq_{VQ_NAME}/"
 if not os.path.exists(root_folder):
     os.makedirs(root_folder)
 
