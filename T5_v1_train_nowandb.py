@@ -152,14 +152,12 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
 
         if train_phase == "train":
             optimizer.zero_grad()
-            outputs = model(x)
-            loss = output_loss(outputs, y)
+            loss = model(input_ids=batch_x, labels=batch_y).loss
             loss.backward()
             optimizer.step()
         elif train_phase == "val" or train_phase == "test":
             with torch.no_grad():
-                outputs = model(x)
-                loss = output_loss(outputs, y)
+                loss = model(input_ids=batch_x, labels=batch_y).loss
 
         axial_case_loss.append(loss.item())
         axial_case_diff.append(diff_avg.item())
@@ -177,14 +175,12 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
 
         if train_phase == "train":
             optimizer.zero_grad()
-            outputs = model(x)
-            loss = output_loss(outputs, y)
+            loss = model(input_ids=batch_x, labels=batch_y).loss
             loss.backward()
             optimizer.step()
         elif train_phase == "val" or train_phase == "test":
             with torch.no_grad():
-                outputs = model(x)
-                loss = output_loss(outputs, y)
+                loss = model(input_ids=batch_x, labels=batch_y).loss
 
         coronal_case_loss.append(loss.item())
         coronal_case_diff.append(diff_avg.item())
@@ -202,14 +198,12 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
 
         if train_phase == "train":
             optimizer.zero_grad()
-            outputs = model(x)
-            loss = output_loss(outputs, y)
+            loss = model(input_ids=batch_x, labels=batch_y).loss
             loss.backward()
             optimizer.step()
         elif train_phase == "val" or train_phase == "test":
             with torch.no_grad():
-                outputs = model(x)
-                loss = output_loss(outputs, y)
+                loss = model(input_ids=batch_x, labels=batch_y).loss
 
         sagittal_case_loss.append(loss.item())
         sagittal_case_diff.append(diff_avg.item())
