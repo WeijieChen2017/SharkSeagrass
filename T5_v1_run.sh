@@ -8,9 +8,12 @@ tar -xzvf ind_sagittal.tar.gz
 rm ind_axial.tar.gz
 rm ind_coronal.tar.gz
 rm ind_sagittal.tar.gz
-mv ind_axial ./SharkSeagrass/
-mv ind_coronal ./SharkSeagrass/
-mv ind_sagittal ./SharkSeagrass/
+
+mkdir TC256_v2_vq_f8
+mv ind_axial ./TC256_v2_vq_f8/
+mv ind_coronal ./TC256_v2_vq_f8/
+mv ind_sagittal ./TC256_v2_vq_f8/
+mv TC256_v2_vq_f8 ./SharkSeagrass/
 
 cd SharkSeagrass
 mkdir results
