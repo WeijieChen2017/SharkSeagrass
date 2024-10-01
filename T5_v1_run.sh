@@ -17,7 +17,7 @@ mkdir results
 echo "============================================"
 ls
 echo "============================================"
-python T5_v1_train_nowandb.py --cross_validation $1 --pretrain $2 --model_architecture $3 --model_scale $4 --batch_size $5
+python3 T5_v1_train_nowandb.py --cross_validation $1 --pretrain $2 --model_architecture $3 --model_scale $4 --batch_size $5
 echo "============================================"
 du -lh -d 1
 tar -czvf T5v1f8_cv$1.tar.gz results
