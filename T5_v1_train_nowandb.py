@@ -318,7 +318,7 @@ def main():
     argparser.add_argument('--model_architecture', type=str, default='T5_v1.1', help='The architecture of the model')
     argparser.add_argument('--model_scale', type=str, default='small', help='The scale of the model')
     argparser.add_argument('--batch_size', type=int, default=8, help='The batch size for training')
-    argparser.add_argument('--SSL_available', type=str, default='N', help='Whether the SSL is available')
+    argparser.add_argument('--SSL_available', type=str, default='Y', help='Whether the SSL is available')
     args = argparser.parse_args()
     cross_validation = args.cross_validation
     is_pretrained = True if args.pretrain == 'Y' or args.pretrain == 'y' else False
