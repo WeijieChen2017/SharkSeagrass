@@ -1,5 +1,5 @@
 universe = container
-container_image = docker://docker.io/huggingface/transformers-pytorch-gpu
+container_image = docker://docker.io/huggingface/transformers-pytorch-gpu:latest
 
 log = job_$(Cluster)_$(Process).log
 error = job_$(Cluster)_$(Process).err
@@ -10,7 +10,7 @@ arguments = $(cv) $(pre) $(ma) $(ms) $(bs)
 
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
-transfer_input_files = SharkSeagrass.zip, ind_axial.tar.gz, ind_coronal.tar.gz, ind_sagittal.tar.gz
+transfer_input_files = SharkSeagrass.tar.gz, ind_axial.tar.gz, ind_coronal.tar.gz, ind_sagittal.tar.gz
 
 +WantGPULab = true
 +GPUJobLength = "short"
