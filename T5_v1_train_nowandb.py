@@ -338,9 +338,9 @@ def main():
         raise ValueError(f"Model scale {model_scale} is not supported")
 
     if is_pretrained:
-        tag = f"fold{args.cross_validation}_pretrain_{architecture}_{model_scale}_"
+        tag = f"fold{args.cross_validation}_pretrain_{model_architecture}_{model_scale}_"
     else:
-        tag = f"fold{args.cross_validation}_{architecture}_{model_scale}_"
+        tag = f"fold{args.cross_validation}_{model_architecture}_{model_scale}_"
 
     random_seed = 729
     # set the random seed
