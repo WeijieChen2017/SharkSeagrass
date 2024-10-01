@@ -324,12 +324,14 @@ def main():
     argparser.add_argument('--model_architecture', type=str, default='T5_v1.1', help='The architecture of the model')
     argparser.add_argument('--model_scale', type=str, default='small', help='The scale of the model')
     argparser.add_argument('--batch_size', type=int, default=8, help='The batch size for training')
+    argparser.add_argument('--SSL_available', type=str, default='N', help='Whether the SSL is available')
     args = argparser.parse_args()
     cross_validation = args.cross_validation
     is_pretrained = True if args.pretrain == 'Y' or args.pretrain == 'y' else False
     model_architecture = args.model_architecture
     model_scale = args.model_scale
     batch_size = args.batch_size
+    SSL_available = True if args.SSL_available == 'Y' or args.SSL_available == 'y' else False
 
     if not model_architecture in ["byte_T5", "T5_v1.1", "mT5"]:
         raise ValueError(f"Model architecture {model_architecture} is not supported")
@@ -406,31 +408,43 @@ def main():
         os.makedirs(root_folder)
     print("The root folder is: ", root_folder)
     global_config["root_folder"] = root_folder
+    pre_train_ckpt = f"t5-v1_1-{model_scale}.pth"
 
     if model_architecture == "byte_T5":
         model_ckpt = f"google/byt5-{model_scale}"
-        if is_pretrained:
+        pre_train_ckpt = f"byt5-{model_scale}.pth"
+        if SSL_available and is_pretrained:
             model = T5ForConditionalGeneration.from_pretrained(model_ckpt)
         else:
             # Create a configuration object for the T5 model
-            config = T5Config.from_pretrained("google/byt5-small")
+            config = T5Config.from_pretrained(model_ckpt)
             model = T5ForConditionalGeneration(config)
+            if is_pretrained:
+                model.load_state_dict(torch.load(pre_train_ckpt))
+
     elif model_architecture == "T5_v1.1":
         model_ckpt = f"google/t5-v1_1-{model_scale}"
-        if is_pretrained:
+        pre_train_ckpt = f"t5-v1_1-{model_scale}.pth"
+        if SSL_available and is_pretrained:
             model = T5ForConditionalGeneration.from_pretrained(model_ckpt)
         else:
             # Create a configuration object for the T5 model
-            config = T5Config.from_pretrained("google/t5-v1_1-small")
+            config = T5Config.from_pretrained(model_ckpt)
             model = T5ForConditionalGeneration(config)
+            if is_pretrained:
+                model.load_state_dict(torch.load(pre_train_ckpt))
+
     elif model_architecture == "mT5":
         model_ckpt = f"google/mt5-{model_scale}"
-        if is_pretrained:
+        pre_train_ckpt = f"mt5-{model_scale}.pth"
+        if SSL_available and is_pretrained:
             model = T5ForConditionalGeneration.from_pretrained(model_ckpt)
         else:
             # Create a configuration object for the T5 model
-            config = T5Config.from_pretrained("google/mt5-small")
+            config = T5Config.from_pretrained(model_ckpt)
             model = T5ForConditionalGeneration(config)
+            if is_pretrained:
+                model.load_state_dict(torch.load(pre_train_ckpt))
     else:
         print("Current supported model architectures are: byte_T5, T5_v1.1, mT5")
         print("Current supported model scales are: small, base, large, xl, xxl")
