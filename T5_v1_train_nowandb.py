@@ -100,12 +100,12 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
     batch_val = global_config["data_params"]["batch_val"]
     batch_test = global_config["data_params"]["batch_test"]
 
-    data_ind_axial_x = np.load(volume_x["axial"])
-    data_ind_coronal_x = np.load(volume_x["coronal"])
-    data_ind_sagittal_x = np.load(volume_x["sagittal"])
-    data_ind_axial_y = np.load(volume_y["axial"])
-    data_ind_coronal_y = np.load(volume_y["coronal"])
-    data_ind_sagittal_y = np.load(volume_y["sagittal"])
+    data_ind_axial_x = np.load(path_list_x["axial"])
+    data_ind_coronal_x = np.load(path_list_x["coronal"])
+    data_ind_sagittal_x = np.load(path_list_x["sagittal"])
+    data_ind_axial_y = np.load(path_list_y["axial"])
+    data_ind_coronal_y = np.load(path_list_y["coronal"])
+    data_ind_sagittal_y = np.load(path_list_y["sagittal"])
 
     len_axial = data_ind_axial_x.shape[0]
     len_coronal = data_ind_coronal_x.shape[0]
