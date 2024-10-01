@@ -260,12 +260,12 @@ def prepare_dataset(data_div_json, global_config):
                 "axial": f"TC256_v2_vq_f8/ind_axial/{hashname}_x_axial_ind.npy",
                 "coronal": f"TC256_v2_vq_f8/ind_coronal/{hashname}_x_coronal_ind.npy",
                 "sagittal": f"TC256_v2_vq_f8/ind_sagittal/{hashname}_x_sagittal_ind.npy",
-            }
+            },
             "CTAC": {
                 "axial": f"TC256_v2_vq_f8/ind_axial/{hashname}_y_axial_ind.npy",
                 "coronal": f"TC256_v2_vq_f8/ind_coronal/{hashname}_y_coronal_ind.npy",
                 "sagittal": f"TC256_v2_vq_f8/ind_sagittal/{hashname}_y_sagittal_ind.npy",
-            }
+            },
         })
 
     for hashname in val_list:
