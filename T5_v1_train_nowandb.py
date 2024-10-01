@@ -133,12 +133,12 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
     random.shuffle(indices_list_coronal)
     random.shuffle(indices_list_sagittal)
 
-    axial_case_loss = []
-    axial_cass_diff = []
-    coronal_case_loss = []
-    coronal_case_diff = []
-    sagittal_case_loss = []
-    sagittal_case_diff = []
+    axial_case_loss = 0
+    axial_case_diff = 0
+    coronal_case_loss = 0
+    coronal_case_diff = 0
+    sagittal_case_loss = 0
+    sagittal_case_diff = 0
 
     # axial slices
     for indices in batch_indices_list_axial:
@@ -159,8 +159,8 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
             with torch.no_grad():
                 loss = model(input_ids=batch_x, labels=batch_y).loss
 
-        axial_case_loss.append(loss.item())
-        axial_case_diff.append(diff_avg.item())
+        axial_case_loss += loss.item()
+        axial_case_diff += diff_avg.item()
 
     axial_case_loss /= len(batch_indices_list_axial)
     axial_case_diff /= len(batch_indices_list_axial)
@@ -182,8 +182,8 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
             with torch.no_grad():
                 loss = model(input_ids=batch_x, labels=batch_y).loss
 
-        coronal_case_loss.append(loss.item())
-        coronal_case_diff.append(diff_avg.item())
+        coronal_case_loss += loss.item()
+        coronal_case_diff += diff_avg.item()
     
     coronal_case_loss /= len(batch_indices_list_coronal)
     coronal_case_diff /= len(batch_indices_list_coronal)
@@ -205,8 +205,8 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
             with torch.no_grad():
                 loss = model(input_ids=batch_x, labels=batch_y).loss
 
-        sagittal_case_loss.append(loss.item())
-        sagittal_case_diff.append(diff_avg.item())
+        sagittal_case_loss += loss.item()
+        sagittal_case_diff += diff_avg.item()
     
     sagittal_case_loss /= len(batch_indices_list_sagittal)
     sagittal_case_diff /= len(batch_indices_list_sagittal)
@@ -362,13 +362,13 @@ def main():
     }
 
     train_params = {
-        "num_epoch": 101,
+        "num_epoch": 51,
         "optimizer": "AdamW",
         "lr": 1e-4,
         "weight_decay": 1e-5,
         "loss": "NLL",
-        "val_per_epoch": 10,
-        "save_per_epoch": 25,
+        "val_per_epoch": 5,
+        "save_per_epoch": 10,
     }
 
     # wandb_config = {
@@ -507,13 +507,13 @@ def main():
             coronal_norm_loss += coronal_norm_loss
             sagittal_norm_loss += sagittal_norm_loss
         
-        axial_train_loss /= len(train_data_loader)
-        coronal_train_loss /= len(train_data_loader)
-        sagittal_train_loss /= len(train_data_loader)
+        axial_train_loss /= len(train_path_list)
+        coronal_train_loss /= len(train_path_list)
+        sagittal_train_loss /= len(train_path_list)
 
-        axial_norm_loss /= len(train_data_loader)
-        coronal_norm_loss /= len(train_data_loader)
-        sagittal_norm_loss /= len(train_data_loader)
+        axial_norm_loss /= len(train_path_list)
+        coronal_norm_loss /= len(train_path_list)
+        sagittal_norm_loss /= len(train_path_list)
 
         train_loss = (axial_train_loss + coronal_train_loss + sagittal_train_loss) / 3
         train_norm_loss = (axial_norm_loss + coronal_norm_loss + sagittal_norm_loss) / 3
@@ -569,13 +569,13 @@ def main():
                 coronal_val_norm_loss += coronal_norm_loss
                 sagittal_val_norm_loss += sagittal_norm_loss
 
-            axial_val_loss /= len(val_data_loader)
-            coronal_val_loss /= len(val_data_loader)
-            sagittal_val_loss /= len(val_data_loader)
+            axial_val_loss /= len(val_path_list)
+            coronal_val_loss /= len(val_path_list)
+            sagittal_val_loss /= len(val_path_list)
 
-            axial_val_norm_loss /= len(val_data_loader)
-            coronal_val_norm_loss /= len(val_data_loader)
-            sagittal_val_norm_loss /= len(val_data_loader)
+            axial_val_norm_loss /= len(val_path_list)
+            coronal_val_norm_loss /= len(val_path_list)
+            sagittal_val_norm_loss /= len(val_path_list)
 
             val_loss = (axial_val_loss + coronal_val_loss + sagittal_val_loss) / 3
             val_norm_loss = (axial_val_norm_loss + coronal_val_norm_loss + sagittal_val_norm_loss) / 3
@@ -638,13 +638,13 @@ def main():
                     coronal_test_norm_loss += coronal_norm_loss
                     sagittal_test_norm_loss += sagittal_norm_loss
 
-                axial_test_loss /= len(test_data_loader)
-                coronal_test_loss /= len(test_data_loader)
-                sagittal_test_loss /= len(test_data_loader)
+                axial_test_loss /= len(test_path_list)
+                coronal_test_loss /= len(test_path_list)
+                sagittal_test_loss /= len(test_path_list)
 
-                axial_test_norm_loss /= len(test_data_loader)
-                coronal_test_norm_loss /= len(test_data_loader)
-                sagittal_test_norm_loss /= len(test_data_loader)
+                axial_test_norm_loss /= len(test_path_list)
+                coronal_test_norm_loss /= len(test_path_list)
+                sagittal_test_norm_loss /= len(test_path_list)
 
                 test_loss = (axial_test_loss + coronal_test_loss + sagittal_test_loss) / 3
                 test_norm_loss = (axial_test_norm_loss + coronal_test_norm_loss + sagittal_test_norm_loss) / 3
