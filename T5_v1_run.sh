@@ -1,4 +1,4 @@
-unzip SharkSeagrass.zip
+tar -xzvf SharkSeagrass.tar.gz
 rm SharkSeagrass.zip
 
 tar -xzvf ind_axial.tar.gz
