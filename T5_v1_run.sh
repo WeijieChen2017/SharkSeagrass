@@ -1,5 +1,5 @@
 tar -xzvf SharkSeagrass.tar.gz
-rm SharkSeagrass.zip
+rm SharkSeagrass.tar.gz
 
 tar -xzvf ind_axial.tar.gz
 tar -xzvf ind_coronal.tar.gz
