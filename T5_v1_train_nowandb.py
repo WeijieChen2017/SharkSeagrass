@@ -57,7 +57,7 @@ import os
 
 # import wandb
 import torch
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
 
 import argparse
@@ -319,11 +319,11 @@ def prepare_dataset(data_div_json, global_config):
 def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
-    argparser.add_argument('--cross_validation', type=int, default=5, help='Index of the cross validation')
+    argparser.add_argument('--cross_validation', type=int, default=0, help='Index of the cross validation')
     argparser.add_argument('--pretrain', type=bool, type=str, default='Y', help='Whether to pretrain the model')
-    argparser.add_argument('--model_architecture', type=str, default='byte_T5', help='The architecture of the model')
+    argparser.add_argument('--model_architecture', type=str, default='T5_v1.1', help='The architecture of the model')
     argparser.add_argument('--model_scale', type=str, default='small', help='The scale of the model')
-    argpasser.add_argument('--batch_size', type=int, default=4, help='The batch size for training')
+    argpasser.add_argument('--batch_size', type=int, default=8, help='The batch size for training')
     args = argparser.parse_args()
     cross_validation = args.cross_validation
     is_pretrained = True if args.pretrain == 'Y' or args.pretrain == 'y' else False
