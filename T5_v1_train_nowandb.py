@@ -320,7 +320,7 @@ def main():
     # here I will use argparse to parse the arguments
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
     argparser.add_argument('--cross_validation', type=int, default=0, help='Index of the cross validation')
-    argparser.add_argument('--pretrain', type=bool, type=str, default='Y', help='Whether to pretrain the model')
+    argparser.add_argument('--pretrain', type=str, default='Y', help='Whether to pretrain the model')
     argparser.add_argument('--model_architecture', type=str, default='T5_v1.1', help='The architecture of the model')
     argparser.add_argument('--model_scale', type=str, default='small', help='The scale of the model')
     argpasser.add_argument('--batch_size', type=int, default=8, help='The batch size for training')
