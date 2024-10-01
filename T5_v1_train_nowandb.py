@@ -26,8 +26,6 @@
 # google/mt5-xl
 # google/mt5-xxl
 
-from transformers import T5ForConditionalGeneration, T5Config
-
 import os
 
 # # This is for both train axial, coronal, sagittal slices
@@ -59,6 +57,8 @@ for key, path in cache_dirs.items():
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
+
+from transformers import T5ForConditionalGeneration, T5Config
 
 import argparse
 import json
