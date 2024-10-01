@@ -32,32 +32,32 @@ import os
 
 # # This is for both train axial, coronal, sagittal slices
 # # Define the base cache directory
-# base_cache_dir = './cache'
+base_cache_dir = './cache'
 
 # # Define and create necessary subdirectories within the base cache directory
-# cache_dirs = {
-#     'WANDB_DIR': os.path.join(base_cache_dir, 'wandb'),
-#     'WANDB_CACHE_DIR': os.path.join(base_cache_dir, 'wandb_cache'),
-#     'WANDB_CONFIG_DIR': os.path.join(base_cache_dir, 'config'),
-#     'WANDB_DATA_DIR': os.path.join(base_cache_dir, 'data'),
-#     'TRANSFORMERS_CACHE': os.path.join(base_cache_dir, 'transformers'),
-#     'MPLCONFIGDIR': os.path.join(base_cache_dir, 'mplconfig')
-# }
+cache_dirs = {
+    # 'WANDB_DIR': os.path.join(base_cache_dir, 'wandb'),
+    # 'WANDB_CACHE_DIR': os.path.join(base_cache_dir, 'wandb_cache'),
+    # 'WANDB_CONFIG_DIR': os.path.join(base_cache_dir, 'config'),
+    # 'WANDB_DATA_DIR': os.path.join(base_cache_dir, 'data'),
+    'TRANSFORMERS_CACHE': os.path.join(base_cache_dir, 'transformers'),
+    # 'MPLCONFIGDIR': os.path.join(base_cache_dir, 'mplconfig')
+}
 
 # # Create the base cache directory if it doesn't exist
-# os.makedirs(base_cache_dir, exist_ok=True)
+os.makedirs(base_cache_dir, exist_ok=True)
 
 # Create the necessary subdirectories and set the environment variables
-# for key, path in cache_dirs.items():
-#     os.makedirs(path, exist_ok=True)
-#     os.environ[key] = path
+for key, path in cache_dirs.items():
+    os.makedirs(path, exist_ok=True)
+    os.environ[key] = path
 
 # set the environment variable to use the GPU if available
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 # import wandb
 import torch
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
 
 import argparse
