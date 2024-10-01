@@ -39,6 +39,7 @@ cache_dirs = {
     # 'WANDB_CONFIG_DIR': os.path.join(base_cache_dir, 'config'),
     # 'WANDB_DATA_DIR': os.path.join(base_cache_dir, 'data'),
     'TRANSFORMERS_CACHE': os.path.join(base_cache_dir, 'transformers'),
+    "HF_HOME": os.path.join(base_cache_dir, 'huggingface'),
     # 'MPLCONFIGDIR': os.path.join(base_cache_dir, 'mplconfig')
 }
 
@@ -55,7 +56,7 @@ for key, path in cache_dirs.items():
 
 # import wandb
 import torch
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
 
 from transformers import T5ForConditionalGeneration, T5Config
