@@ -55,7 +55,7 @@ for key, path in cache_dirs.items():
 
 # import wandb
 import torch
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
 
 from transformers import T5ForConditionalGeneration, T5Config
