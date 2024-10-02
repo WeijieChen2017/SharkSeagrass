@@ -169,7 +169,8 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 max_length = batch_x.shape[1]
                 loss = model(input_ids=batch_x, labels=batch_y).loss
                 pred = model.generate(batch_x, max_length=max_length, do_sample=False)  # deterministic
-                diff_count = torch.sum(pred != batch_y, axis=1)
+                diff_count = torch.sum(pred != batch_y, axis=1).float()
+                # current dtype is Long, I need to convert it to float
                 diff_count = torch.mean(diff_count)
                 diff_pctg = diff_count / max_length
                 axial_case_pctg += diff_pctg
