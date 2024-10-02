@@ -18,9 +18,9 @@ direction_list = ["axial", "coronal", "sagittal"]
 
 import os
 
-for z in z_list:
+for direction in direction_list:
     print()
-    for direction in direction_list:
+    for z in z_list:
         filenames = []
         filenames_masks = []
         for i in range(3):
