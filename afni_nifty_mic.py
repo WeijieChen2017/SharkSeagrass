@@ -27,5 +27,5 @@ for z in z_list:
             filenames.append(f"HNJ120_{direction}_z{z}_offset1024.nii.gz")
             filenames_masks.append(f"HNJ120_{direction}_z{z}_mask.nii.gz")
         output = f"HNJ120_{direction}_z{z}_niftyMIC_offset1024.nii.gz"
-        print(f"niftymic_reconstruct_volume --filenames {' '.join(filenames)} --filenames-masks {' '.join(filenames_masks)} --output {output}")
+    print(f"niftymic_reconstruct_volume --filenames {' '.join(filenames)} --filenames-masks {' '.join(filenames_masks)} --output {output}")
 
