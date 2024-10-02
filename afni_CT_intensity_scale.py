@@ -13,6 +13,7 @@ file_list = [
 
 # we load every file, add 1024 to the intensity values, and save the result as name_offset1024.nii.gz
 
+import os
 import nibabel as nib
 
 for file in file_list:
