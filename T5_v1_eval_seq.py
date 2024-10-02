@@ -146,8 +146,13 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
     sagittal_case_diff = 0
     sagittal_case_pctg = 0
 
+    axial_pred = np.zeros(data_ind_axial_x.shape)
+    coronal_pred = np.zeros(data_ind_coronal_x.shape)
+    sagittal_pred = np.zeros(data_ind_sagittal_x.shape)
+
     # axial slices
-    for indices in batch_indices_list_axial:
+    # for indices in batch_indices_list_axial:
+    for indices in range(len(batch_indices_list_axial)):
         # according to the batch indices list, get the corresponding data
         batch_x = torch.tensor(data_ind_axial_x[indices].astype(int)).to(device)
         batch_y = torch.tensor(data_ind_axial_y[indices].astype(int)).to(device)
@@ -176,9 +181,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 axial_case_pctg += diff_pctg
 
                 if if_pred_save:
-                    save_name = path_list_x["axial"].replace("axial_ind", "axial_pred")
-                    np.save(save_name, pred.detach().cpu().numpy())
-                    print(f"Save the prediction to {save_name}")
+                    axial_pred[indices] = pred.detach().cpu().numpy()
                 
         axial_case_loss += loss.item()
         axial_case_diff += diff_avg.item()
@@ -214,9 +217,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 coronal_case_pctg += diff_pctg
 
             if if_pred_save:
-                save_name = path_list_x["coronal"].replace("coronal_ind", "coronal_pred")
-                np.save(save_name, pred.detach().cpu().numpy())
-                print(f"Save the prediction to {save_name}")
+                coronal_pred[indices] = pred.detach().cpu().numpy()
 
         coronal_case_loss += loss.item()
         coronal_case_diff += diff_avg.item()
@@ -252,9 +253,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 sagittal_case_pctg += diff_pctg
 
             if if_pred_save:
-                save_name = path_list_x["sagittal"].replace("sagittal_ind", "sagittal_pred")
-                np.save(save_name, pred.detach().cpu().numpy())
-                print(f"Save the prediction to {save_name}")
+                sagittal_pred[indices] = pred.detach().cpu().numpy()
 
         sagittal_case_loss += loss.item()
         sagittal_case_diff += diff_avg.item()
@@ -274,6 +273,17 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
         "sagittal_case_diff": sagittal_case_diff,
         "sagittal_case_pctg": sagittal_case_pctg,
     }
+
+    if if_pred_save:
+        axial_savename = path_list_x["axial"].replace("axial_ind.npy", "axial_pred.npy")
+        coronal_savename = path_list_x["coronal"].replace("coronal_ind.npy", "coronal_pred.npy")
+        sagittal_savename = path_list_x["sagittal"].replace("sagittal_ind.npy", "sagittal_pred.npy")
+
+        np.save(axial_savename, axial_pred)
+        np.save(coronal_savename, coronal_pred)
+        np.save(sagittal_savename, sagittal_pred)
+
+        print(f"Predictions saved to {axial_savename}, {coronal_savename}, {sagittal_savename}")
 
     return return_dict
 
