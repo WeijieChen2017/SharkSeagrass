@@ -19,11 +19,13 @@ direction_list = ["axial", "coronal", "sagittal"]
 import os
 
 for z in z_list:
+    print()
     for direction in direction_list:
         filenames = []
         filenames_masks = []
         for i in range(3):
-            filenames.append(f"HNJ120_{direction}_z{z}_offset1024..nii.gz")
+            filenames.append(f"HNJ120_{direction}_z{z}_offset1024.nii.gz")
             filenames_masks.append(f"HNJ120_{direction}_z{z}_mask.nii.gz")
         output = f"HNJ120_{direction}_z{z}_niftyMIC_offset1024.nii.gz"
         print(f"niftymic_reconstruct_volume --filenames {' '.join(filenames)} --filenames-masks {' '.join(filenames_masks)} --output {output}")
+
