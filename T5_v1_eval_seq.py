@@ -176,7 +176,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 axial_case_pctg += diff_pctg
 
                 if if_pred_save:
-                    save_name = path_list_x["axial"].replace("ind_axial", "pred_axial")
+                    save_name = path_list_x["axial"].replace("axial_ind", "axial_pred")
                     np.save(save_name, pred.detach().cpu().numpy())
                     print(f"Save the prediction to {save_name}")
                 
@@ -214,7 +214,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 coronal_case_pctg += diff_pctg
 
             if if_pred_save:
-                save_name = path_list_x["coronal"].replace("ind_coronal", "pred_coronal")
+                save_name = path_list_x["coronal"].replace("coronal_ind", "coronal_pred")
                 np.save(save_name, pred.detach().cpu().numpy())
                 print(f"Save the prediction to {save_name}")
 
@@ -252,7 +252,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 sagittal_case_pctg += diff_pctg
 
             if if_pred_save:
-                save_name = path_list_x["sagittal"].replace("ind_sagittal", "pred_sagittal")
+                save_name = path_list_x["sagittal"].replace("sagittal_ind", "sagittal_pred")
                 np.save(save_name, pred.detach().cpu().numpy())
                 print(f"Save the prediction to {save_name}")
 
