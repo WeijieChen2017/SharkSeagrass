@@ -56,7 +56,7 @@ for key, path in cache_dirs.items():
 
 # import wandb
 import torch
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
 
 from transformers import T5ForConditionalGeneration, T5Config
@@ -458,11 +458,11 @@ def main():
         os.makedirs(root_folder)
     print("The root folder is: ", root_folder)
     global_config["root_folder"] = root_folder
-    pre_train_ckpt = f"t5-v1_1-{model_scale}.pth"
+    pre_train_ckpt = os.path.join(root_folder, f"best_model_cv{cross_validation}.pth")
 
     if model_architecture == "byte_T5":
         model_ckpt = f"google/byt5-{model_scale}"
-        pre_train_ckpt = f"byt5-{model_scale}.pth"
+        # pre_train_ckpt = f"byt5-{model_scale}.pth"
         if SSL_available and is_pretrained:
             model = T5ForConditionalGeneration.from_pretrained(model_ckpt)
         else:
@@ -474,7 +474,7 @@ def main():
 
     elif model_architecture == "T5_v1.1":
         model_ckpt = f"google/t5-v1_1-{model_scale}"
-        pre_train_ckpt = f"t5-v1_1-{model_scale}.pth"
+        # pre_train_ckpt = f"t5-v1_1-{model_scale}.pth"
         if SSL_available and is_pretrained:
             model = T5ForConditionalGeneration.from_pretrained(model_ckpt)
         else:
@@ -486,7 +486,7 @@ def main():
 
     elif model_architecture == "mT5":
         model_ckpt = f"google/mt5-{model_scale}"
-        pre_train_ckpt = f"mt5-{model_scale}.pth"
+        # pre_train_ckpt = f"mt5-{model_scale}.pth"
         if SSL_available and is_pretrained:
             model = T5ForConditionalGeneration.from_pretrained(model_ckpt)
         else:
@@ -499,6 +499,8 @@ def main():
         print("Current supported model architectures are: byte_T5, T5_v1.1, mT5")
         print("Current supported model scales are: small, base, large, xl, xxl")
         raise ValueError(f"Model architecture {model_architecture} or model scale {model_scale} is not supported")
+
+    # load pretrained model
 
     model.to(device)
     model.eval()
