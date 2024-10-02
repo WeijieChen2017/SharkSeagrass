@@ -1,0 +1,40 @@
+podman run --gpus all -it -v ./:/SharkSeagrass --ipc=host docker.io/renbem/niftymic:latest
+
+3dZcutup -prefix HNJ120_axial_z140.nii.gz -keep 0 139 HNJ120_CTAC_pred_axial_rescale_cv1.nii.gz
+3dZcutup -prefix HNJ120_axial_z280.nii.gz -keep 140 279 HNJ120_CTAC_pred_axial_rescale_cv1.nii.gz
+3dZcutup -prefix HNJ120_axial_z420.nii.gz -keep 280 419 HNJ120_CTAC_pred_axial_rescale_cv1.nii.gz
+
+3dZcutup -prefix HNJ120_coronal_z140.nii.gz -keep 0 139 HNJ120_CTAC_pred_coronal_rescale_cv1.nii.gz
+3dZcutup -prefix HNJ120_coronal_z280.nii.gz -keep 140 279 HNJ120_CTAC_pred_coronal_rescale_cv1.nii.gz
+3dZcutup -prefix HNJ120_coronal_z420.nii.gz -keep 280 419 HNJ120_CTAC_pred_coronal_rescale_cv1.nii.gz
+
+3dZcutup -prefix HNJ120_sagittal_z140.nii.gz -keep 0 139 HNJ120_CTAC_pred_sagittal_rescale_cv1.nii.gz
+3dZcutup -prefix HNJ120_sagittal_z280.nii.gz -keep 140 279 HNJ120_CTAC_pred_sagittal_rescale_cv1.nii.gz
+3dZcutup -prefix HNJ120_sagittal_z420.nii.gz -keep 280 419 HNJ120_CTAC_pred_sagittal_rescale_cv1.nii.gz
+
+3dZcutup -prefix HNJ120_axial_z140_mask.nii.gz -keep 0 139 HNJ120_CTAC_pred_axial_mask_cv1.nii.gz
+3dZcutup -prefix HNJ120_axial_z280_mask.nii.gz -keep 140 279 HNJ120_CTAC_pred_axial_mask_cv1.nii.gz
+3dZcutup -prefix HNJ120_axial_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_axial_mask_cv1.nii.gz
+
+3dZcutup -prefix HNJ120_coronal_z140_mask.nii.gz -keep 0 139 HNJ120_CTAC_pred_coronal_mask_cv1.nii.gz
+3dZcutup -prefix HNJ120_coronal_z280_mask.nii.gz -keep 140 279 HNJ120_CTAC_pred_coronal_mask_cv1.nii.gz
+3dZcutup -prefix HNJ120_coronal_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_coronal_mask_cv1.nii.gz
+
+3dZcutup -prefix HNJ120_sagittal_z140_mask.nii.gz -keep 0 139 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz
+3dZcutup -prefix HNJ120_sagittal_z280_mask.nii.gz -keep 140 279 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz
+3dZcutup -prefix HNJ120_sagittal_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz
+
+niftymic_reconstruct_volume \
+  --filenames HNJ120_axial_z140.nii.gz HNJ120_coronal_z140.nii.gz HNJ120_sagittal_z140.nii.gz \
+  --filenames-masks HNJ120_axial_z140_mask.nii.gz HNJ120_coronal_z140_mask.nii.gz HNJ120_sagittal_z140_mask.nii.gz \
+  --output HNJ120_axial_z140_niftyMIC.nii.gz
+
+niftymic_reconstruct_volume \
+  --filenames HNJ120_axial_z280.nii.gz HNJ120_coronal_z280.nii.gz HNJ120_sagittal_z280.nii.gz \
+  --filenames-masks HNJ120_axial_z280_mask.nii.gz HNJ120_coronal_z280_mask.nii.gz HNJ120_sagittal_z280_mask.nii.gz \
+  --output HNJ120_axial_z280_niftyMIC.nii.gz
+
+niftymic_reconstruct_volume \
+  --filenames HNJ120_axial_z420.nii.gz HNJ120_coronal_z420.nii.gz HNJ120_sagittal_z420.nii.gz \
+  --filenames-masks HNJ120_axial_z420_mask.nii.gz HNJ120_coronal_z420_mask.nii.gz HNJ120_sagittal_z420_mask.nii.gz \
+  --output HNJ120_axial_z420_niftyMIC.nii.gz
