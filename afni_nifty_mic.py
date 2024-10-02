@@ -18,11 +18,11 @@ direction_list = ["axial", "coronal", "sagittal"]
 
 import os
 
-for direction in direction_list:
+for z in z_list:
     print()
-    for z in z_list:
-        filenames = []
-        filenames_masks = []
+    filenames = []
+    filenames_masks = []
+    for direction in direction_list:
         for i in range(3):
             filenames.append(f"HNJ120_{direction}_z{z}_offset1024.nii.gz")
             filenames_masks.append(f"HNJ120_{direction}_z{z}_mask.nii.gz")
