@@ -150,7 +150,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
         batch_y = torch.tensor(data_ind_axial_y[indices].astype(int)).to(device)
         # n_batch, len_seq
         diff_count = torch.sum(batch_x != batch_y)
-        diff_ratio = diff_count / batch_x.shape[1]
+        diff_ratio = diff_count / batch_x.shape[0]
         diff_avg = torch.mean(diff_ratio)
 
         if train_phase == "train":
@@ -163,12 +163,10 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 loss = model(input_ids=batch_x, labels=batch_y).loss
         elif train_phase == "test":
             with torch.no_grad():
-                max_length = batch_x.shape[1]
+                max_length = batch_x.shape[0]
                 loss = model(input_ids=batch_x, labels=batch_y).loss
                 pred = model.generate(batch_x, max_length=max_length, do_sample=False)  # deterministic
-                diff_count = torch.sum(pred != batch_y, axis=1).float()
-                # current dtype is Long, I need to convert it to float
-                diff_count = torch.mean(diff_count)
+                diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 axial_case_pctg += diff_pctg
 
@@ -187,7 +185,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
         batch_x = torch.tensor(data_ind_coronal_x[indices].astype(int)).to(device)
         batch_y = torch.tensor(data_ind_coronal_y[indices].astype(int)).to(device)
         diff_count = torch.sum(batch_x != batch_y)
-        diff_ratio = diff_count / batch_x.shape[1]
+        diff_ratio = diff_count / batch_x.shape[0]
         diff_avg = torch.mean(diff_ratio)
 
         if train_phase == "train":
@@ -200,11 +198,10 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 loss = model(input_ids=batch_x, labels=batch_y).loss
         elif train_phase == "test":
             with torch.no_grad():
-                max_length = batch_x.shape[1]
+                max_length = batch_x.shape[0]
                 loss = model(input_ids=batch_x, labels=batch_y).loss
                 pred = model.generate(batch_x, max_length=max_length, do_sample=False)  # deterministic
-                diff_count = torch.sum(pred != batch_y, axis=1)
-                diff_count = torch.mean(diff_count)
+                diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 coronal_case_pctg += diff_pctg
 
@@ -223,7 +220,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
         batch_x = torch.tensor(data_ind_sagittal_x[indices].astype(int)).to(device)
         batch_y = torch.tensor(data_ind_sagittal_y[indices].astype(int)).to(device)
         diff_count = torch.sum(batch_x != batch_y)
-        diff_ratio = diff_count / batch_x.shape[1]
+        diff_ratio = diff_count / batch_x.shape[0]
         diff_avg = torch.mean(diff_ratio)
 
         if train_phase == "train":
@@ -236,11 +233,10 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 loss = model(input_ids=batch_x, labels=batch_y).loss
         elif train_phase == "test":
             with torch.no_grad():
-                max_length = batch_x.shape[1]
+                max_length = batch_x.shape[0]
                 loss = model(input_ids=batch_x, labels=batch_y).loss
                 pred = model.generate(batch_x, max_length=max_length, do_sample=False)  # deterministic
-                diff_count = torch.sum(pred != batch_y, axis=1)
-                diff_count = torch.mean(diff_count)
+                diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 sagittal_case_pctg += diff_pctg
 
@@ -537,6 +533,12 @@ def main():
     axial_pred_diff_pctg = 0
     coronal_pred_diff_pctg = 0
     sagittal_pred_diff_pctg = 0
+    axial_test_diff = 0
+    coronal_test_diff = 0
+    sagittal_test_diff = 0
+    axial_test_diff_diff = 0
+    coronal_test_diff_diff = 0
+    sagittal_test_diff_diff = 0
 
     for idx_case, case_paths in enumerate(test_path_list):
         case_name = case_paths["case_name"]
@@ -557,6 +559,14 @@ def main():
         coronal_case_pred_diff_pctg = round(return_dict["coronal_case_pctg"], 3)
         sagittal_case_pred_diff_pctg = round(return_dict["sagittal_case_pctg"], 3)
 
+        axial_case_diff = round(return_dict["axial_case_diff"], 3)
+        coronal_case_diff = round(return_dict["coronal_case_diff"], 3)
+        sagittal_case_diff = round(return_dict["sagittal_case_diff"], 3)
+
+        axial_case_diff_diff = round(axial_case_diff - axial_case_pred_diff_pctg, 3)
+        coronal_case_diff_diff = round(coronal_case_diff - coronal_case_pred_diff_pctg, 3)
+        sagittal_case_diff_diff = round(sagittal_case_diff - sagittal_case_pred_diff_pctg, 3)
+
         logger.log(idx_epoch, "test_axial_case_loss", axial_case_loss)
         logger.log(idx_epoch, "test_coronal_case_loss", coronal_case_loss)
         logger.log(idx_epoch, "test_sagittal_case_loss", sagittal_case_loss)
@@ -566,6 +576,12 @@ def main():
         logger.log(idx_epoch, "test_axial_case_pred_diff_pctg", axial_case_pred_diff_pctg)
         logger.log(idx_epoch, "test_coronal_case_pred_diff_pctg", coronal_case_pred_diff_pctg)
         logger.log(idx_epoch, "test_sagittal_case_pred_diff_pctg", sagittal_case_pred_diff_pctg)
+        logger.log(idx_epoch, "test_axial_case_diff", axial_case_diff)
+        logger.log(idx_epoch, "test_coronal_case_diff", coronal_case_diff)
+        logger.log(idx_epoch, "test_sagittal_case_diff", sagittal_case_diff)
+        logger.log(idx_epoch, "test_axial_case_diff_diff", axial_case_diff_diff)
+        logger.log(idx_epoch, "test_coronal_case_diff_diff", coronal_case_diff_diff)
+        logger.log(idx_epoch, "test_sagittal_case_diff_diff", sagittal_case_diff_diff)
 
         axial_test_loss += axial_case_loss
         coronal_test_loss += coronal_case_loss
@@ -579,6 +595,14 @@ def main():
         coronal_pred_diff_pctg += coronal_case_pred_diff_pctg
         sagittal_pred_diff_pctg += sagittal_case_pred_diff
 
+        axial_test_diff += axial_case_diff
+        coronal_test_diff += coronal_case_diff
+        sagittal_test_diff += sagittal_case_diff
+
+        axial_test_diff_diff += axial_case_diff_diff
+        coronal_test_diff_diff += coronal_case_diff_diff
+        sagittal_test_diff_diff += sagittal_case_diff_diff
+
     axial_test_loss /= len(test_path_list)
     coronal_test_loss /= len(test_path_list)
     sagittal_test_loss /= len(test_path_list)
@@ -591,9 +615,15 @@ def main():
     coronal_pred_diff_pctg /= len(test_path_list)
     sagittal_pred_diff_pctg /= len(test_path_list)
 
+    axial_test_diff /= len(test_path_list)
+    coronal_test_diff /= len(test_path_list)
+    sagittal_test_diff /= len(test_path_list)
+
     test_loss = (axial_test_loss + coronal_test_loss + sagittal_test_loss) / 3
     test_norm_loss = (axial_test_norm_loss + coronal_test_norm_loss + sagittal_test_norm_loss) / 3
     test_pred_diff_pctg = (axial_pred_diff_pctg + coronal_pred_diff_pctg + sagittal_pred_diff_pctg) / 3
+    test_diff = (axial_test_diff + coronal_test_diff + sagittal_test_diff) / 3
+    test_diff_diff = (axial_test_diff_diff + coronal_test_diff_diff + sagittal_test_diff_diff) / 3
 
     logger.log(idx_epoch, "test_axial_loss", axial_test_loss)
     logger.log(idx_epoch, "test_coronal_loss", coronal_test_loss)
@@ -609,6 +639,16 @@ def main():
     logger.log(idx_epoch, "test_coronal_pred_diff_pctg", coronal_pred_diff_pctg)
     logger.log(idx_epoch, "test_sagittal_pred_diff_pctg", sagittal_pred_diff_pctg)
     logger.log(idx_epoch, "test_pred_diff_pctg", test_pred_diff_pctg)
+
+    logger.log(idx_epoch, "test_axial_diff", axial_test_diff)
+    logger.log(idx_epoch, "test_coronal_diff", coronal_test_diff)
+    logger.log(idx_epoch, "test_sagittal_diff", sagittal_test_diff)
+    logger.log(idx_epoch, "test_diff", test_diff)
+
+    logger.log(idx_epoch, "test_axial_diff_diff", axial_test_diff_diff)
+    logger.log(idx_epoch, "test_coronal_diff_diff", coronal_test_diff_diff)
+    logger.log(idx_epoch, "test_sagittal_diff_diff", sagittal_test_diff_diff)
+    logger.log(idx_epoch, "test_diff_diff", test_diff_diff)
 
 print("Done!")
 
