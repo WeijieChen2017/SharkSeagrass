@@ -128,14 +128,6 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
     else:
         raise ValueError(f"train_phase {train_or_eval_or_test} is not supported")
 
-    batch_indices_list_axial = [indices_list_axial[i:i+batch_train] for i in range(0, len(indices_list_axial), batch_size)]
-    batch_indices_list_coronal = [indices_list_coronal[i:i+batch_train] for i in range(0, len(indices_list_coronal), batch_size)]
-    batch_indices_list_sagittal = [indices_list_sagittal[i:i+batch_train] for i in range(0, len(indices_list_sagittal), batch_size)]
-
-    random.shuffle(indices_list_axial)
-    random.shuffle(indices_list_coronal)
-    random.shuffle(indices_list_sagittal)
-
     axial_case_loss = 0
     axial_case_diff = 0
     axial_case_pctg = 0
@@ -152,12 +144,12 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
 
     # axial slices
     # for indices in batch_indices_list_axial:
-    for indices in range(len(batch_indices_list_axial)):
+    for indices in range(len_axial):
         # according to the batch indices list, get the corresponding data
         batch_x = torch.tensor(data_ind_axial_x[indices].astype(int)).to(device)
         batch_y = torch.tensor(data_ind_axial_y[indices].astype(int)).to(device)
         # n_batch, len_seq
-        diff_count = torch.sum(batch_x != batch_y, dim=1)
+        diff_count = torch.sum(batch_x != batch_y)
         diff_ratio = diff_count / batch_x.shape[1]
         diff_avg = torch.mean(diff_ratio)
 
@@ -191,10 +183,10 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
     axial_case_pctg /= len(batch_indices_list_axial)
 
     # coronal slices
-    for indices in batch_indices_list_coronal:
+    for indices in range(len_coronal):
         batch_x = torch.tensor(data_ind_coronal_x[indices].astype(int)).to(device)
         batch_y = torch.tensor(data_ind_coronal_y[indices].astype(int)).to(device)
-        diff_count = torch.sum(batch_x != batch_y, dim=1)
+        diff_count = torch.sum(batch_x != batch_y)
         diff_ratio = diff_count / batch_x.shape[1]
         diff_avg = torch.mean(diff_ratio)
 
@@ -227,10 +219,10 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
     coronal_case_pctg /= len(batch_indices_list_coronal)
 
     # sagittal slices
-    for indices in batch_indices_list_sagittal:
+    for indices in range(len_sagittal):
         batch_x = torch.tensor(data_ind_sagittal_x[indices].astype(int)).to(device)
         batch_y = torch.tensor(data_ind_sagittal_y[indices].astype(int)).to(device)
-        diff_count = torch.sum(batch_x != batch_y, dim=1)
+        diff_count = torch.sum(batch_x != batch_y)
         diff_ratio = diff_count / batch_x.shape[1]
         diff_avg = torch.mean(diff_ratio)
 
