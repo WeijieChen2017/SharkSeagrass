@@ -18,6 +18,10 @@ direction_list = ["axial", "coronal", "sagittal"]
 
 import os
 
+# 420 -> GPU-8
+# 280 -> GPU-7
+# 140 -> GPU-6
+
 for z in z_list:
     print()
     filenames = []
