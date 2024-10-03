@@ -39,26 +39,26 @@ other_case = ["KWX131", "LBO118", "NAF069", "NIR103", "RSE114"]
 # 3dZcutup -prefix HNJ120_sagittal_z280_mask.nii.gz -keep 140 279 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz
 # 3dZcutup -prefix HNJ120_sagittal_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz
 
-commands_3dZcutup = [
-    "3dZcutup -prefix HNJ120_axial_z140.nii.gz -keep 0 139 HNJ120_CTAC_pred_axial_rescale_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_axial_z280.nii.gz -keep 140 279 HNJ120_CTAC_pred_axial_rescale_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_axial_z420.nii.gz -keep 280 419 HNJ120_CTAC_pred_axial_rescale_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_coronal_z140.nii.gz -keep 0 139 HNJ120_CTAC_pred_coronal_rescale_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_coronal_z280.nii.gz -keep 140 279 HNJ120_CTAC_pred_coronal_rescale_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_coronal_z420.nii.gz -keep 280 419 HNJ120_CTAC_pred_coronal_rescale_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_sagittal_z140.nii.gz -keep 0 139 HNJ120_CTAC_pred_sagittal_rescale_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_sagittal_z280.nii.gz -keep 140 279 HNJ120_CTAC_pred_sagittal_rescale_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_sagittal_z420.nii.gz -keep 280 419 HNJ120_CTAC_pred_sagittal_rescale_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_axial_z140_mask.nii.gz -keep 0 139 HNJ120_CTAC_pred_axial_mask_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_axial_z280_mask.nii.gz -keep 140 279 HNJ120_CTAC_pred_axial_mask_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_axial_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_axial_mask_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_coronal_z140_mask.nii.gz -keep 0 139 HNJ120_CTAC_pred_coronal_mask_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_coronal_z280_mask.nii.gz -keep 140 279 HNJ120_CTAC_pred_coronal_mask_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_coronal_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_coronal_mask_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_sagittal_z140_mask.nii.gz -keep 0 139 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_sagittal_z280_mask.nii.gz -keep 140 279 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz",
-    "3dZcutup -prefix HNJ120_sagittal_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz",
-]
+# commands_3dZcutup = [
+#     "3dZcutup -prefix HNJ120_axial_z140.nii.gz -keep 0 139 HNJ120_CTAC_pred_axial_rescale_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_axial_z280.nii.gz -keep 140 279 HNJ120_CTAC_pred_axial_rescale_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_axial_z420.nii.gz -keep 280 419 HNJ120_CTAC_pred_axial_rescale_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_coronal_z140.nii.gz -keep 0 139 HNJ120_CTAC_pred_coronal_rescale_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_coronal_z280.nii.gz -keep 140 279 HNJ120_CTAC_pred_coronal_rescale_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_coronal_z420.nii.gz -keep 280 419 HNJ120_CTAC_pred_coronal_rescale_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_sagittal_z140.nii.gz -keep 0 139 HNJ120_CTAC_pred_sagittal_rescale_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_sagittal_z280.nii.gz -keep 140 279 HNJ120_CTAC_pred_sagittal_rescale_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_sagittal_z420.nii.gz -keep 280 419 HNJ120_CTAC_pred_sagittal_rescale_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_axial_z140_mask.nii.gz -keep 0 139 HNJ120_CTAC_pred_axial_mask_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_axial_z280_mask.nii.gz -keep 140 279 HNJ120_CTAC_pred_axial_mask_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_axial_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_axial_mask_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_coronal_z140_mask.nii.gz -keep 0 139 HNJ120_CTAC_pred_coronal_mask_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_coronal_z280_mask.nii.gz -keep 140 279 HNJ120_CTAC_pred_coronal_mask_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_coronal_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_coronal_mask_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_sagittal_z140_mask.nii.gz -keep 0 139 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_sagittal_z280_mask.nii.gz -keep 140 279 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz",
+#     "3dZcutup -prefix HNJ120_sagittal_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz",
+# ]
 
 # for other_case_name in other_case:
 #     print()
