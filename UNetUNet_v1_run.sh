@@ -20,7 +20,7 @@ ls
 # pip list
 echo "============================================"
 # python UNetUNet_v1_py2_train.py --cross_validation $1
-python UNetUNet_v1_py2_train_acs.py --cross_validation $1
+python UNetUNet_v1_py2_train_acs_scratch.py --cross_validation $1
 echo "============================================"
 # python UNetUNet_v1_py2_train.py
 du -lh -d 1
