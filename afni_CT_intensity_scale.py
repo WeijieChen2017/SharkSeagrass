@@ -22,11 +22,11 @@ for other_case_name in other_case:
 
     for old_file in file_list:
         file_path = old_file.replace("HNJ120", other_case_name)
-        file_path = os.path.join(folder, file)
+        file_path = os.path.join(folder, file_path)
         nii_file = nib.load(file_path)
         nii_data = nii_file.get_fdata()
         nii_data += 1024
-        new_save_name = file.split(".")[0] + "_offset1024.nii.gz"
+        new_save_name = file_path.split(".")[0] + "_offset1024.nii.gz"
         new_save_path = os.path.join(folder, new_save_name)
         new_nii = nib.Nifti1Image(nii_data, nii_file.affine)
         nib.save(new_nii, new_save_path)
