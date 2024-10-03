@@ -60,14 +60,14 @@ commands_3dZcutup = [
     "3dZcutup -prefix HNJ120_sagittal_z420_mask.nii.gz -keep 280 419 HNJ120_CTAC_pred_sagittal_mask_cv1.nii.gz",
 ]
 
-for other_case_name in other_case:
-    print()
-    for command in commands_3dZcutup:
-        new_command = command.replace("HNJ120", other_case_name)
-        print(new_command)
-    print()
+# for other_case_name in other_case:
+#     print()
+#     for command in commands_3dZcutup:
+#         new_command = command.replace("HNJ120", other_case_name)
+#         print(new_command)
+#     print()
 
-exit()
+# exit()
 
 
 
