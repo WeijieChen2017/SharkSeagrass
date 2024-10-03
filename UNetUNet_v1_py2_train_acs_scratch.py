@@ -311,7 +311,7 @@ def main():
     
     # model.load_state_dict(torch.load(model_step1_params["ckpt_path"], map_location=torch.device('cpu')), strict=False)
     # print("Model step 1 loaded from", model_step1_params["ckpt_path"])
-    print("This is the model from scratch for comparison").
+    print("This is the model from scratch for comparison")
     model.to(device)
     model.train()
 
