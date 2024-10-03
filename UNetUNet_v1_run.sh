@@ -26,7 +26,7 @@ echo "============================================"
 du -lh -d 1
 rm -r TC256_v2
 mv cache ./results/
-tar -czvf UNetUnet_256_cv$1.tar.gz results
+tar -czvf UNetUnet_256_scratch_cv$1.tar.gz results
 echo "============================================"
 ls
 echo "============================================"
