@@ -26,7 +26,7 @@ for key, path in cache_dirs.items():
 
 
 # import wandb
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)

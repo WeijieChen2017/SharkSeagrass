@@ -1,5 +1,5 @@
 universe = container
-container_image = docker://docker.io/huggingface/transformers-pytorch-gpu:latest
+container_image = docker://docker.io/convez376/transformers_with_wb
 
 log = job_$(Cluster)_$(Process).log
 error = job_$(Cluster)_$(Process).err
