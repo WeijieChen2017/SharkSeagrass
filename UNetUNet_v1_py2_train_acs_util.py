@@ -14,6 +14,7 @@ from monai.transforms import (
     RandSpatialCropd,
     NormalizeIntensityd,
 )
+
 from monai.data import CacheDataset, DataLoader
 
 
@@ -209,7 +210,8 @@ class simple_logger():
         self.log_file_path = log_file_path
         self.log_dict = dict()
         self.IS_LOGGER_WANDB = global_config["IS_LOGGER_WANDB"]
-        self.wandb_run = global_config["wandb_run"]
+        if self.IS_LOGGER_WANDB:
+            self.wandb_run = global_config["wandb_run"]
     
     def log(self, global_epoch, key, msg):
         if key not in self.log_dict.keys():
