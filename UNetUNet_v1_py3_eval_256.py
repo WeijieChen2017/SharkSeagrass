@@ -19,7 +19,7 @@ from UNetUNet_v1_py2_train_util import VQModel, simple_logger, prepare_dataset
 MID_PET = 5000
 MIQ_PET = 0.9
 MAX_PET = 20000
-MAX_CT = 2976
+MAX_CT = 1976
 MIN_CT = -1024
 MIN_PET = 0
 RANGE_CT = MAX_CT - MIN_CT
@@ -61,7 +61,7 @@ def main():
 
     cross_validation = args.cross_validation
     # root_folder = f"B100/UNetUNet_best/cv{cross_validation}_256/"
-    root_folder = f"results/cv{cross_validation}_256/"
+    root_folder = f"results/cv{cross_validation}_256_scratch/"
     data_div_json = "UNetUNet_v1_data_split.json"
     if not os.path.exists(root_folder):
         os.makedirs(root_folder)
