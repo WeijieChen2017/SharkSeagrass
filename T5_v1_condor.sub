@@ -13,7 +13,7 @@ when_to_transfer_output = ON_EXIT_OR_EVICT
 transfer_input_files = SharkSeagrass.tar.gz, ind_axial.tar.gz, ind_coronal.tar.gz, ind_sagittal.tar.gz
 
 +WantGPULab = true
-+GPUJobLength = "short"
++GPUJobLength = "long"
 request_gpus = 1
 require_gpus = GlobalMemoryMb >= 22000
 request_cpus = 24
