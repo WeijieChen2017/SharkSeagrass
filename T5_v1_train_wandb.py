@@ -453,7 +453,7 @@ def main():
 
     # set the logger
     current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-    log_file_path = root+f"train_log_{current_time}.json"
+    log_file_path = root_folder + f"train_log_{current_time}.json"
     logger = simple_logger(log_file_path, global_config)
     global_config["logger"] = logger
     
