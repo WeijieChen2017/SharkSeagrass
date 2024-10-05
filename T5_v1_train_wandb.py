@@ -90,7 +90,7 @@ class simple_logger():
             f.write(log_str)
         print(log_str)
 
-        log to wandb if msg is number
+        # log to wandb if msg is number
         if self.IS_LOGGER_WANDB and isinstance(msg, (int, float)):
             self.wandb_run.log({key: msg})
 
