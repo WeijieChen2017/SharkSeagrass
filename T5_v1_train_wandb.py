@@ -381,7 +381,7 @@ def main():
         "model_architecture": model_architecture,
         "random_seed": random_seed,
         "model_params": model_params,
-        "data_params": data_loader_params,
+        "data_params": data_params,
         "train_params": train_params,
     }
 
