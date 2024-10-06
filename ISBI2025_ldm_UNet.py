@@ -33,7 +33,7 @@ for cv in cv_list:
     data_div_json = "UNetUNet_v1_data_split_acs.json"
     with open(data_div_json, "r") as f:
         data_div_dict = json.load(f)
-    split_dict = data_div_dict[cv]
+    split_dict = data_div_dict[cv.replace("cv", "cv_")]
 
 
     for split in split_list:
