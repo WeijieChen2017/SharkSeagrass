@@ -59,6 +59,7 @@ RANGE_CT = MAX_CT - MIN_CT
 RANGE_PET = MAX_PET - MIN_PET
 
 CT_mask_folder = "B100/CTACIVV_resample_mask/"
+os.makedirs(CT_mask_folder, exist_ok=True)
 HU_boundary_valid_air = -500
 HU_boundary_air_soft = -250
 HU_boundary_soft_bone = 150
@@ -140,15 +141,15 @@ for model_spec in model_spec_list:
             mask_CT_bone = mask_CT_bone_file.get_fdata()
             mask_CT_bone = mask_CT_bone > 0
         else:
-            mask_CT = CT_GT_data > -500
+            mask_CT_whole = CT_GT_data > -500
             for i in range(CT_GT_data.shape[2]):
-                mask_CT[:, :, i] = binary_fill_holes(mask_CT[:, :, i])
+                mask_CT_whole[:, :, i] = binary_fill_holes(mask_CT_whole[:, :, i])
             
-            # save the mask
-            mask_CT_file = nib.Nifti1Image(mask_CT.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
-            nib.save(mask_CT_file, mask_CT_path)
-            print("Saved mask to: ", mask_CT_path)
-
+            # save the mask_CT_whole
+            mask_CT_whole_file = nib.Nifti1Image(mask_CT_whole.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
+            nib.save(mask_CT_whole_file, mask_CT_whole_path)
+            print("Saved whole mask to: ", mask_CT_whole_path)
+            
             # air mask is from MIN to HU_boundary_air_soft
             mask_CT_air = (CT_GT_data > MIN_CT) & (CT_GT_data < HU_boundary_air_soft)
             # intersection with the whole mask
