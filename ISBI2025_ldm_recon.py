@@ -80,7 +80,7 @@ for model_spec in model_spec_list:
     result_save_json = f"ISBI2025_ldm_recon_metrics_{model_spec}.json"
 
     print("Processing model spec: ", model_spec)
-    recon_folder = f"B100/vq_{model_spec}_recon_nifit/"
+    recon_folder = f"B100/vq_{model_spec}_recon_nifti/"
     for casename in case_list:
         print("Processing case: ", casename)
         # vq_f8_E4077_CTr_recon.nii.gz
