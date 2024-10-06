@@ -197,6 +197,16 @@ for model_spec in model_spec_list:
         metrics_dict["CT_MAE_bone"].append(CT_MAE_bone)
         metrics_dict["PET_MAE_bone"].append(PET_MAE_bone)
 
+        print("CT_MAE_whole: ", CT_MAE_whole)
+        print("PET_MAE_whole: ", PET_MAE_whole)
+        print("CT_MAE_air: ", CT_MAE_air)
+        print("PET_MAE_air: ", PET_MAE_air)
+        print("CT_MAE_soft: ", CT_MAE_soft)
+        print("PET_MAE_soft: ", PET_MAE_soft)
+        print("CT_MAE_bone: ", CT_MAE_bone)
+        print("PET_MAE_bone: ", PET_MAE_bone)
+        print("<"*25)
+
     # save the dict
     metric_dict_name = f"ISBI2025_ldm_recon_metrics_dict_{model_spec}.npy"
     np.save(metric_dict_name, metrics_dict)
