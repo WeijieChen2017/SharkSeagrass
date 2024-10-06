@@ -48,7 +48,7 @@ for cv in cv_list:
 
 
         for casename in casename_list:
-            E_casename = "E"+casename[4:]
+            E_casename = "E4"+casename[3:]
             CT_gt_path = f"B100/CTACIVV_resample/CTACIVV_{E_casename[1:]}.nii.gz"
             CT_mask_whole_path = os.path.join(CT_mask_folder, f"CT_mask_{casename}.nii.gz")
             CT_mask_air_path = os.path.join(CT_mask_folder, f"CT_mask_air_{casename}.nii.gz")
