@@ -37,7 +37,7 @@ for cv in cv_list:
 
 
     for split in split_list:
-        print("Processing split: ", split
+        print("Processing split: ", split)
         metrics_dict = {}
         for region in region_list:
             for data_fusion in data_fusion_list:
