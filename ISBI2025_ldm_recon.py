@@ -153,7 +153,7 @@ for model_spec in model_spec_list:
             # air mask is from MIN to HU_boundary_air_soft
             mask_CT_air = (CT_GT_data > MIN_CT) & (CT_GT_data < HU_boundary_air_soft)
             # intersection with the whole mask
-            mask_CT_air = mask_CT_air & mask_CT
+            mask_CT_air = mask_CT_air & mask_CT_whole
             # save the mask
             mask_CT_air_file = nib.Nifti1Image(mask_CT_air.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
             nib.save(mask_CT_air_file, mask_CT_air_path)
@@ -162,7 +162,7 @@ for model_spec in model_spec_list:
             # soft mask is from HU_boundary_air_soft to HU_boundary_soft_bone
             mask_CT_soft = (CT_GT_data > HU_boundary_air_soft) & (CT_GT_data < HU_boundary_soft_bone)
             # intersection with the whole mask
-            mask_CT_soft = mask_CT_soft & mask_CT
+            mask_CT_soft = mask_CT_soft & mask_CT_whole
             # save the mask
             mask_CT_soft_file = nib.Nifti1Image(mask_CT_soft.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
             nib.save(mask_CT_soft_file, mask_CT_soft_path)
@@ -171,7 +171,7 @@ for model_spec in model_spec_list:
             # bone mask is from HU_boundary_soft_bone to MAX
             mask_CT_bone = (CT_GT_data > HU_boundary_soft_bone) & (CT_GT_data < MAX_CT)
             # intersection with the whole mask
-            mask_CT_bone = mask_CT_bone & mask_CT
+            mask_CT_bone = mask_CT_bone & mask_CT_whole
             # save the mask
             mask_CT_bone_file = nib.Nifti1Image(mask_CT_bone.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
             nib.save(mask_CT_bone_file, mask_CT_bone_path)
