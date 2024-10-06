@@ -131,3 +131,7 @@ for other_case_name in other_case:
         output = f"{other_case_name}_{direction}_z{z}_niftyMIC_offset1024.nii.gz"
         print(f"niftymic_reconstruct_volume --filenames {' '.join(filenames)} --filenames-masks {' '.join(filenames_masks)} --output {output}")
 
+
+
+
+
