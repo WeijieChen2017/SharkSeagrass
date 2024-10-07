@@ -30,7 +30,7 @@ HU_boundary_soft_bone = 150
 
 
 for cv in cv_list:
-    data_div_json = "UNetUNet_v1_data_split_acs.json"
+    data_div_json = "UNetUNet_v1_data_split.json" # use this for now
     with open(data_div_json, "r") as f:
         data_div_dict = json.load(f)
     split_dict = data_div_dict[cv.replace("cv", "cv_")]
