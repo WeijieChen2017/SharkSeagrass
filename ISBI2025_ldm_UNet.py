@@ -21,8 +21,8 @@ WRONG_CT_RANGE = WRONG_MAX_CT - MIN_CT
 CORRECT_CT_RANGE = CORRECT_MAX_CT - MIN_CT
 
 
-# CT_mask_folder = "B100/CTACIVV_resample_mask/"
-# os.makedirs(CT_mask_folder, exist_ok=True)
+CT_mask_folder = "TC256_v2_mask/"
+os.makedirs(CT_mask_folder, exist_ok=True)
 HU_boundary_valid_air = -500
 HU_boundary_air_soft = -250
 HU_boundary_soft_bone = 150
@@ -49,61 +49,108 @@ for cv in cv_list:
         # this is 400*400, we need generate 256*256 mask first, then compute it.
         for casename in casename_list:
             E_casename = "E4"+casename[3:]
-            CT_gt_path = f"TC256_v2/{casename}_CTAC_256.nii.gz"
-            # CT_mask_whole_path = os.path.join(CT_mask_folder, f"CT_mask_{casename}.nii.gz")
-            # CT_mask_air_path = os.path.join(CT_mask_folder, f"CT_mask_air_{casename}.nii.gz")
-            # CT_mask_soft_path = os.path.join(CT_mask_folder, f"CT_mask_soft_{casename}.nii.gz")
-            # CT_mask_bone_path = os.path.join(CT_mask_folder, f"CT_mask_bone_{casename}.nii.gz")
-            CT_gt_file = nib.load(CT_gt_path)
-            CT_gt_data = CT_gt_file.get_fdata()
-            CT_gt_data = np.clip(CT_gt_data, 0, 1)
-            # CT_mask_whole_file = nib.load(CT_mask_whole_path)
-            # CT_mask_whole = CT_mask_whole_file.get_fdata() > 0
-            # CT_mask_air_file = nib.load(CT_mask_air_path)
-            # CT_mask_air = CT_mask_air_file.get_fdata() > 0
-            # CT_mask_soft_file = nib.load(CT_mask_soft_path)
-            # CT_mask_soft = CT_mask_soft_file.get_fdata() > 0
-            # CT_mask_bone_file = nib.load(CT_mask_bone_path)
-            # CT_mask_bone = CT_mask_bone_file.get_fdata() > 0
-            # CT_mask = {
-            #     "whole": CT_mask_whole,
-            #     "air": CT_mask_air,
-            #     "soft": CT_mask_soft,
-            #     "bone": CT_mask_bone
-            # }
-
-            # renormalize the CT_gt_data
+            # determine whether it is part 1 or part 2
             part_1_or_part_2 = None
             case_index = int(casename[3:])
             if case_index <= 139:
                 part_1_or_part_2 = "part1"
             else:
                 part_1_or_part_2 = "part2"
-
-            if part_1_or_part_2 == "part1":
-                CT_gt_data_correct = CT_gt_data * WRONG_CT_RANGE + MIN_CT
-            if part_1_or_part_2 == "part2":
-                CT_gt_data_correct = CT_gt_data * CORRECT_CT_RANGE + MIN_CT
             
-            # save the corrected CT_gt_data
-            CT_gt_correct_file = nib.Nifti1Image(CT_gt_data_correct, CT_gt_file.affine, CT_gt_file.header)
+            # prepare the ground truth CT data
+            CT_gt_path = f"TC256_v2/{casename}_CTAC_256.nii.gz"
             CT_gt_correct_path = CT_gt_path.replace(".nii.gz", "_corrected.nii.gz")
-            nib.save(CT_gt_correct_file, CT_gt_correct_path)
-            exit()
+            if os.path.exists(CT_gt_correct_path):
+                CT_gt_file = nib.load(CT_gt_correct_path)
+                CT_gt_data = CT_gt_file.get_fdata()
+            else:
+                CT_gt_file = nib.load(CT_gt_path)
+                CT_gt_data = CT_gt_data.get_fdata()
+                CT_gt_data = np.clip(CT_gt_data, 0, 1)
+                if part_1_or_part_2 == "part1":
+                    CT_gt_data = CT_gt_data * WRONG_CT_RANGE + MIN_CT
+                elif part_1_or_part_2 == "part2":
+                    CT_gt_data = CT_gt_data * CORRECT_CT_RANGE + MIN_CT
+                else:
+                    raise ValueError("Invalid part_1_or_part_2")
+                # save the corrected CT_gt_data
+                CT_gt_correct_file = nib.Nifti1Image(CT_gt_data, CT_gt_file.affine, CT_gt_file.header)
+                nib.save(CT_gt_correct_file, CT_gt_correct_path)
+                print("Saved corrected CT_gt to: ", CT_gt_correct_path)
+            
+            # prepare the CT mask
+            mask_CT_whole_path = os.path.join(CT_mask_folder, f"CT_mask_{casename}.nii.gz")
+            mask_CT_air_path = os.path.join(CT_mask_folder, f"CT_mask_air_{casename}.nii.gz")
+            mask_CT_soft_path = os.path.join(CT_mask_folder, f"CT_mask_soft_{casename}.nii.gz")
+            mask_CT_bone_path = os.path.join(CT_mask_folder, f"CT_mask_bone_{casename}.nii.gz")
 
+            if os.path.exists(mask_CT_whole_path):
+                mask_CT_whole_file = nib.load(mask_CT_whole_path)
+                mask_CT_whole = mask_CT_whole_file.get_fdata()
+                mask_CT_whole = mask_CT_whole > 0
 
-            # for data_fusion in data_fusion_list:
-            #     pred_path = pred_folder+f"{casename}_CTAC_pred_{data_fusion}_{cv}.nii.gz"
-            #     pred_file = nib.load(pred_path)
-            #     pred_data = pred_file.get_fdata()
-            #     pred_data_norm = (pred_data - MIN_CT) / WRONG_CT_RANGE
-            #     pred_data_correct = pred_data_norm * CORRECT_CT_RANGE + MIN_CT
-            #     # save the corrected pred_data
-            #     pred_correct_file = nib.Nifti1Image(pred_data_correct, pred_file.affine, pred_file.header)
-            #     pred_correct_path = pred_path.replace(".nii.gz", "_corrected.nii.gz")
-            #     nib.save(pred_correct_file, pred_correct_path)
-            #     print("Saved corrected pred to: ", pred_correct_path)
-            #     exit()
+                mask_CT_air_file = nib.load(mask_CT_air_path)
+                mask_CT_air = mask_CT_air_file.get_fdata()
+                mask_CT_air = mask_CT_air > 0
+
+                mask_CT_soft_file = nib.load(mask_CT_soft_path)
+                mask_CT_soft = mask_CT_soft_file.get_fdata()
+                mask_CT_soft = mask_CT_soft > 0
+
+                mask_CT_bone_file = nib.load(mask_CT_bone_path)
+                mask_CT_bone = mask_CT_bone_file.get_fdata()
+                mask_CT_bone = mask_CT_bone > 0
+            else:
+                CT_GT_data = CT_gt_data
+                mask_CT_whole = CT_GT_data > -500
+                for i in range(CT_GT_data.shape[2]):
+                    mask_CT_whole[:, :, i] = binary_fill_holes(mask_CT_whole[:, :, i])
+                
+                # save the mask_CT_whole
+                mask_CT_whole_file = nib.Nifti1Image(mask_CT_whole.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
+                nib.save(mask_CT_whole_file, mask_CT_whole_path)
+                print("Saved whole mask to: ", mask_CT_whole_path)
+                
+                # air mask is from MIN to HU_boundary_air_soft
+                mask_CT_air = (CT_GT_data > MIN_CT) & (CT_GT_data < HU_boundary_air_soft)
+                # intersection with the whole mask
+                mask_CT_air = mask_CT_air & mask_CT_whole
+                # save the mask
+                mask_CT_air_file = nib.Nifti1Image(mask_CT_air.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
+                nib.save(mask_CT_air_file, mask_CT_air_path)
+                print("Saved air mask to: ", mask_CT_air_path)
+
+                # soft mask is from HU_boundary_air_soft to HU_boundary_soft_bone
+                mask_CT_soft = (CT_GT_data > HU_boundary_air_soft) & (CT_GT_data < HU_boundary_soft_bone)
+                # intersection with the whole mask
+                mask_CT_soft = mask_CT_soft & mask_CT_whole
+                # save the mask
+                mask_CT_soft_file = nib.Nifti1Image(mask_CT_soft.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
+                nib.save(mask_CT_soft_file, mask_CT_soft_path)
+                print("Saved soft mask to: ", mask_CT_soft_path)
+
+                # bone mask is from HU_boundary_soft_bone to MAX
+                mask_CT_bone = (CT_GT_data > HU_boundary_soft_bone) & (CT_GT_data < MAX_CT)
+                # intersection with the whole mask
+                mask_CT_bone = mask_CT_bone & mask_CT_whole
+                # save the mask
+                mask_CT_bone_file = nib.Nifti1Image(mask_CT_bone.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
+                nib.save(mask_CT_bone_file, mask_CT_bone_path)
+                print("Saved bone mask to: ", mask_CT_bone_path)
+
+            # prepare the predicted CT data
+            for data_fusion in data_fusion_list:
+                pred_path = pred_folder+f"{casename}_CTAC_pred_{data_fusion}_{cv}.nii.gz"
+                pred_file = nib.load(pred_path)
+                pred_data = pred_file.get_fdata()
+                pred_data_norm = (pred_data - MIN_CT) / WRONG_CT_RANGE
+                pred_data_correct = pred_data_norm * CORRECT_CT_RANGE + MIN_CT
+                # save the corrected pred_data
+                pred_correct_file = nib.Nifti1Image(pred_data_correct, pred_file.affine, pred_file.header)
+                pred_correct_path = pred_path.replace(".nii.gz", "_corrected.nii.gz")
+                nib.save(pred_correct_file, pred_correct_path)
+                print("Saved corrected pred to: ", pred_correct_path)
+                exit()
 
 
 
