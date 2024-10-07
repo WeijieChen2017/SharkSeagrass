@@ -46,7 +46,7 @@ for cv in cv_list:
         casename_list = split_dict[split]
         pred_folder = f"results/{cv}_256/{split}/"
 
-
+        # this is 400*400, we need generate 256*256 mask first, then compute it.
         for casename in casename_list:
             E_casename = "E4"+casename[3:]
             CT_gt_path = f"B100/CTACIVV_resample/CTACIVV_{E_casename[1:]}.nii.gz"
