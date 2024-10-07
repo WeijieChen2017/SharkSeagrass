@@ -177,7 +177,7 @@ for cv in cv_list:
 
                     MAE = np.mean(np.abs(CT_GT_data[mask] - pred_data_correct[mask]))
                     metrics_dict[f"synCT_MAE_{region}_{data_fusion}"].append(MAE)
-                    # print(f"synCT_MAE_{region}_{data_fusion}: ", MAE)
+                    print(f"Case {casename}, split {split}, synCT_MAE_{region}_{data_fusion}: ", MAE)
 
         for key in metrics_dict.keys():
             metrics_dict[key] = np.mean(metrics_dict[key])
