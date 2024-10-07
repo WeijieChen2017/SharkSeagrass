@@ -22,7 +22,7 @@ CORRECT_CT_RANGE = CORRECT_MAX_CT - MIN_CT
 
 
 # CT_mask_folder = "B100/CTACIVV_resample_mask/"
-os.makedirs(CT_mask_folder, exist_ok=True)
+# os.makedirs(CT_mask_folder, exist_ok=True)
 HU_boundary_valid_air = -500
 HU_boundary_air_soft = -250
 HU_boundary_soft_bone = 150
