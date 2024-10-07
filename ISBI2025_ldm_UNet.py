@@ -56,6 +56,7 @@ for cv in cv_list:
                 part_1_or_part_2 = "part1"
             else:
                 part_1_or_part_2 = "part2"
+                continue # we did not eval part 2 for now
             
             # prepare the ground truth CT data
             CT_GT_path = f"TC256_v2/{casename}_CTAC_256.nii.gz"

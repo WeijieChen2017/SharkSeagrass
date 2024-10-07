@@ -81,7 +81,7 @@ def main():
             "MID_PET": 5000,
             "MIQ_PET": 0.9,
             "MAX_PET": 20000,
-            "MAX_CT": 1976,
+            "MAX_CT": 2976,
             "MIN_CT": -1024,
             "MIN_PET": 0,
             "RANGE_CT": 3000,
