@@ -49,7 +49,7 @@ for cv in cv_list:
         # this is 400*400, we need generate 256*256 mask first, then compute it.
         for casename in casename_list:
             E_casename = "E4"+casename[3:]
-            CT_gt_path = f"B100/TC256_v2/{casename}_CTAC.nii.gz"
+            CT_gt_path = f"TC256_v2/{casename}_CTAC.nii.gz"
             # CT_mask_whole_path = os.path.join(CT_mask_folder, f"CT_mask_{casename}.nii.gz")
             # CT_mask_air_path = os.path.join(CT_mask_folder, f"CT_mask_air_{casename}.nii.gz")
             # CT_mask_soft_path = os.path.join(CT_mask_folder, f"CT_mask_soft_{casename}.nii.gz")
