@@ -66,7 +66,7 @@ for cv in cv_list:
                 print("Loaded corrected CT_GT from: ", CT_GT_correct_path)
             else:
                 CT_GT_file = nib.load(CT_GT_path)
-                CT_GT_data = CT_GT_data.get_fdata()
+                CT_GT_data = CT_GT_file.get_fdata()
                 CT_GT_data = np.clip(CT_GT_data, 0, 1)
                 if part_1_or_part_2 == "part1":
                     CT_GT_data = CT_GT_data * WRONG_CT_RANGE + MIN_CT
