@@ -63,6 +63,7 @@ for cv in cv_list:
             if os.path.exists(CT_GT_correct_path):
                 CT_GT_file = nib.load(CT_GT_correct_path)
                 CT_GT_data = CT_GT_file.get_fdata()
+                print("Loaded corrected CT_GT from: ", CT_GT_correct_path)
             else:
                 CT_GT_file = nib.load(CT_GT_path)
                 CT_GT_data = CT_GT_data.get_fdata()
@@ -100,6 +101,8 @@ for cv in cv_list:
                 mask_CT_bone_file = nib.load(mask_CT_bone_path)
                 mask_CT_bone = mask_CT_bone_file.get_fdata()
                 mask_CT_bone = mask_CT_bone > 0
+
+                print("Loaded masks for whole, air, soft, bone from: ", CT_mask_folder)
             else:
                 mask_CT_whole = CT_GT_data > -500
                 for i in range(CT_GT_data.shape[2]):
@@ -140,18 +143,50 @@ for cv in cv_list:
             # prepare the predicted CT data
             for data_fusion in data_fusion_list:
                 pred_path = pred_folder+f"{casename}_CTAC_pred_{data_fusion}_{cv}.nii.gz"
-                pred_file = nib.load(pred_path)
-                pred_data = pred_file.get_fdata()
-                pred_data_norm = (pred_data - MIN_CT) / CORRECT_CT_RANGE
-                pred_data_correct = pred_data_norm * WRONG_CT_RANGE + MIN_CT
-                # save the corrected pred_data
-                pred_correct_file = nib.Nifti1Image(pred_data_correct, pred_file.affine, pred_file.header)
                 pred_correct_path = pred_path.replace(".nii.gz", "_corrected.nii.gz")
-                nib.save(pred_correct_file, pred_correct_path)
-                print("Saved corrected pred to: ", pred_correct_path)
-                exit()
+                if os.path.exists(pred_correct_path):
+                    pred_correct_file = nib.load(pred_correct_path)
+                    pred_data_correct = pred_correct_file.get_fdata()
+                    print("Loaded corrected pred from: ", pred_correct_path)
+                else:
+                    pred_file = nib.load(pred_path)
+                    pred_data = pred_file.get_fdata()
+                    pred_data_norm = (pred_data - MIN_CT) / CORRECT_CT_RANGE
+                    pred_data_correct = pred_data_norm * WRONG_CT_RANGE + MIN_CT
+                    # save the corrected pred_data
+                    pred_correct_file = nib.Nifti1Image(pred_data_correct, pred_file.affine, pred_file.header)
+                    nib.save(pred_correct_file, pred_correct_path)
+                    print("Saved corrected pred to: ", pred_correct_path)
+                
+                # compute the metrics
+                for region in region_list:
+                    if region == "whole":
+                        mask = mask_CT_whole
+                    elif region == "air":
+                        mask = mask_CT_air
+                    elif region == "soft":
+                        mask = mask_CT_soft
+                    elif region == "bone":
+                        mask = mask_CT_bone
+                    else:
+                        raise ValueError("Invalid region")
+                    MAE = np.mean(np.abs(CT_GT_data[mask] - pred_data_correct[mask]))
+                    metrics_dict[f"synCT_MAE_{region}_{data_fusion}"].append(MAE)
+                    # print(f"synCT_MAE_{region}_{data_fusion}: ", MAE)
 
+        for key in metrics_dict.keys():
+            metrics_dict[key] = np.mean(metrics_dict[key])
+        
+        # in json, output metric names first per row
+        with open(result_save_json, "w") as f:
+            json.dump(metrics_dict, f, indent=4)
 
+        print("Saved metrics to: ", result_save_json)
+        print("Metrics: ", metrics_dict)
+        print(">"*50)
+    
+    print(">"*50)
+    print()
 
     #     # CT data is from -1 to 1
     #     # PET data is from -1 to 1
