@@ -20,17 +20,17 @@ ls
 # pip list
 echo "============================================"
 # python UNetUNet_v1_py2_train.py --cross_validation $1
-python UNetUNet_v1_py2_train_acs_scratch.py --cross_validation $1
+python UNetUNet_v1_py2_train_acs_iceEnc.py --cross_validation $1
 echo "============================================"
 # python UNetUNet_v1_py2_train.py
 du -lh -d 1
 rm -r TC256_v2
 mv cache ./results/
-tar -czvf UNetUnet_256_scratch_cv$1.tar.gz results
+tar -czvf UNetUnet_256_iceEnc_cv$1.tar.gz results
 echo "============================================"
 ls
 echo "============================================"
-mv UNetUnet_256_scratch_cv$1.tar.gz ../
+mv UNetUnet_256_iceEnc_cv$1.tar.gz ../
 echo "============================================"
 ls
 echo "============================================"
