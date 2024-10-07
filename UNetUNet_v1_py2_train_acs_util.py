@@ -728,7 +728,8 @@ class VQModel(nn.Module):
                  embed_dim,
                 #  ckpt_path=None,
                 #  ignore_keys=[],
-                #  image_key="image"
+                #  image_key="image",
+                 freeze_encoder=False,
                  ):
         super().__init__()
         self.embed_dim = embed_dim
@@ -742,6 +743,9 @@ class VQModel(nn.Module):
 
         self.out_conv = nn.Conv2d(ddconfig["out_ch"], 1, 1)
 
+        if freeze_encoder:
+            self.freeze_model_part("encoder")
+            self.freeze_model_part("quant_conv")
         # if ckpt_path is not None:
         #     self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
 
@@ -758,6 +762,26 @@ class VQModel(nn.Module):
     #     if len(missing) > 0:
     #         print(f"Missing Keys: {missing}")
     #         print(f"Unexpected Keys: {unexpected}")
+
+    def freeze_model_part(self, model_part):
+        if model_part == "encoder":
+            for param in self.encoder.parameters():
+                param.requires_grad = False
+        elif model_part == "decoder":
+            for param in self.decoder.parameters():
+                param.requires_grad = False
+        elif model_part == "quant_conv":
+            for param in self.quant_conv.parameters():
+                param.requires_grad = False
+        elif model_part == "post_quant_conv":
+            for param in self.post_quant_conv.parameters():
+                param.requires_grad = False
+        elif model_part == "out_conv":
+            for param in self.out_conv.parameters():
+                param.requires_grad = False
+        else:
+            print("Invalid model part to freeze.")
+            return
 
     def init_random_weights(self):
         for m in self.modules():
