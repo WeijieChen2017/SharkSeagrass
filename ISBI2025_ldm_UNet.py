@@ -129,7 +129,7 @@ for cv in cv_list:
                 print("Saved soft mask to: ", mask_CT_soft_path)
 
                 # bone mask is from HU_boundary_soft_bone to MAX
-                mask_CT_bone = (CT_GT_data > HU_boundary_soft_bone) & (CT_GT_data < MAX_CT)
+                mask_CT_bone = CT_GT_data > HU_boundary_soft_bone
                 # intersection with the whole mask
                 mask_CT_bone = mask_CT_bone & mask_CT_whole
                 # save the mask
