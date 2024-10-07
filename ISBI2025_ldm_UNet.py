@@ -170,6 +170,11 @@ for cv in cv_list:
                         mask = mask_CT_bone
                     else:
                         raise ValueError("Invalid region")
+                    
+                    # check whether the third dimension is the same
+                    if pred_data_correct.shape[2] != mask.shape[2]:
+                        pred_data_correct = pred_data_correct[:, :, :mask.shape[2]]
+
                     MAE = np.mean(np.abs(CT_GT_data[mask] - pred_data_correct[mask]))
                     metrics_dict[f"synCT_MAE_{region}_{data_fusion}"].append(MAE)
                     # print(f"synCT_MAE_{region}_{data_fusion}: ", MAE)
