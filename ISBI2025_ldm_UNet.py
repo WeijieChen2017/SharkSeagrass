@@ -58,25 +58,25 @@ for cv in cv_list:
                 part_1_or_part_2 = "part2"
             
             # prepare the ground truth CT data
-            CT_gt_path = f"TC256_v2/{casename}_CTAC_256.nii.gz"
-            CT_gt_correct_path = CT_gt_path.replace(".nii.gz", "_corrected.nii.gz")
-            if os.path.exists(CT_gt_correct_path):
-                CT_gt_file = nib.load(CT_gt_correct_path)
-                CT_gt_data = CT_gt_file.get_fdata()
+            CT_GT_path = f"TC256_v2/{casename}_CTAC_256.nii.gz"
+            CT_GT_correct_path = CT_GT_path.replace(".nii.gz", "_corrected.nii.gz")
+            if os.path.exists(CT_GT_correct_path):
+                CT_GT_file = nib.load(CT_GT_correct_path)
+                CT_GT_data = CT_GT_file.get_fdata()
             else:
-                CT_gt_file = nib.load(CT_gt_path)
-                CT_gt_data = CT_gt_data.get_fdata()
-                CT_gt_data = np.clip(CT_gt_data, 0, 1)
+                CT_GT_file = nib.load(CT_GT_path)
+                CT_GT_data = CT_GT_data.get_fdata()
+                CT_GT_data = np.clip(CT_GT_data, 0, 1)
                 if part_1_or_part_2 == "part1":
-                    CT_gt_data = CT_gt_data * WRONG_CT_RANGE + MIN_CT
+                    CT_GT_data = CT_GT_data * WRONG_CT_RANGE + MIN_CT
                 elif part_1_or_part_2 == "part2":
-                    CT_gt_data = CT_gt_data * CORRECT_CT_RANGE + MIN_CT
+                    CT_GT_data = CT_GT_data * CORRECT_CT_RANGE + MIN_CT
                 else:
                     raise ValueError("Invalid part_1_or_part_2")
-                # save the corrected CT_gt_data
-                CT_gt_correct_file = nib.Nifti1Image(CT_gt_data, CT_gt_file.affine, CT_gt_file.header)
-                nib.save(CT_gt_correct_file, CT_gt_correct_path)
-                print("Saved corrected CT_gt to: ", CT_gt_correct_path)
+                # save the corrected CT_GT_data
+                CT_GT_correct_file = nib.Nifti1Image(CT_GT_data, CT_GT_file.affine, CT_GT_file.header)
+                nib.save(CT_GT_correct_file, CT_GT_correct_path)
+                print("Saved corrected CT_GT to: ", CT_GT_correct_path)
             
             # prepare the CT mask
             mask_CT_whole_path = os.path.join(CT_mask_folder, f"CT_mask_{casename}.nii.gz")
@@ -101,7 +101,6 @@ for cv in cv_list:
                 mask_CT_bone = mask_CT_bone_file.get_fdata()
                 mask_CT_bone = mask_CT_bone > 0
             else:
-                CT_GT_data = CT_gt_data
                 mask_CT_whole = CT_GT_data > -500
                 for i in range(CT_GT_data.shape[2]):
                     mask_CT_whole[:, :, i] = binary_fill_holes(mask_CT_whole[:, :, i])
