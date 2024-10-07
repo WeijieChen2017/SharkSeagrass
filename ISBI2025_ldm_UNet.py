@@ -142,8 +142,8 @@ for cv in cv_list:
                 pred_path = pred_folder+f"{casename}_CTAC_pred_{data_fusion}_{cv}.nii.gz"
                 pred_file = nib.load(pred_path)
                 pred_data = pred_file.get_fdata()
-                pred_data_norm = (pred_data - MIN_CT) / WRONG_CT_RANGE
-                pred_data_correct = pred_data_norm * CORRECT_CT_RANGE + MIN_CT
+                pred_data_norm = (pred_data - MIN_CT) / CORRECT_CT_RANGE
+                pred_data_correct = pred_data_norm * WRONG_CT_RANGE + MIN_CT
                 # save the corrected pred_data
                 pred_correct_file = nib.Nifti1Image(pred_data_correct, pred_file.affine, pred_file.header)
                 pred_correct_path = pred_path.replace(".nii.gz", "_corrected.nii.gz")
