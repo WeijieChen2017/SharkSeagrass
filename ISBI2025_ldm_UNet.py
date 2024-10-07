@@ -56,7 +56,7 @@ for cv in cv_list:
             # CT_mask_bone_path = os.path.join(CT_mask_folder, f"CT_mask_bone_{casename}.nii.gz")
             CT_gt_file = nib.load(CT_gt_path)
             CT_gt_data = CT_gt_file.get_fdata()
-            CT_gt_data = np.clip(CT_gt_data, MIN_CT, CORRECT_MAX_CT)
+            CT_gt_data = np.clip(CT_gt_data, 0, 1)
             # CT_mask_whole_file = nib.load(CT_mask_whole_path)
             # CT_mask_whole = CT_mask_whole_file.get_fdata() > 0
             # CT_mask_air_file = nib.load(CT_mask_air_path)
