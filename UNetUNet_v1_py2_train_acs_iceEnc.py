@@ -251,7 +251,7 @@ def main():
             "num_res_blocks": 2,
             "attn_resolutions": [],
             "dropout": 0.0,
-        }
+        },
         "freeze_encoder": True,
     }
 
