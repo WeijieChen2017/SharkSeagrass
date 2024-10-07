@@ -43,7 +43,7 @@ for cv in cv_list:
             for data_fusion in data_fusion_list:
                 metrics_dict[f"synCT_MAE_{region}_{data_fusion}"] = []
         result_save_json = f"ISBI2025_ldm_pretrained_metrics_{cv}_{split}.json"
-        casename_list = split_dict[split]
+        casename_list = sorted(split_dict[split])
         pred_folder = f"results/{cv}_256/{split}/"
 
         # this is 400*400, we need generate 256*256 mask first, then compute it.
@@ -81,9 +81,9 @@ for cv in cv_list:
                 part_1_or_part_2 = "part2"
 
             if part_1_or_part_2 == "part1":
-                CT_gt_data_correct = CT_gt_data_norm * WRONG_CT_RANGE + MIN_CT
+                CT_gt_data_correct = CT_gt_data * WRONG_CT_RANGE + MIN_CT
             if part_1_or_part_2 == "part2":
-                CT_gt_data_correct = CT_gt_data_norm * CORRECT_CT_RANGE + MIN_CT
+                CT_gt_data_correct = CT_gt_data * CORRECT_CT_RANGE + MIN_CT
             
             # save the corrected CT_gt_data
             CT_gt_correct_file = nib.Nifti1Image(CT_gt_data_correct, CT_gt_file.affine, CT_gt_file.header)
