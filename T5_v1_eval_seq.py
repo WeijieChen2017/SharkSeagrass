@@ -179,15 +179,16 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 diff_pctg = diff_count / max_length
                 axial_case_pctg += diff_pctg
 
+                print(f"Case {indices} Axial {indices} diff_pctg: {diff_pctg}")
                 if if_pred_save:
                     axial_pred[indices] = pred.detach().cpu().numpy()
                 
         axial_case_loss += loss.item()
         axial_case_diff += diff_avg.item()
 
-    axial_case_loss /= len(batch_indices_list_axial)
-    axial_case_diff /= len(batch_indices_list_axial)
-    axial_case_pctg /= len(batch_indices_list_axial)
+    axial_case_loss /= len(len_axial)
+    axial_case_diff /= len(len_axial)
+    axial_case_pctg /= len(len_axial)
 
     # coronal slices
     for indices in range(len_coronal):
@@ -222,6 +223,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 coronal_case_pctg += diff_pctg
+                print(f"Case {indices} Coronal {indices} diff_pctg: {diff_pctg}")
 
             if if_pred_save:
                 coronal_pred[indices] = pred.detach().cpu().numpy()
@@ -229,9 +231,9 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
         coronal_case_loss += loss.item()
         coronal_case_diff += diff_avg.item()
     
-    coronal_case_loss /= len(batch_indices_list_coronal)
-    coronal_case_diff /= len(batch_indices_list_coronal)
-    coronal_case_pctg /= len(batch_indices_list_coronal)
+    coronal_case_loss /= len(len_coronal)
+    coronal_case_diff /= len(len_coronal)
+    coronal_case_pctg /= len(len_coronal)
 
     # sagittal slices
     for indices in range(len_sagittal):
@@ -266,6 +268,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 sagittal_case_pctg += diff_pctg
+                print(f"Case {indices} Sagittal {indices} diff_pctg: {diff_pctg}")
 
             if if_pred_save:
                 sagittal_pred[indices] = pred.detach().cpu().numpy()
@@ -273,9 +276,9 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
         sagittal_case_loss += loss.item()
         sagittal_case_diff += diff_avg.item()
     
-    sagittal_case_loss /= len(batch_indices_list_sagittal)
-    sagittal_case_diff /= len(batch_indices_list_sagittal)
-    sagittal_case_pctg /= len(batch_indices_list_sagittal)
+    sagittal_case_loss /= len(len_sagittal)
+    sagittal_case_diff /= len(len_sagittal)
+    sagittal_case_pctg /= len(len_sagittal)
 
     return_dict = {
         "axial_case_loss": axial_case_loss,
