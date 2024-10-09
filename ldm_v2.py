@@ -878,7 +878,7 @@ for idx_tag, name_tag in enumerate(tag_list):
     np.save(f"./B100/vq_{VQ_NAME}_loss/vq_{VQ_NAME}_{name_tag}_PET_l1_loss.npy", PET_l1_loss_list)
     np.save(f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_CTr_ind.npy", CTr_ind_list)
     np.save(f"./B100/vq_{VQ_NAME}_ind/vq_{VQ_NAME}_{name_tag}_PET_ind.npy", PET_ind_list)
-    np.save(f"./B100/vq_{VQ_NAME}_recon/vq_{VQ_NAME}_{name_tag}_CTr_recon.npy", CTr_recon_data)
+    np.save(f"./B100/vq_{VQ_NAME}_recon/vq_{VQ_NAME}_{name_tag}_CTr", CTr_recon_data)
     np.save(f"./B100/vq_{VQ_NAME}_recon/vq_{VQ_NAME}_{name_tag}_PET_recon.npy", PET_recon_data)
     print(f"Average CTr l1 loss: {np.mean(CTr_l1_loss_list):.4f}, Average PET l1 loss: {np.mean(PET_l1_loss_list):.4f}")
     # print(f"Average CTr unique index count: {np.mean(CTr_ind_cnt_list):.4f}, Average PET unique index count: {np.mean(PET_ind_cnt_list):.4f}")
