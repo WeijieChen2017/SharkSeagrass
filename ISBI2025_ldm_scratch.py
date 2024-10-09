@@ -157,8 +157,8 @@ for cv in cv_list:
                     # pred_data_norm = (pred_data - MIN_CT) / CORRECT_CT_RANGE
                     # pred_data_correct = pred_data_norm * WRONG_CT_RANGE + MIN_CT
                     # here pred_data is from -1024 to some value, and the zero points are near -550
-                    pred_data_norm = (pred_data - MIN_CT) / SCRATCH_CT_RANGE
-                    pred_data_correct = pred_data_norm * CORRECT_CT_RANGE + MIN_CT
+                    pred_data_norm = (pred_data - MIN_CT) / CORRECT_CT_RANGE
+                    pred_data_correct = pred_data_norm * SCRATCH_CT_RANGE + MIN_CT
                     # save the corrected pred_data
                     pred_correct_file = nib.Nifti1Image(pred_data_correct, pred_file.affine, pred_file.header)
                     nib.save(pred_correct_file, pred_correct_path)
