@@ -46,7 +46,7 @@ for cv in cv_list:
                 metrics_dict[f"synCT_MAE_{region}_{data_fusion}"] = []
         result_save_json = f"ISBI2025_ldm_pretrained_metrics_{cv}_{split}.json"
         casename_list = sorted(split_dict[split])
-        pred_folder = f"results/{cv}_256/{split}/"
+        pred_folder = f"results/{cv}_256_scratch/{split}/"
 
         # this is 400*400, we need generate 256*256 mask first, then compute it.
         for casename in casename_list:
