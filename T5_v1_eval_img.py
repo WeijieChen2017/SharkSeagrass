@@ -186,7 +186,6 @@ def main():
     argparser.add_argument('--model_scale', type=str, default='small', help='The scale of the model')
     args = argparser.parse_args()
     cross_validation = args.cross_validation
-    is_pretrained = True if args.pretrain == 'Y' or args.pretrain == 'y' else False
     model_architecture = args.model_architecture
     model_scale = args.model_scale
 
@@ -196,10 +195,7 @@ def main():
     if not model_scale in ["small", "base", "large", "xl", "xxl"]:
         raise ValueError(f"Model scale {model_scale} is not supported")
 
-    if is_pretrained:
-        tag = f"fold{args.cross_validation}_pretrain_{model_architecture}_{model_scale}_"
-    else:
-        tag = f"fold{args.cross_validation}_{model_architecture}_{model_scale}_"
+    tag = f"fold{args.cross_validation}_pretrain_{model_architecture}_{model_scale}_"
 
     random_seed = 729
     # set the random seed
@@ -222,7 +218,6 @@ def main():
         "vq_weights_path": "f8_vq_weights.npy",
         "model_architecture": model_architecture,
         "model_scale": model_scale,
-        "is_pretrained": is_pretrained,
         "VQ_NAME": "f8",
         "n_embed": 16384,
         "embed_dim": 4,
