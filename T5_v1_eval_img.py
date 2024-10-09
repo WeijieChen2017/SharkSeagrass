@@ -303,6 +303,7 @@ def main():
         temp_img_size = (256, 256, 720)
         direction = "axial"
         len_axial = temp_img_size[2]
+        pred_volume = np.zeros(temp_img_size, dtype=np.float32)
         for i in range(len_axial):
             index = len_axial - i - 1
             pred_ind_path = f"{root_folder}/{case_name}_{direction}_pred_ind{index:03d}.npy"
@@ -316,9 +317,17 @@ def main():
             # change dim from 1, 32, 32, 4 to 1, 4, 32, 32
             pred_post_quan = pred_post_quan.permute(0, 3, 1, 2)
             pred_img = model(pred_post_quan)
-            print(pred_img.shape)
-            exit()
-
+            pred_img = pred_img.detach().cpu().numpy().squeeze()
+            pred_img_denorm = (pred_img[:, 1, :, :] + 1.0) / 2 # 0 -> 1
+            pred_img_denorm = pred_img_denorm * 5000 - 1024
+            pred_volume[:, :, index] = pred_img_denorm
+        
+        nii_filepath = "TC256_v2/NKQ091_CTAC_256_corrected.nii.gz"
+        nii_file = nib.load(nii_filepath)
+        pred_nii = nib.Nifti1Image(pred_volume, affine=nii_file.affine, header=nii_file.header)
+        pred_nii_path = f"{root_folder}/{case_name}_pred.nii.gz"
+        nib.save(pred_nii, pred_nii_path)
+        exit()
 
 
 print("Done!")
