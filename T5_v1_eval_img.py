@@ -209,9 +209,6 @@ def main():
 
     data_params = {
         "zoom": 8,
-        "batch_train": batch_size, 
-        "batch_val": batch_size, 
-        "batch_test": batch_size, 
     }
 
     model_params = {
