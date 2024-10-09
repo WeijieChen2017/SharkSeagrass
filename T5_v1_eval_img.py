@@ -264,7 +264,7 @@ def main():
     # pre_train_ckpt = os.path.join(root_folder, f"best_model_cv{cross_validation}.pth")
 
     # load step 1 model and step 2 model
-    model = VQModel(
+    model = VQModel_decoder(
         ddconfig=model_params["ddconfig"],
         n_embed=model_params["n_embed"],
         embed_dim=model_params["embed_dim"],
