@@ -312,6 +312,8 @@ def main():
             pred_post_quan = vq_weights[pred_ind.astype(int)].reshape(32, 32, 4)
             # convert to tensor
             pred_post_quan = torch.from_numpy(pred_post_quan).float().to(device)
+            # change dim from 1, 32, 32, 4 to 1, 4, 32, 32
+            pred_post_quan = pred_post_quan.permute(0, 3, 1, 2)
             pred_img = model(pred_post_quan)
             print(pred_img.shape)
             exit()
