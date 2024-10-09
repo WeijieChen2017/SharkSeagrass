@@ -16,7 +16,7 @@ from scipy.ndimage import binary_fill_holes
 import json
 
 WRONG_MAX_CT = 2976
-CORRECT_MAX_CT = 1976
+CORRECT_MAX_CT = 976
 SCRATCH_MAX_CT = 3976
 MIN_CT = -1024
 WRONG_CT_RANGE = WRONG_MAX_CT - MIN_CT
