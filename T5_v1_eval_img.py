@@ -221,7 +221,7 @@ def main():
         "img_size" : 256,
         "input_modality" : ["TOFNAC", "CTAC"],
         # "ckpt_path": f"B100/TC256_best_ckpt/best_model_cv{cross_validation}.pth",
-        "ckpt_path": f"vq_f8.ckpt",
+        "ckpt_path": f"vq_f8_nn.pth",
         "ddconfig": {
             "double_z": False,
             "z_channels": 4,
