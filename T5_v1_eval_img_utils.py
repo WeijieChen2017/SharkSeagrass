@@ -742,7 +742,7 @@ class VQModel_decoder(nn.Module):
         self.out_conv = nn.Conv2d(ddconfig["out_ch"], 1, 1)
 
     def load_pretrain_weights(self, path):
-        pretrained_state_dict = torch.load(path, mapping="cpu")
+        pretrained_state_dict = torch.load(path)
         # we iterate over the keys of the model's state_dict and check if they are in the pretreained state_dict
         # if they are, we load the pretrained weights
 
