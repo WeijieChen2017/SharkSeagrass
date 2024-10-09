@@ -305,7 +305,7 @@ def main():
         len_axial = temp_img_size[2]
         for i in range(len_axial):
             index = len_axial - i - 1
-            pred_ind_path = f"results/{root_folder}/{case_name}_{direction}_pred_ind{index:03d}.npy"
+            pred_ind_path = f"{root_folder}/{case_name}_{direction}_pred_ind{index:03d}.npy"
             pred_ind = np.load(pred_ind_path)
             print("Successfully loaded the prediction index")
             exit()
