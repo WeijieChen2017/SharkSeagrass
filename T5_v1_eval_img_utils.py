@@ -729,7 +729,6 @@ class VQModel_decoder(nn.Module):
                 #  ckpt_path=None,
                 #  ignore_keys=[],
                 #  image_key="image",
-                 freeze_encoder=False,
                  ):
         super().__init__()
         self.embed_dim = embed_dim
