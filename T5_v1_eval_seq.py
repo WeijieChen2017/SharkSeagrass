@@ -55,6 +55,7 @@ for key, path in cache_dirs.items():
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 # import wandb
+import os
 import torch
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
@@ -167,7 +168,13 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
             with torch.no_grad():
                 max_length = batch_x.shape[1]
                 loss = model(input_ids=batch_x, labels=batch_y).loss
-                pred = model.generate(batch_x, max_length=max_length, do_sample=False)  # deterministic
+                pred = model.generate(
+                    batch_x,
+                    min_length=max_length,
+                    max_length=max_length,
+                    early_stopping=False,
+                    do_sample=False, # deterministic
+                )
                 diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 axial_case_pctg += diff_pctg
@@ -205,7 +212,13 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
             with torch.no_grad():
                 max_length = batch_x.shape[1]
                 loss = model(input_ids=batch_x, labels=batch_y).loss
-                pred = model.generate(batch_x, max_length=max_length, do_sample=False)  # deterministic
+                pred = model.generate(
+                    batch_x,
+                    min_length=max_length,
+                    max_length=max_length,
+                    early_stopping=False,
+                    do_sample=False, # deterministic
+                )
                 diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 coronal_case_pctg += diff_pctg
@@ -243,7 +256,13 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
             with torch.no_grad():
                 max_length = batch_x.shape[1]
                 loss = model(input_ids=batch_x, labels=batch_y).loss
-                pred = model.generate(batch_x, max_length=max_length, do_sample=False)  # deterministic
+                pred = model.generate(
+                    batch_x,
+                    min_length=max_length,
+                    max_length=max_length,
+                    early_stopping=False,
+                    do_sample=False, # deterministic
+                )
                 diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 sagittal_case_pctg += diff_pctg
@@ -376,7 +395,7 @@ def main():
     argparser = argparse.ArgumentParser(description='Prepare dataset for training')
     argparser.add_argument('--cross_validation', type=int, default=0, help='Index of the cross validation')
     argparser.add_argument('--pretrain', type=str, default='Y', help='Whether to pretrain the model')
-    argparser.add_argument('--model_architecture', type=str, default='T5_v1.1', help='The architecture of the model')
+    argparser.add_argument('--model_architecture', type=str, default='mT5', help='The architecture of the model')
     argparser.add_argument('--model_scale', type=str, default='small', help='The scale of the model')
     argparser.add_argument('--batch_size', type=int, default=8, help='The batch size for training')
     argparser.add_argument('--SSL_available', type=str, default='Y', help='Whether the SSL is available')
@@ -465,7 +484,8 @@ def main():
         os.makedirs(root_folder)
     print("The root folder is: ", root_folder)
     global_config["root_folder"] = root_folder
-    pre_train_ckpt = os.path.join(root_folder, f"best_model_cv{cross_validation}.pth")
+    # pre_train_ckpt = os.path.join(root_folder, f"best_model_cv{cross_validation}.pth")
+    pre_train_ckpt = f"results/T5/best_model_cv{cross_validation}_T5.pth"
 
     if model_architecture == "byte_T5":
         model_ckpt = f"google/byt5-{model_scale}"
