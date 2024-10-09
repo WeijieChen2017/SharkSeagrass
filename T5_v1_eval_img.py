@@ -308,11 +308,10 @@ def main():
             pred_ind_path = f"{root_folder}/{case_name}_{direction}_pred_ind{index:03d}.npy"
             pred_ind = np.load(pred_ind_path)            
             pred_ind = pred_ind.reshape((32, 32))
-            print(pred_ind.shape)
             # load each 
             pred_post_quan = vq_weights[pred_ind.astype(int)].reshape(32, 32, 4)
-            print(pred_post_quan.shape)
-            print(pred_post_quan)
+            # convert to tensor
+            pred_post_quan = torch.from_numpy(pred_post_quan).float().to(device)
             pred_img = model(pred_post_quan)
             print(pred_img.shape)
             exit()
