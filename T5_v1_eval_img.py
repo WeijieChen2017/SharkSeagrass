@@ -310,7 +310,7 @@ def main():
             pred_ind = pred_ind.reshape((32, 32))
             # load each 
             pred_post_quan = vq_weights[pred_ind.astype(int)].reshape(32, 32, 4)
-            pred_img = VQModel_decoder(pred_post_quan)
+            pred_img = model(pred_post_quan)
             print(pred_img.shape)
             exit()
 
