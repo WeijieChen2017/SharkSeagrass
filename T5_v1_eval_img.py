@@ -60,7 +60,7 @@ import torch
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("The device is: ", device)
 
-from T5_v1_eval_img_util import VQModel_decoder
+from T5_v1_eval_img_utils import VQModel_decoder
 
 import argparse
 import json
