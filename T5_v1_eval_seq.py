@@ -179,7 +179,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 diff_pctg = diff_count / max_length
                 axial_case_pctg += diff_pctg
 
-                print(f"Case {indices} Axial {indices} diff_pctg: {diff_pctg}")
+                print(f"Case {indices} Axial {indices} diff_pctg: {diff_avg} -> {diff_pctg}")
                 if if_pred_save:
                     axial_pred[indices] = pred.detach().cpu().numpy()
                 
@@ -223,7 +223,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 coronal_case_pctg += diff_pctg
-                print(f"Case {indices} Coronal {indices} diff_pctg: {diff_pctg}")
+                print(f"Case {indices} Coronal {indices} diff_pctg: {diff_avg} -> {diff_pctg}")
 
             if if_pred_save:
                 coronal_pred[indices] = pred.detach().cpu().numpy()
@@ -268,7 +268,7 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 sagittal_case_pctg += diff_pctg
-                print(f"Case {indices} Sagittal {indices} diff_pctg: {diff_pctg}")
+                print(f"Case {indices} Sagittal {indices} diff_pctg: {diff_avg} -> {diff_pctg}")
 
             if if_pred_save:
                 sagittal_pred[indices] = pred.detach().cpu().numpy()
