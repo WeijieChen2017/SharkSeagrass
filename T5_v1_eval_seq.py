@@ -95,9 +95,12 @@ class simple_logger():
         # if self.IS_LOGGER_WANDB and isinstance(msg, (int, float)):
         #     self.wandb_run.log({key: msg})
 
-def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimizer, global_config):
+def train_or_eval_or_test(train_phase, model, case_paths, optimizer, global_config):
 
     if_pred_save = global_config["save_pred"]
+    case_name = case_paths["case_name"]
+    path_list_x = case_paths["TOFNAC"]
+    path_list_y = case_paths["CTAC"]
 
     # z, d tensor
     batch_train = global_config["data_params"]["batch_train"]
@@ -179,9 +182,12 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 diff_pctg = diff_count / max_length
                 axial_case_pctg += diff_pctg
 
-                print(f"Case {indices} Axial {indices}/{len_axial} diff_pctg: {diff_avg} -> {diff_pctg}")
+                print(f"Case {case_name} Axial {indices}/{len_axial} diff_pctg: {diff_avg} -> {diff_pctg}")
                 if if_pred_save:
                     axial_pred[indices] = pred.detach().cpu().numpy()
+                    save_name = global_config["root_folder"] + f"{case_name}_axial_pred_ind{indices:03d}.npy"
+                    np.save(save_name, pred.detach().cpu().numpy())
+                    print(f"Prediction saved to {save_name}")
                 
         axial_case_loss += loss.item()
         axial_case_diff += diff_avg.item()
@@ -223,10 +229,13 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 coronal_case_pctg += diff_pctg
-                print(f"Case {indices} Coronal {indices}/{len_coronal} diff_pctg: {diff_avg} -> {diff_pctg}")
+                print(f"Case {case_name} Coronal {indices}/{len_coronal} diff_pctg: {diff_avg} -> {diff_pctg}")
 
             if if_pred_save:
                 coronal_pred[indices] = pred.detach().cpu().numpy()
+                save_name = global_config["root_folder"] + f"{case_name}_coronal_pred_ind{indices:03d}.npy"
+                np.save(save_name, pred.detach().cpu().numpy())
+                print(f"Prediction saved to {save_name}")
 
         coronal_case_loss += loss.item()
         coronal_case_diff += diff_avg.item()
@@ -268,10 +277,13 @@ def train_or_eval_or_test(train_phase, model, path_list_x, path_list_y, optimize
                 diff_count = torch.sum(pred != batch_y).float()
                 diff_pctg = diff_count / max_length
                 sagittal_case_pctg += diff_pctg
-                print(f"Case {indices} Sagittal {indices}/{len_sagittal} diff_pctg: {diff_avg} -> {diff_pctg}")
+                print(f"Case {case_name} Sagittal {indices}/{len_sagittal} diff_pctg: {diff_avg} -> {diff_pctg}")
 
             if if_pred_save:
                 sagittal_pred[indices] = pred.detach().cpu().numpy()
+                save_name = global_config["root_folder"] + f"{case_name}_sagittal_pred_ind{indices:03d}.npy"
+                np.save(save_name, pred.detach().cpu().numpy())
+                print(f"Prediction saved to {save_name}")
 
         sagittal_case_loss += loss.item()
         sagittal_case_diff += diff_avg.item()
@@ -576,7 +588,8 @@ def main():
         path_list_x = case_paths["TOFNAC"]
         path_list_y = case_paths["CTAC"]
 
-        return_dict = train_or_eval_or_test("test", model, path_list_x, path_list_y, optimizer, global_config)
+        # return_dict = train_or_eval_or_test("test", model, path_list_x, path_list_y, optimizer, global_config)
+        return_dict = train_or_eval_or_test("test", model, case_paths, optimizer, global_config)
 
         axial_case_loss = round(return_dict["axial_case_loss"], 3)
         coronal_case_loss = round(return_dict["coronal_case_loss"], 3)
