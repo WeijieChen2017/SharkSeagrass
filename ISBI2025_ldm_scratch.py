@@ -163,7 +163,6 @@ for cv in cv_list:
                     pred_correct_file = nib.Nifti1Image(pred_data_correct, pred_file.affine, pred_file.header)
                     nib.save(pred_correct_file, pred_correct_path)
                     print("Saved corrected pred to: ", pred_correct_path)
-                    exit()
                 
                 # compute the metrics
                 for region in region_list:
