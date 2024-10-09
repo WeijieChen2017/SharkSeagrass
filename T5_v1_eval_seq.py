@@ -148,7 +148,9 @@ def train_or_eval_or_test(train_phase, model, case_paths, optimizer, global_conf
 
     # axial slices
     # for indices in batch_indices_list_axial:
-    for indices in range(len_axial):
+    # reverse the indices list
+    for i in range(len_axial):
+        indices = len_axial - i - 1
         # according to the batch indices list, get the corresponding data
         batch_x = torch.tensor(data_ind_axial_x[indices].astype(int)).to(device)
         batch_y = torch.tensor(data_ind_axial_y[indices].astype(int)).to(device)
@@ -197,7 +199,8 @@ def train_or_eval_or_test(train_phase, model, case_paths, optimizer, global_conf
     axial_case_pctg /= len(len_axial)
 
     # coronal slices
-    for indices in range(len_coronal):
+    for i in range(len_coronal):
+        indices = len_coronal - i - 1
         batch_x = torch.tensor(data_ind_coronal_x[indices].astype(int)).to(device)
         batch_y = torch.tensor(data_ind_coronal_y[indices].astype(int)).to(device)
         # add the batch dimension
@@ -245,7 +248,8 @@ def train_or_eval_or_test(train_phase, model, case_paths, optimizer, global_conf
     coronal_case_pctg /= len(len_coronal)
 
     # sagittal slices
-    for indices in range(len_sagittal):
+    for i in range(len_sagittal):
+        indices = len_sagittal - i - 1
         batch_x = torch.tensor(data_ind_sagittal_x[indices].astype(int)).to(device)
         batch_y = torch.tensor(data_ind_sagittal_y[indices].astype(int)).to(device)
         # add the batch dimension
@@ -493,7 +497,7 @@ def main():
     global_config["save_pred"] = True
 
     cross_validation = args.cross_validation
-    root_folder = f"./results/{tag}_root/"
+    root_folder = f"./results/{tag}root/"
     data_div_json = "T5_v1_data_split.json"
     if not os.path.exists(root_folder):
         os.makedirs(root_folder)
@@ -587,6 +591,9 @@ def main():
         case_name = case_paths["case_name"]
         path_list_x = case_paths["TOFNAC"]
         path_list_y = case_paths["CTAC"]
+
+        if case_name == "ZTW155":
+            continue
 
         # return_dict = train_or_eval_or_test("test", model, path_list_x, path_list_y, optimizer, global_config)
         return_dict = train_or_eval_or_test("test", model, case_paths, optimizer, global_config)
