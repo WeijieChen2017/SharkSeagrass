@@ -219,7 +219,7 @@ def main():
     }
 
     model_params = {
-        "vq_weights_path": "f8_vq_weights.npy"
+        "vq_weights_path": "f8_vq_weights.npy",
         "model_architecture": model_architecture,
         "model_scale": model_scale,
         "is_pretrained": is_pretrained,
@@ -241,7 +241,7 @@ def main():
             "num_res_blocks": 2,
             "attn_resolutions": [32],
             "dropout": 0.0,
-        }
+        },
     }
 
     train_params = {
