@@ -306,8 +306,12 @@ def main():
         for i in range(len_axial):
             index = len_axial - i - 1
             pred_ind_path = f"{root_folder}/{case_name}_{direction}_pred_ind{index:03d}.npy"
-            pred_ind = np.load(pred_ind_path)
-            print("Successfully loaded the prediction index")
+            pred_ind = np.load(pred_ind_path)            
+            pred_ind = pred_ind.reshape((32, 32))
+            # load each 
+            pred_post_quan = vq_weights[pred_ind.astype(int)].reshape(32, 32, 4)
+            pred_img = VQModel_decoder(pred_post_quan)
+            print(pred_img.shape)
             exit()
 
 
