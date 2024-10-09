@@ -318,9 +318,10 @@ def main():
             pred_post_quan = pred_post_quan.permute(0, 3, 1, 2)
             pred_img = model(pred_post_quan)
             pred_img = pred_img.detach().cpu().numpy().squeeze()
-            pred_img_denorm = (pred_img[:, 1, :, :] + 1.0) / 2 # 0 -> 1
+            pred_img_denorm = (pred_img[1, :, :] + 1.0) / 2 # 0 -> 1
             pred_img_denorm = pred_img_denorm * 5000 - 1024
             pred_volume[:, :, index] = pred_img_denorm
+            print("Processing", case_name, direction, index)
         
         nii_filepath = "TC256_v2/NKQ091_CTAC_256_corrected.nii.gz"
         nii_file = nib.load(nii_filepath)
