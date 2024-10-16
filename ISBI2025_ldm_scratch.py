@@ -1,7 +1,7 @@
 # cv_list = ["cv1", "cv3", "cv4"] # for ldm
 cv_list = ["cv0", "cv1"] # for scratch
 
-split_list = ["train", "val", "test"]
+split_list = ["test"]
 
 data_fusion_list = ["axial", "sagittal", "coronal", "average", "median"]
 
