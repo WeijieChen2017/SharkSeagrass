@@ -222,13 +222,21 @@ metric_list = [
     "synCT_MAE_bone_median"
 ]
 
+cv2_all_trainable = None
+cv3_all_trainable = None
+cv4_all_trainable = None
+
+cv2_scratch = None
+cv3_scratch = None
+cv4_scratch = None
+
 import numpy as np
 
 for model in model_list:
     average_metrics = {}
     for cv in cv_list:
-        # if target dict not found, skip
-        if not eval(f"{cv}_{model}"):
+        # if target dict not defined, skip
+        if eval(f"{cv}_{model}") is None:
             continue
         cv_metrics = eval(f"{cv}_{model}")
         for metric in metric_list:
