@@ -248,5 +248,5 @@ for model in model_list:
         average_metrics[metric] = np.mean(average_metrics[metric])
     print(f"Model: {model}")
     for metric in metric_list:
-        print(f"{metric}: {average_metrics[metric]}")
+        print(f"{average_metrics[metric]}")
 
