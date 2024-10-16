@@ -222,6 +222,8 @@ metric_list = [
     "synCT_MAE_bone_median"
 ]
 
+import numpy as np
+
 for model in model_list:
     average_metrics = {}
     for cv in cv_list:
