@@ -61,7 +61,7 @@ def main():
 
     cross_validation = args.cross_validation
     # root_folder = f"B100/UNetUNet_best/cv{cross_validation}_256/"
-    root_folder = f"results/cv{cross_validation}_256_scratch/"
+    root_folder = f"results/cv{cross_validation}_256_iceEnc/"
     data_div_json = "UNetUNet_v1_data_split.json"
     if not os.path.exists(root_folder):
         os.makedirs(root_folder)
