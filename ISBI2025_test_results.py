@@ -198,7 +198,8 @@ cv1_scratch = {# cv1 scratch
 }
 
 model_list = ["iceEnc", "all_trainable", "scratch"]
-cv_list = ["cv0", "cv1", "cv2", "cv3", "cv4"]
+# cv_list = ["cv0", "cv1", "cv2", "cv3", "cv4"]
+cv_list = ["cv0", "cv1"]
 metric_list = [
     "synCT_MAE_whole_axial",
     "synCT_MAE_whole_sagittal",
