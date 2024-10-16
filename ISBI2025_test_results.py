@@ -1,4 +1,4 @@
-{# cv0 iceEnc
+cv0_iceEnc = {# cv0 iceEnc
     "synCT_MAE_whole_axial": 74.06236375286554,
     "synCT_MAE_whole_sagittal": 80.4672425443853,
     "synCT_MAE_whole_coronal": 84.3284727099282,
@@ -20,7 +20,7 @@
     "synCT_MAE_bone_average": 332.24522206253346,
     "synCT_MAE_bone_median": 337.10182542229336
 }
-{# cv1 iceEnc
+cv1_iceEnc = {# cv1 iceEnc
     "synCT_MAE_whole_axial": 82.77215881195288,
     "synCT_MAE_whole_sagittal": 92.62326736582018,
     "synCT_MAE_whole_coronal": 95.71588028942914,
@@ -42,7 +42,73 @@
     "synCT_MAE_bone_average": 280.81500560258735,
     "synCT_MAE_bone_median": 290.66197149379735
 }
-{# cv0 all-trainable
+cv2_iceEnc = {# cv2 iceEnc
+    "synCT_MAE_whole_axial": 80.09468874763573,
+    "synCT_MAE_whole_sagittal": 85.26905869180737,
+    "synCT_MAE_whole_coronal": 82.75038907247448,
+    "synCT_MAE_whole_average": 77.39514578191175,
+    "synCT_MAE_whole_median": 76.9100387518142,
+    "synCT_MAE_air_axial": 141.76657018740642,
+    "synCT_MAE_air_sagittal": 152.38640374956412,
+    "synCT_MAE_air_coronal": 149.5409895730529,
+    "synCT_MAE_air_average": 136.90612467394052,
+    "synCT_MAE_air_median": 136.76726321522065,
+    "synCT_MAE_soft_axial": 52.55616251750793,
+    "synCT_MAE_soft_sagittal": 56.485052174548386,
+    "synCT_MAE_soft_coronal": 53.88525244977569,
+    "synCT_MAE_soft_average": 50.70584725170912,
+    "synCT_MAE_soft_median": 49.22471053312893,
+    "synCT_MAE_bone_axial": 389.3146394117245,
+    "synCT_MAE_bone_sagittal": 379.26054287807034,
+    "synCT_MAE_bone_coronal": 383.84167517524054,
+    "synCT_MAE_bone_average": 372.3317307276323,
+    "synCT_MAE_bone_median": 376.50339412490376
+}
+cv3_iceEnc = {# cv3 iceEnc
+    "synCT_MAE_whole_axial": 75.14476214399936,
+    "synCT_MAE_whole_sagittal": 81.71387466008856,
+    "synCT_MAE_whole_coronal": 77.34385138119418,
+    "synCT_MAE_whole_average": 71.19707526908083,
+    "synCT_MAE_whole_median": 70.21552814258663,
+    "synCT_MAE_air_axial": 183.85338847515166,
+    "synCT_MAE_air_sagittal": 214.18619816969107,
+    "synCT_MAE_air_coronal": 211.61660343130188,
+    "synCT_MAE_air_average": 194.44483303356267,
+    "synCT_MAE_air_median": 189.10414766826216,
+    "synCT_MAE_soft_axial": 52.69140213776721,
+    "synCT_MAE_soft_sagittal": 56.17685356147446,
+    "synCT_MAE_soft_coronal": 51.585996578302385,
+    "synCT_MAE_soft_average": 48.64780114781898,
+    "synCT_MAE_soft_median": 46.58947863346491,
+    "synCT_MAE_bone_axial": 317.2083559030925,
+    "synCT_MAE_bone_sagittal": 350.08768486674836,
+    "synCT_MAE_bone_coronal": 360.6862222533929,
+    "synCT_MAE_bone_average": 321.4056570216978,
+    "synCT_MAE_bone_median": 329.6715899702698
+}
+cv4_iceEnc = {# cv4 iceEnc
+    "synCT_MAE_whole_axial": 74.60308529605399,
+    "synCT_MAE_whole_sagittal": 78.37685970009775,
+    "synCT_MAE_whole_coronal": 78.98208936949791,
+    "synCT_MAE_whole_average": 70.76026469846859,
+    "synCT_MAE_whole_median": 68.92183368607573,
+    "synCT_MAE_air_axial": 214.8996536148674,
+    "synCT_MAE_air_sagittal": 249.05050632398223,
+    "synCT_MAE_air_coronal": 266.24436815399986,
+    "synCT_MAE_air_average": 234.8588344624802,
+    "synCT_MAE_air_median": 223.6933787374006,
+    "synCT_MAE_soft_axial": 45.35849009019802,
+    "synCT_MAE_soft_sagittal": 46.80712606071709,
+    "synCT_MAE_soft_coronal": 46.31992465661033,
+    "synCT_MAE_soft_average": 41.62609528263192,
+    "synCT_MAE_soft_median": 38.82617055312801,
+    "synCT_MAE_bone_axial": 335.06493124516874,
+    "synCT_MAE_bone_sagittal": 365.3344567049734,
+    "synCT_MAE_bone_coronal": 367.1955706366903,
+    "synCT_MAE_bone_average": 331.86934494532744,
+    "synCT_MAE_bone_median": 344.1767100360409
+}
+cv0_all_trainable = {# cv0 all-trainable
     "synCT_MAE_whole_axial": 96.89466258668665,
     "synCT_MAE_whole_sagittal": 99.26418076847824,
     "synCT_MAE_whole_coronal": 98.90344957242637,
@@ -64,7 +130,7 @@
     "synCT_MAE_bone_average": 507.5484951693022,
     "synCT_MAE_bone_median": 511.31383461937355
 }
-{# cv1 all-trainable
+cv1_all_trainable = {# cv1 all-trainable
     "synCT_MAE_whole_axial": 72.55314378170293,
     "synCT_MAE_whole_sagittal": 81.07856596500676,
     "synCT_MAE_whole_coronal": 79.01378643499513,
@@ -86,7 +152,7 @@
     "synCT_MAE_bone_average": 356.7271023469308,
     "synCT_MAE_bone_median": 358.90645286655325
 }
-{# cv0 scratch
+cv0_scratch = {# cv0 scratch
     "synCT_MAE_whole_axial": 135.48628319549385,
     "synCT_MAE_whole_sagittal": 128.3064778223083,
     "synCT_MAE_whole_coronal": 122.15721889181117,
@@ -108,7 +174,7 @@
     "synCT_MAE_bone_average": 607.7930561143235,
     "synCT_MAE_bone_median": 622.5172340922986
 }
-{# cv1 scratch
+cv1_scratch = {# cv1 scratch
     "synCT_MAE_whole_axial": 62.40851644764307,
     "synCT_MAE_whole_sagittal": 72.5156581224612,
     "synCT_MAE_whole_coronal": 76.69393115081164,
@@ -130,3 +196,43 @@
     "synCT_MAE_bone_average": 234.22409697622132,
     "synCT_MAE_bone_median": 238.8367615733414
 }
+
+model_list = ["iceEnc", "all_trainable", "scratch"]
+cv_list = ["cv0", "cv1", "cv2", "cv3", "cv4"]
+metric_list = [
+    "synCT_MAE_whole_axial",
+    "synCT_MAE_whole_sagittal",
+    "synCT_MAE_whole_coronal",
+    "synCT_MAE_whole_average",
+    "synCT_MAE_whole_median",
+    "synCT_MAE_air_axial",
+    "synCT_MAE_air_sagittal",
+    "synCT_MAE_air_coronal",
+    "synCT_MAE_air_average",
+    "synCT_MAE_air_median",
+    "synCT_MAE_soft_axial",
+    "synCT_MAE_soft_sagittal",
+    "synCT_MAE_soft_coronal",
+    "synCT_MAE_soft_average",
+    "synCT_MAE_soft_median",
+    "synCT_MAE_bone_axial",
+    "synCT_MAE_bone_sagittal",
+    "synCT_MAE_bone_coronal",
+    "synCT_MAE_bone_average",
+    "synCT_MAE_bone_median"
+]
+
+for model in model_list:
+    average_metrics = {}
+    for cv in cv_list:
+        cv_metrics = eval(f"{cv}_{model}")
+        for metric in metric_list:
+            if metric not in average_metrics:
+                average_metrics[metric] = []
+            average_metrics[metric].append(cv_metrics[metric])
+    for metric in metric_list:
+        average_metrics[metric] = np.mean(average_metrics[metric])
+    print(f"Model: {model}")
+    for metric in metric_list:
+        print(f"{metric}: {average_metrics[metric]}")
+
