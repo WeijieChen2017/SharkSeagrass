@@ -227,6 +227,9 @@ import numpy as np
 for model in model_list:
     average_metrics = {}
     for cv in cv_list:
+        # if target dict not found, skip
+        if not eval(f"{cv}_{model}"):
+            continue
         cv_metrics = eval(f"{cv}_{model}")
         for metric in metric_list:
             if metric not in average_metrics:
