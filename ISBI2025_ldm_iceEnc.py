@@ -1,5 +1,5 @@
 # cv_list = ["cv1", "cv3", "cv4"] # for ldm
-cv_list = ["cv0", "cv1"] # for scratch
+cv_list = ["cv0", "cv1"] # for iceEnc
 
 split_list = ["train", "val", "test"]
 
@@ -16,20 +16,21 @@ from scipy.ndimage import binary_fill_holes
 import json
 
 WRONG_MAX_CT = 2976
-CORRECT_MAX_CT = 1976
+CORRECT_MAX_CT = 976
+SCRATCH_MAX_CT = 2976
 MIN_CT = -1024
 WRONG_CT_RANGE = WRONG_MAX_CT - MIN_CT
 CORRECT_CT_RANGE = CORRECT_MAX_CT - MIN_CT
-
+SCRATCH_CT_RANGE = SCRATCH_MAX_CT - MIN_CT
 
 CT_mask_folder = "TC256_v2_mask/"
 os.makedirs(CT_mask_folder, exist_ok=True)
 HU_boundary_valid_air = -500
-# HU_boundary_air_soft = -200
-# HU_boundary_soft_bone = 500
+# HU_boundary_air_soft = -250
+# HU_boundary_soft_bone = 150
+HU_boundary_air = [-1024, -500]
 HU_boundary_soft = [-200, 200]
 HU_boundary_bone = [500, 2976]
-
 
 
 for cv in cv_list:
@@ -45,9 +46,9 @@ for cv in cv_list:
         for region in region_list:
             for data_fusion in data_fusion_list:
                 metrics_dict[f"synCT_MAE_{region}_{data_fusion}"] = []
-        result_save_json = f"ISBI2025_ldm_pretrained_metrics_{cv}_{split}.json"
+        result_save_json = f"ISBI2025_ldm_iceEnc_metrics_{cv}_{split}.json"
         casename_list = sorted(split_dict[split])
-        pred_folder = f"results/{cv}_256/{split}/"
+        pred_folder = f"results/{cv}_256_iceEnc/{split}/"
 
         # this is 400*400, we need generate 256*256 mask first, then compute it.
         for casename in casename_list:
@@ -118,7 +119,7 @@ for cv in cv_list:
                 print("Saved whole mask to: ", mask_CT_whole_path)
                 
                 # air mask is from MIN to HU_boundary_air_soft
-                mask_CT_air = (CT_GT_data > MIN_CT) & (CT_GT_data < HU_boundary_air_soft)
+                mask_CT_air = (CT_GT_data >= HU_boundary_air[0]) & (CT_GT_data <= HU_boundary_air[1])
                 # intersection with the whole mask
                 mask_CT_air = mask_CT_air & mask_CT_whole
                 # save the mask
@@ -127,7 +128,7 @@ for cv in cv_list:
                 print("Saved air mask to: ", mask_CT_air_path)
 
                 # soft mask is from HU_boundary_air_soft to HU_boundary_soft_bone
-                mask_CT_soft = (CT_GT_data > HU_boundary_air_soft) & (CT_GT_data < HU_boundary_soft_bone)
+                mask_CT_soft = (CT_GT_data >= HU_boundary_soft[0]) & (CT_GT_data <= HU_boundary_soft[1])
                 # intersection with the whole mask
                 mask_CT_soft = mask_CT_soft & mask_CT_whole
                 # save the mask
@@ -136,7 +137,7 @@ for cv in cv_list:
                 print("Saved soft mask to: ", mask_CT_soft_path)
 
                 # bone mask is from HU_boundary_soft_bone to MAX
-                mask_CT_bone = CT_GT_data > HU_boundary_soft_bone
+                mask_CT_bone = (CT_GT_data >= HU_boundary_bone[0]) & (CT_GT_data <= HU_boundary_bone[1])
                 # intersection with the whole mask
                 mask_CT_bone = mask_CT_bone & mask_CT_whole
                 # save the mask
@@ -155,8 +156,11 @@ for cv in cv_list:
                 else:
                     pred_file = nib.load(pred_path)
                     pred_data = pred_file.get_fdata()
+                    # pred_data_norm = (pred_data - MIN_CT) / CORRECT_CT_RANGE
+                    # pred_data_correct = pred_data_norm * WRONG_CT_RANGE + MIN_CT
+                    # here pred_data is from -1024 to some value, and the zero points are near -550
                     pred_data_norm = (pred_data - MIN_CT) / CORRECT_CT_RANGE
-                    pred_data_correct = pred_data_norm * WRONG_CT_RANGE + MIN_CT
+                    pred_data_correct = pred_data_norm * SCRATCH_CT_RANGE + MIN_CT
                     # save the corrected pred_data
                     pred_correct_file = nib.Nifti1Image(pred_data_correct, pred_file.affine, pred_file.header)
                     nib.save(pred_correct_file, pred_correct_path)
