@@ -1,7 +1,7 @@
 import os
 import glob
 
-TOFNAC_dir = "James_data_v3/Duetto_Output_B100_nii/"
+TOFNAC_dir = "James_data_v3/_nii_Winston/"
 CTACIVV_dir = "James_data_v3/part3/"
 
 TOFNAC_dir_list =sorted(glob.glob(TOFNAC_dir + "*/*.nii"))
