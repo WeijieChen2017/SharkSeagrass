@@ -21,7 +21,7 @@ RANGE_PET = MAX_PET - MIN_PET
 exclude_case_list = ["E4063", "E4080", "E4087", "E4097", "E4102", "E4203", "E4204", "E4225"]
 
 TOFNAC_dir = "James_data_v3/TOFNAC_256/"
-CTACIVV_dir = "James_data_v3/CTACICC_256"
+CTACIVV_dir = "James_data_v3/CTACIVV_256/"
 
 TOFNAC_norm_dir = "James_data_v3/TOFNAC_256_norm/"
 CTACIVV_norm_dir = "James_data_v3/CTACIVV_256_norm/"
