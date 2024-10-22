@@ -722,7 +722,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import zoom
 
-tag_list = ['E4055', 'E4058', 'E4061', 'E4066', 'E4068',
+casename_list = ['E4055', 'E4058', 'E4061', 'E4066', 'E4068',
             'E4069', 'E4073', 'E4074', 'E4077', 'E4078',
             'E4079', 'E4081', 'E4084', 'E4091', 'E4092',
             'E4094', 'E4096', 'E4098', 'E4099', 'E4103',
@@ -737,7 +737,6 @@ tag_list = ['E4055', 'E4058', 'E4061', 'E4066', 'E4068',
             'E4217', 'E4219', 'E4220', 'E4232', 'E4237',
             'E4238', 'E4239', 'E4241'
 ]
-total_file_list = len(tag_list)
 
 MAX_CT = 2976
 MIN_CT = -1024
@@ -758,10 +757,10 @@ done_axial = False
 done_coronal = False
 done_sagittal = False
 
-for idx_tag, name_tag in enumerate(tag_list):
+for idx_tag, name_tag in enumerate(casename_list):
 
     print()
-    print(f"Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}]")
+    print(f"Processing {name_tag}:[{idx_tag}]/[{len(casename_list)}]")
 
     CTAC_path = root_folder + f"CTACIVV_256_norm/CTACIVV_{name_tag}_norm.nii.gz"
     TOFNAC_path = root_folder + f"TOFNAC_256_norm/TOFNAC_{name_tag}_norm.nii.gz"
@@ -908,7 +907,7 @@ for idx_tag, name_tag in enumerate(tag_list):
             y_axial_mae = np.mean(np.abs(gt_y - recon_y))
             x_axial_mae_list.append(x_axial_mae)
             y_axial_mae_list.append(y_axial_mae)
-            print(f">> Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] z=[{idx_z}]/[{len_z-1}], x_axial_mae: {x_axial_mae:.3f}, y_axial_mae: {y_axial_mae:.3f}")
+            print(f">> Processing {name_tag}:[{idx_tag}]/[{len(casename_list)}] z=[{idx_z}]/[{len_z-1}], x_axial_mae: {x_axial_mae:.3f}, y_axial_mae: {y_axial_mae:.3f}")
 
         # print the mae
         x_axial_mae_list = np.array(x_axial_mae_list)
@@ -1029,7 +1028,7 @@ for idx_tag, name_tag in enumerate(tag_list):
             x_coronal_mae_list.append(x_coronal_mae)
             y_coronal_mae_list.append(y_coronal_mae)
 
-            print(f">> Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] y=[{idx_y}]/[{len_y-1}], x_coronal_mae: {x_coronal_mae:.3f}, y_coronal_mae: {y_coronal_mae:.3f}")
+            print(f">> Processing {name_tag}:[{idx_tag}]/[{len(casename_list)}] y=[{idx_y}]/[{len_y-1}], x_coronal_mae: {x_coronal_mae:.3f}, y_coronal_mae: {y_coronal_mae:.3f}")
 
         # print the mae
         x_coronal_mae_list = np.array(x_coronal_mae_list)
@@ -1151,7 +1150,7 @@ for idx_tag, name_tag in enumerate(tag_list):
             x_sagittal_mae_list.append(x_sagittal_mae)
             y_sagittal_mae_list.append(y_sagittal_mae)
 
-            print(f">> Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] x=[{idx_x}]/[{len_x-1}], x_sagittal_mae: {x_sagittal_mae:.3f}, y_sagittal_mae: {y_sagittal_mae:.3f}")
+            print(f">> Processing {name_tag}:[{idx_tag}]/[{len(casename_list)}] x=[{idx_x}]/[{len_x-1}], x_sagittal_mae: {x_sagittal_mae:.3f}, y_sagittal_mae: {y_sagittal_mae:.3f}")
 
         # print the mae
         x_sagittal_mae_list = np.array(x_sagittal_mae_list)
@@ -1183,7 +1182,7 @@ for idx_tag, name_tag in enumerate(tag_list):
         np.save(y_sagittal_recon_savename, y_sagittal_recon)
         print(f"Save {x_sagittal_recon_savename} and {y_sagittal_recon_savename}")
 
-    print(f"Processing {name_tag}:[{idx_tag}]/[{len(total_file_list)}] done.")
+    print(f"Processing {name_tag}:[{idx_tag}]/[{len(casename_list)}] done.")
 
 print("All done.")
 
