@@ -1016,8 +1016,9 @@ for idx_tag, name_tag in enumerate(casename_list):
             gt_y = gt_y * RANGE_CT + MIN_CT
 
             # save the recon
-            x_coronal_recon[:, idx_y, :] = recon_x
-            y_coronal_recon[:, idx_y, :] = recon_y
+            # ValueError: could not broadcast input array from shape (468,256) into shape (256,468)
+            x_coronal_recon[:, idx_y, :] = recon_x.T
+            y_coronal_recon[:, idx_y, :] = recon_y.T
 
             # compute the l1 loss
             recon_x = np.transpose(recon_x, (1, 0))
@@ -1138,8 +1139,8 @@ for idx_tag, name_tag in enumerate(casename_list):
             gt_y = gt_y * RANGE_CT + MIN_CT
 
             # save the recon
-            x_sagittal_recon[idx_x, :, :] = recon_x
-            y_sagittal_recon[idx_x, :, :] = recon_y
+            x_sagittal_recon[idx_x, :, :] = recon_x.T
+            y_sagittal_recon[idx_x, :, :] = recon_y.T
 
             # compute the l1 loss
             recon_x = np.transpose(recon_x, (1, 0))
