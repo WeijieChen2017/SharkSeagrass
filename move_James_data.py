@@ -126,40 +126,40 @@ tag_list = [
 
 
 # here we load the data
-import os
-import nibabel as nib
-import numpy as np
+# import os
+# import nibabel as nib
+# import numpy as np
 
-for tag in tag_list:
-    CT_path = f"./B100/CTACIVV/CTACIVV_{tag[1:]}.nii.gz"
-    PET_path = f"./B100/TOFNAC/PET_TOFNAC_{tag}.nii.gz"
-    CT_file = nib.load(CT_path)
-    PET_file = nib.load(PET_path)
-    CT_data = CT_file.get_fdata()
-    PET_data = PET_file.get_fdata()
+# for tag in tag_list:
+#     CT_path = f"./B100/CTACIVV/CTACIVV_{tag[1:]}.nii.gz"
+#     PET_path = f"./B100/TOFNAC/PET_TOFNAC_{tag}.nii.gz"
+#     CT_file = nib.load(CT_path)
+#     PET_file = nib.load(PET_path)
+#     CT_data = CT_file.get_fdata()
+#     PET_data = PET_file.get_fdata()
 
-    print("<"*50)
-    print(f"File: CTACIVV_{tag[1:]}.nii.gz")
-    print(f"CT shape: {CT_data.shape}, CT_max: {np.max(CT_data)}, CT_min: {np.min(CT_data)}")
-    print(f"CT mean: {np.mean(CT_data)}, CT std: {np.std(CT_data)}")
-    print(f"CT 95th percentile: {np.percentile(CT_data, 95)}")
-    print(f"CT 99th percentile: {np.percentile(CT_data, 99)}")
-    print(f"CT 99.9th percentile: {np.percentile(CT_data, 99.9)}")
-    print(f"CT 99.99th percentile: {np.percentile(CT_data, 99.99)}")
-    print(f"CT physcial spacing: {CT_file.header.get_zooms()}")
-    print(f"CT physical range: {CT_file.header.get_zooms() * np.array(CT_data.shape)}")
-    print(">"*50)
-    print(f"File: PET_TOFNAC_{tag}.nii.gz")
-    print(f"PET shape: {PET_data.shape}, PET_max: {np.max(PET_data)}, PET_min: {np.min(PET_data)}")
-    print(f"PET mean: {np.mean(PET_data)}, PET std: {np.std(PET_data)}")
-    print(f"PET 95th percentile: {np.percentile(PET_data, 95)}")
-    print(f"PET 99th percentile: {np.percentile(PET_data, 99)}")
-    print(f"PET 99.9th percentile: {np.percentile(PET_data, 99.9)}")
-    print(f"PET 99.99th percentile: {np.percentile(PET_data, 99.99)}")
-    print(f"PET physcial spacing: {PET_file.header.get_zooms()}")
-    print(f"PET physical range: {PET_file.header.get_zooms() * np.array(PET_data.shape)}")
+#     print("<"*50)
+#     print(f"File: CTACIVV_{tag[1:]}.nii.gz")
+#     print(f"CT shape: {CT_data.shape}, CT_max: {np.max(CT_data)}, CT_min: {np.min(CT_data)}")
+#     print(f"CT mean: {np.mean(CT_data)}, CT std: {np.std(CT_data)}")
+#     print(f"CT 95th percentile: {np.percentile(CT_data, 95)}")
+#     print(f"CT 99th percentile: {np.percentile(CT_data, 99)}")
+#     print(f"CT 99.9th percentile: {np.percentile(CT_data, 99.9)}")
+#     print(f"CT 99.99th percentile: {np.percentile(CT_data, 99.99)}")
+#     print(f"CT physcial spacing: {CT_file.header.get_zooms()}")
+#     print(f"CT physical range: {CT_file.header.get_zooms() * np.array(CT_data.shape)}")
+#     print(">"*50)
+#     print(f"File: PET_TOFNAC_{tag}.nii.gz")
+#     print(f"PET shape: {PET_data.shape}, PET_max: {np.max(PET_data)}, PET_min: {np.min(PET_data)}")
+#     print(f"PET mean: {np.mean(PET_data)}, PET std: {np.std(PET_data)}")
+#     print(f"PET 95th percentile: {np.percentile(PET_data, 95)}")
+#     print(f"PET 99th percentile: {np.percentile(PET_data, 99)}")
+#     print(f"PET 99.9th percentile: {np.percentile(PET_data, 99.9)}")
+#     print(f"PET 99.99th percentile: {np.percentile(PET_data, 99.99)}")
+#     print(f"PET physcial spacing: {PET_file.header.get_zooms()}")
+#     print(f"PET physical range: {PET_file.header.get_zooms() * np.array(PET_data.shape)}")
 
-    print("<--->")
+#     print("<--->")
 
 # root@fac5e29efbe7:/SharkSeagrass# python move_James_data.py 
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

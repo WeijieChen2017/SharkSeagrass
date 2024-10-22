@@ -567,4 +567,96 @@ for TOFNAC_path in TOFNAC_path_lists:
         print(f"case: {casename}, TOFNAC: {TOFNAC_data.shape}, CTACIVV: {CTACIVV_data.shape}")
         print(f"case: {casename}, z dim not matched!")
 
-    
+# root@3ea3c90dad55:/SharkSeagrass# python move_James_data_Oct21.py
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4055_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4058_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4061_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4063_aligned.nii.gz, saved!
+# case: E4063, TOFNAC: (256, 256, 819), CTACIVV: (299, 299, 812)
+# case: E4063, z dim not matched!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4066_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4068_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4069_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4073_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4074_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4077_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4078_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4079_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4080_aligned.nii.gz, saved!
+# case: E4080, TOFNAC: (256, 256, 869), CTACIVV: (299, 299, 1293)
+# case: E4080, z dim not matched!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4081_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4084_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4087_aligned.nii.gz, saved!
+# case: E4087, TOFNAC: (256, 256, 819), CTACIVV: (299, 299, 1241)
+# case: E4087, z dim not matched!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4091_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4092_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4094_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4096_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4097_aligned.nii.gz, saved!
+# case: E4097, TOFNAC: (256, 256, 769), CTACIVV: (299, 299, 771)
+# case: E4097, z dim not matched!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4098_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4099_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4102_aligned.nii.gz, saved!
+# case: E4102, TOFNAC: (256, 256, 718), CTACIVV: (299, 299, 735)
+# case: E4102, z dim not matched!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4103_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4105_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4106_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4114_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4115_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4118_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4120_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4124_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4125_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4128_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4129_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4130_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4131_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4134_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4137_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4138_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4139_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4143_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4144_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4147_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4152_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4155_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4157_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4158_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4162_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4163_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4165_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4166_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4172_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4181_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4182_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4183_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4185_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4187_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4189_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4193_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4197_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4198_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4203_aligned.nii.gz, saved!
+# case: E4203, TOFNAC: (256, 256, 869), CTACIVV: (299, 299, 1293)
+# case: E4203, z dim not matched!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4204_aligned.nii.gz, saved!
+# case: E4204, TOFNAC: (256, 256, 769), CTACIVV: (299, 299, 778)
+# case: E4204, z dim not matched!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4207_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4208_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4216_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4217_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4219_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4220_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4225_aligned.nii.gz, saved!
+# case: E4225, TOFNAC: (256, 256, 819), CTACIVV: (299, 299, 1259)
+# case: E4225, z dim not matched!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4232_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4237_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4238_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4239_aligned.nii.gz, saved!
+# case: James_data_v3/CTACIVV_256/CTACIVV_E4241_aligned.nii.gz, saved!
