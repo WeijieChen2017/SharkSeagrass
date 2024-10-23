@@ -120,11 +120,11 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 from monai.networks.nets import UNet
 
 model = UNet(
-    dimensions=2,
-    in_channels=in_channel,
-    out_channels=out_channel,
-    channels=(16, 32, 64, 128, 256),
-    strides=(2, 2, 2, 1),
+    spatial_dims=2,
+    in_channels=3,
+    out_channels=3,
+    channels=(32, 64, 128, 256),
+    strides=(2, 2, 2, 2)
     num_res_units=6,
 )
 
