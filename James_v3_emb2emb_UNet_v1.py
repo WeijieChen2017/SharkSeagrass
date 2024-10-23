@@ -108,6 +108,7 @@ print("test_list: ", test_list)
 import torch
 import numpy as np
 
+batch_size = 16
 dim = 64
 in_channel = 3
 out_channel = 3
@@ -156,6 +157,11 @@ def train_or_eval_or_test(model, case_name, stage, ana_planes):
         len_y = len_x
 
         case_loss = []
+        cnt_batch = 0
+
+        # Initialize tensors to hold the batch results
+        x_axial_batch = []
+        y_axial_batch = []
 
         for i in range(len_z):
             
@@ -172,19 +178,30 @@ def train_or_eval_or_test(model, case_name, stage, ana_planes):
             y_axial_post_quan = torch.from_numpy(y_axial_post_quan).float().to(device)
             y_axial_post_quan = y_axial_post_quan.unsqueeze(0)
             y_axial_post_quan = y_axial_post_quan.permute(0, 3, 1, 2)
+            
+            cnt_batch += 1
+            x_axial_batch.append(x_axial_post_quan)
+            y_axial_batch.append(y_axial_post_quan)
 
-            if stage == "train":
-                optimizer.zero_grad()
-                y_hat = model(x_axial_post_quan)
-                loss_val = loss(y_hat, y_axial_post_quan)
-                loss_val.backward()
-                optimizer.step()
-            else:
-                with torch.no_grad():
-                    y_hat = model(x_axial_post_quan)
-                    loss_val = loss(y_hat, y_axial_post_quan)
-                
-            case_loss.append(loss_val.item())
+            if cnt_batch == batch_size or i == len_z - 1:
+                x_axial_batch = torch.cat(x_axial_batch, dim=0)
+                y_axial_batch = torch.cat(y_axial_batch, dim=0)
+
+                if stage == "train":
+                    optimizer.zero_grad()
+                    y_hat = model(x_axial_batch)
+                    loss_val = loss(y_hat, y_axial_batch)
+                    loss_val.backward()
+                    optimizer.step()
+                else:
+                    with torch.no_grad():
+                        y_hat = model(x_axial_batch)
+                        loss_val = loss(y_hat, y_axial_batch)
+                    
+                case_loss.append(loss_val.item())
+                cnt_batch = 0
+                x_axial_batch = []
+                y_axial_batch = []
 
     case_loss = np.asarray(case_loss)
     return np.mean(case_loss)
