@@ -113,9 +113,9 @@ dim = 64
 in_channel = 3
 out_channel = 3
 batch_size = 8
-n_epoch = 200
-n_epoch_eval = 10
-n_epoch_save = 20
+n_epoch = 2000
+n_epoch_eval = 20
+n_epoch_save = 100
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 from monai.networks.nets import UNet
