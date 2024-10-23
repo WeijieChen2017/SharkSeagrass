@@ -207,6 +207,8 @@ def train_or_eval_or_test(model, case_name, stage, ana_planes):
     return np.mean(case_loss)
 
 save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}/"
+import os
+os.makedirs(save_folder, exist_ok=True)
 best_eval_loss = 1e10
 for idx_epoch in range(n_epoch):
     print(f"Epoch: {idx_epoch+1}/{n_epoch}")
