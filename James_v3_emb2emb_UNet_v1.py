@@ -28,3 +28,18 @@ for i in range(5):
         cv_list.append(tag_list[i * cv_len: (i + 1) * cv_len])
 
 print("cv_list: ", cv_list)
+
+json_dict = {
+    "cv0": cv_list[0],
+    "cv1": cv_list[1],
+    "cv2": cv_list[2],
+    "cv3": cv_list[3],
+    "cv4": cv_list[4],
+}
+
+import json
+
+with open(root_folder + "cv_list.json", "w") as f:
+    json.dump(json_dict, f)
+
+print("cv_list.json saved.")
