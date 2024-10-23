@@ -108,7 +108,7 @@ print("test_list: ", test_list)
 import torch
 import numpy as np
 
-batch_size = 16
+batch_size = 64
 dim = 64
 in_channel = 3
 out_channel = 3
