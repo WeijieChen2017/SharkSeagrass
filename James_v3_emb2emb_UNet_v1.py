@@ -91,8 +91,8 @@ model = UNet(
     spatial_dims=2,
     in_channels=3,
     out_channels=3,
-    channels=(32, 64, 128, 256),
-    strides=(2, 2, 2, 2),
+    channels=(64, 128, 256, 512),
+    strides=(2, 2, 2, 1),
     num_res_units=6,
 )
 
