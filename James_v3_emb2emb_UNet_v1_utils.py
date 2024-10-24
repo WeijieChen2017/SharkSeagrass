@@ -109,6 +109,9 @@ def train_or_eval_or_test(
     else:
         model.eval()
 
+    case_loss = []
+    cnt_batch = 0
+
     if ana_planes == "axial":
         path_x_axial = root_folder + f"index/{case_name}_x_axial_ind.npy"
         path_y_axial = root_folder + f"index/{case_name}_y_axial_ind.npy"
@@ -120,9 +123,6 @@ def train_or_eval_or_test(
         len_x_len_y = file_x_axial.shape[1] # x*y
         len_x = int(np.sqrt(len_x_len_y))
         len_y = len_x
-
-        case_loss = []
-        cnt_batch = 0
 
         # Initialize tensors to hold the batch results
         x_axial_batch = []
@@ -167,6 +167,61 @@ def train_or_eval_or_test(
                 cnt_batch = 0
                 x_axial_batch = []
                 y_axial_batch = []
+
+    if ana_planes = "coronal":
+        path_x_coronal = root_folder + f"index/{case_name}_x_coronal_ind.npy"
+        path_y_coronal = root_folder + f"index/{case_name}_y_coronal_ind.npy"
+        
+        file_x_coronal = np.load(path_x_coronal)
+        file_y_coronal = np.load(path_y_coronal)
+
+        len_z = file_x_coronal.shape[0]
+        len_x_len_y = file_x_coronal.shape[1]
+        len_x = int(np.sqrt(len_x_len_y))
+        len_y = len_x
+
+        x_coronal_batch = []
+        y_coronal_batch = []
+
+        for i in range(len_z):
+                
+                x_coronal_ind = file_x_coronal[i, :]
+                y_coronal_ind = file_y_coronal[i, :]
+    
+                x_coronal_post_quan = vq_weights[x_coronal_ind.astype(int)].reshape(len_x, len_y, 3)
+                y_coronal_post_quan = vq_weights[y_coronal_ind.astype(int)].reshape(len_x, len_y, 3)
+    
+                x_coronal_post_quan = torch.from_numpy(x_coronal_post_quan).float().to(device)
+                x_coronal_post_quan = x_coronal_post_quan.unsqueeze(0)
+                x_coronal_post_quan = x_coronal_post_quan.permute(0, 3, 1, 2)
+    
+                y_coronal_post_quan = torch.from_numpy(y_coronal_post_quan).float().to(device)
+                y_coronal_post_quan = y_coronal_post_quan.unsqueeze(0)
+                y_coronal_post_quan = y_coronal_post_quan.permute(0, 3, 1, 2)
+                
+                cnt_batch += 1
+                x_coronal_batch.append(x_coronal_post_quan)
+                y_coronal_batch.append(y_coronal_post_quan)
+    
+                if cnt_batch == batch_size or i == len_z - 1:
+                    x_coronal_batch = torch.cat(x_coronal_batch, dim=0)
+                    y_coronal_batch = torch.cat(y_coronal_batch, dim=0)
+    
+                    if stage == "train":
+                        optimizer.zero_grad()
+                        y_hat = model(x_coronal_batch)
+                        loss_val = loss(y_hat, y_coronal_batch)
+                        loss_val.backward()
+                        optimizer.step()
+                    else:
+                        with torch.no_grad():
+                            y_hat = model(x_coronal_batch)
+                            loss_val = loss(y_hat, y_coronal_batch)
+                        
+                    case_loss.append(loss_val.item())
+                    cnt_batch = 0
+                    x_coronal_batch = []
+                    y_coronal_batch = []
 
     case_loss = np.asarray(case_loss)
     return np.mean(case_loss)
