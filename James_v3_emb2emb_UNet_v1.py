@@ -1,3 +1,15 @@
+# model selection
+# for CNN
+
+# DenseNet
+# EfficientNet
+# SegResNet
+# SENet
+# DynUNet
+# AttentionUnet
+# UNETR
+# SwinUNETR
+# FullyConnectedNet
 
 # --------------------------------
 # PART: data division 
@@ -39,8 +51,21 @@ print("test_list: ", test_list)
 
 import torch
 import numpy as np
+import random
 
-batch_size = 64
+random_seed = 729
+random.seed(random_seed)
+np.random.seed(random_seed)
+torch.manual_seed(random_seed)
+torch.cuda.manual_seed(random_seed)
+torch.cuda.manual_seed_all(random_seed)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+config["random_seed"] = random_seed
+
+
+
+batch_size = -1
 dim = 64
 in_channel = 3
 out_channel = 3
@@ -48,7 +73,7 @@ batch_size = 8
 n_epoch = 2000
 n_epoch_eval = 20
 n_epoch_save = 100
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("The current device is: ", device)
 
 config["batch_size"] = batch_size
