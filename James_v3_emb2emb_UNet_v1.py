@@ -112,12 +112,20 @@ print(f"Loading vq weights from {vq_weights_path}, shape: {vq_weights.shape}")
 # PART: start training
 # --------------------------------
 
-save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}/"
+save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_maskTrain/"
 import os
 os.makedirs(save_folder, exist_ok=True)
 best_eval_loss = 1e10
 
+config["apply_mask_train"] = True
+config["apply_mask_eval"] = True
+
 from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test
+
+# save the config file
+with open(save_folder + "config.json", "w") as f:
+    json.dump(config, f, indent=4)
+print(f"Config file saved at {save_folder}config.json")
 
 for idx_epoch in range(n_epoch):
     print(f"Epoch: {idx_epoch+1}/{n_epoch}")
@@ -126,7 +134,7 @@ for idx_epoch in range(n_epoch):
     test_loss = 0.0
 
     for case_name in train_list:
-        current_train_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "train", "axial", device, vq_weights, config, if_masked=True)
+        current_train_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "train", "axial", device, vq_weights, config)
         print(f"Epoch [Train]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, train_loss: {current_train_loss}")
         train_loss += current_train_loss
     train_loss /= len(train_list)
@@ -134,7 +142,7 @@ for idx_epoch in range(n_epoch):
 
     if (idx_epoch+1) % n_epoch_eval == 0:
         for case_name in val_list:
-            current_val_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "axial", device, vq_weights, config, if_masked=True)
+            current_val_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "axial", device, vq_weights, config)
             print(f"Epoch [Eval]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, val_loss: {current_val_loss}")
             val_loss += current_val_loss
         val_loss /= len(val_list)
@@ -145,7 +153,7 @@ for idx_epoch in range(n_epoch):
             print(f"Best model saved at {save_folder}best_model.pth")
     
             for case_name in test_list:
-                current_test_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "test", "axial", device, vq_weights, config, if_masked=True)
+                current_test_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "test", "axial", device, vq_weights, config)
                 print(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, test_loss: {current_test_loss}")
                 test_loss += current_test_loss
             test_loss /= len(test_list)
