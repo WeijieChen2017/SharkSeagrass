@@ -86,7 +86,7 @@ config["out_channel"] = out_channel
 config["n_epoch"] = n_epoch
 config["n_epoch_eval"] = n_epoch_eval
 config["n_epoch_save"] = n_epoch_save
-config["device"] = device
+# config["device"] = device
 
 from monai.networks.nets import UNet
 
