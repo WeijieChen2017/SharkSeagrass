@@ -120,6 +120,7 @@ def train_or_eval_or_test(
     root_folder = config["root_folder"]
     batch_size = config["batch_size"]
     vq_norm_factor = config["vq_norm_factor"]
+    zoom_factor = config["zoom_factor"]
 
 
     if stage == "train":
@@ -134,19 +135,25 @@ def train_or_eval_or_test(
     mask_file = nib.load(mask_path)
     mask_data = mask_file.get_fdata()
     # mask_data = mask_data > 0
+    if len_z % zoom_factor != 0:
+        # pad it to the nearest multiple of 4 at the end
+        # print(f"Padding the z-axis to the nearest multiple of {len_factor}")
+        pad_len = zoom_factor - len_z % zoom_factor
+        mask_data = np.pad(mask_data, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
+
 
     if anatomical_plane == "axial":
-        anatomical_zoom_factor = (1/4, 1/4, 1)
+        anatomical_zoom_factor = (1/zoom_factor, 1/zoom_factor, 1)
         anatomical_mask = zoom(mask_data, anatomical_zoom_factor, order=0)  # order=1 for bilinear interpolation
         anatomical_mask = np.squeeze(anatomical_mask)
         anatomical_mask = np.transpose(anatomical_mask, (2, 0, 1))
     elif anatomical_plane == "coronal":
-        anatomical_zoom_factor = (1/4, 1, 1/4)
+        anatomical_zoom_factor = (1/zoom_factor, 1, 1/zoom_factor)
         anatomical_mask = zoom(mask_data, anatomical_zoom_factor, order=0)  # order=1 for bilinear interpolation
         anatomical_mask = np.squeeze(anatomical_mask)
         anatomical_mask = np.transpose(anatomical_mask, (1, 2, 0))
     elif anatomical_plane == "sagittal":
-        anatomical_zoom_factor = (1, 1/4, 1/4)
+        anatomical_zoom_factor = (1, 1/zoom_factor, 1/zoom_factor)
         anatomical_mask = zoom(mask_data, anatomical_zoom_factor, order=0)  # order=1 for bilinear interpolation
         anatomical_mask = np.squeeze(anatomical_mask)
         anatomical_mask = np.transpose(anatomical_mask, (0, 2, 1))

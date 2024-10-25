@@ -65,6 +65,7 @@ config["random_seed"] = random_seed
 
 
 vq_norm_factor = 4
+zoom_factor = 4
 batch_size = -1
 dim = 64
 in_channel = 3
@@ -77,6 +78,7 @@ device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("The current device is: ", device)
 
 config["vq_norm_factor"] = vq_norm_factor
+config["zoom_factor"] = zoom_factor
 config["batch_size"] = batch_size
 config["dim"] = dim
 config["in_channel"] = in_channel
