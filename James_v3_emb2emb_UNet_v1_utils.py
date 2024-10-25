@@ -133,7 +133,7 @@ def train_or_eval_or_test(
     mask_path = root_folder + f"mask/mask_body_contour_{case_name}.nii.gz"
     mask_file = nib.load(mask_path)
     mask_data = mask_file.get_fdata()
-    mask_binary = mask_data > 0
+    # mask_binary = mask_data > 0
 
     if anatomical_plane == "axial":
         anatomical_zoom_factor = (1/4, 1/4, 1)
