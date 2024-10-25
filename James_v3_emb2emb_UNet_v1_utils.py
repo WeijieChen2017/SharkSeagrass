@@ -134,6 +134,7 @@ def train_or_eval_or_test(
     mask_path = root_folder + f"mask/mask_body_contour_{case_name}.nii.gz"
     mask_file = nib.load(mask_path)
     mask_data = mask_file.get_fdata()
+    len_z = mask_data.shape[2]
     # mask_data = mask_data > 0
     if len_z % zoom_factor != 0:
         # pad it to the nearest multiple of 4 at the end
