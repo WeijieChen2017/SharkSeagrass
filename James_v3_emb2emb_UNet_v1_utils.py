@@ -99,7 +99,6 @@ def train_or_eval_or_test(
         device, # cpu or cuda
         vq_weights, # the vq weights for each embedding
         config, # the config file
-        if_masked=False # if the loss is masked
     ):
 
     # input 256, 256, 468
@@ -121,7 +120,8 @@ def train_or_eval_or_test(
     batch_size = config["batch_size"]
     vq_norm_factor = config["vq_norm_factor"]
     zoom_factor = config["zoom_factor"]
-
+    is_mask_train = config["apply_mask_train"]
+    is_mask_eval = config["apply_mask_eval"]
 
     if stage == "train":
         model.train()
@@ -220,7 +220,7 @@ def train_or_eval_or_test(
             if stage == "train":
                 optimizer.zero_grad()
                 y_hat = model(x_batch)
-                if if_masked:
+                if is_mask_train:
                     loss_term = ((loss(y_hat, y_batch) * mask_batch).mean())
                 else:
                     loss_term = loss(y_hat, y_batch).mean()
@@ -229,7 +229,7 @@ def train_or_eval_or_test(
             else:
                 with torch.no_grad():
                     y_hat = model(x_batch)
-                    if if_masked:
+                    if is_mask_eval:
                         loss_term = ((loss(y_hat, y_batch) * mask_batch).mean())
                     else:
                         loss_term = loss(y_hat, y_batch).mean()
