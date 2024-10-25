@@ -127,6 +127,9 @@ with open(save_folder + "config.json", "w") as f:
     json.dump(config, f, indent=4)
 print(f"Config file saved at {save_folder}config.json")
 
+txt_log_file = open(save_folder + "log.txt", "w")
+txt_log_file.close()
+
 for idx_epoch in range(n_epoch):
     print(f"Epoch: {idx_epoch+1}/{n_epoch}")
     train_loss = 0.0
@@ -139,6 +142,8 @@ for idx_epoch in range(n_epoch):
         train_loss += current_train_loss
     train_loss /= len(train_list)
     print(f"Epoch [Train]: {idx_epoch+1}/{n_epoch}, train_loss: {train_loss}")
+    with open(save_folder + "log.txt", "a") as f:
+        f.write(f"Epoch [Train]: {idx_epoch+1}/{n_epoch}, train_loss: {train_loss}\n")
 
     if (idx_epoch+1) % n_epoch_eval == 0:
         for case_name in val_list:
@@ -147,10 +152,14 @@ for idx_epoch in range(n_epoch):
             val_loss += current_val_loss
         val_loss /= len(val_list)
         print(f"Epoch [Eval]: {idx_epoch+1}/{n_epoch}, val_loss: {val_loss}")
+        with open(save_folder + "log.txt", "a") as f:
+            f.write(f"Epoch [Eval]: {idx_epoch+1}/{n_epoch}, val_loss: {val_loss}\n")
         if val_loss < best_eval_loss:
             best_eval_loss = val_loss
             torch.save(model.state_dict(), save_folder + "best_model.pth")
             print(f"Best model saved at {save_folder}best_model.pth")
+            with open(save_folder + "log.txt", "a") as f:
+                f.write(f"Best model saved at {save_folder}best_model.pth\n")
     
             for case_name in test_list:
                 current_test_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "test", "axial", device, vq_weights, config)
@@ -158,9 +167,13 @@ for idx_epoch in range(n_epoch):
                 test_loss += current_test_loss
             test_loss /= len(test_list)
             print(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, test_loss: {test_loss}")
+            with open(save_folder + "log.txt", "a") as f:
+                f.write(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, test_loss: {test_loss
 
     if (idx_epoch+1) % n_epoch_save == 0:
         torch.save(model.state_dict(), save_folder + f"model_{idx_epoch+1}.pth")
         print(f"Model saved at {save_folder}model_{idx_epoch+1}.pth")
+        with open(save_folder + "log.txt", "a") as f:
+            f.write(f"Model saved at {save_folder}model_{idx_epoch+1}.pth\n")
 
     
