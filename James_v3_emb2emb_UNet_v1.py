@@ -112,12 +112,12 @@ print(f"Loading vq weights from {vq_weights_path}, shape: {vq_weights.shape}")
 # PART: start training
 # --------------------------------
 
-save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_NomaskTrain/"
+save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_maskTrain/"
 import os
 os.makedirs(save_folder, exist_ok=True)
 best_eval_loss = 1e10
 
-config["apply_mask_train"] = False
+config["apply_mask_train"] = True
 config["apply_mask_eval"] = True
 
 from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test
