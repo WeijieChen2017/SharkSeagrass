@@ -183,6 +183,7 @@ def train_or_eval_or_test(
         slice_y = np.rot90(slice_y)
         slice_mask = np.rot90(slice_mask)
         print(slice_x.shape, slice_y.shape, slice_mask.shape)
+        print(slice_mask.strides)
 
         x_post_quan = torch.from_numpy(x_post_quan).float().to(device)
         x_post_quan = x_post_quan.unsqueeze(0)
