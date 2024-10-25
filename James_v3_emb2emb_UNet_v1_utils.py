@@ -175,9 +175,11 @@ def train_or_eval_or_test(
         x_post_quan = vq_weights[slice_x]
         y_post_quan = vq_weights[slice_y]
 
-        slice_x = slice_x / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
-        slice_y = slice_y / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
+        x_post_quan = x_post_quan / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
+        y_post_quan = y_post_quan / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
         slice_mask = anatomical_mask[i, :, :]
+        # duplicate the slice_mask to 3 channels at last axis
+        slice_mask = np.stack((slice_mask, slice_mask, slice_mask), axis=-1)
 
         # slice_x = np.rot90(slice_x)
         # slice_y = np.rot90(slice_y)
