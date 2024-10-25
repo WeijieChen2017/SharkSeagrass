@@ -168,7 +168,7 @@ for idx_epoch in range(n_epoch):
             test_loss /= len(test_list)
             print(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, test_loss: {test_loss}")
             with open(save_folder + "log.txt", "a") as f:
-                f.write(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, test_loss: {test_loss
+                f.write(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, test_loss: {test_loss}\n")
 
     if (idx_epoch+1) % n_epoch_save == 0:
         torch.save(model.state_dict(), save_folder + f"model_{idx_epoch+1}.pth")
