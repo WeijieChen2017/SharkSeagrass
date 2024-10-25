@@ -64,7 +64,7 @@ torch.backends.cudnn.benchmark = False
 config["random_seed"] = random_seed
 
 
-
+vq_norm_factor = 4
 batch_size = -1
 dim = 64
 in_channel = 3
@@ -76,6 +76,7 @@ n_epoch_save = 100
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("The current device is: ", device)
 
+config["vq_norm_factor"] = vq_norm_factor
 config["batch_size"] = batch_size
 config["dim"] = dim
 config["in_channel"] = in_channel
@@ -123,7 +124,7 @@ for idx_epoch in range(n_epoch):
     test_loss = 0.0
 
     for case_name in train_list:
-        current_train_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "train", "axial", device, vq_weights, config)
+        current_train_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "train", "axial", device, vq_weights, config, if_masked=True)
         print(f"Epoch [Train]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, train_loss: {current_train_loss}")
         train_loss += current_train_loss
     train_loss /= len(train_list)
@@ -131,7 +132,7 @@ for idx_epoch in range(n_epoch):
 
     if (idx_epoch+1) % n_epoch_eval == 0:
         for case_name in val_list:
-            current_val_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "axial", device, vq_weights, config)
+            current_val_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "axial", device, vq_weights, config, if_masked=True)
             print(f"Epoch [Eval]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, val_loss: {current_val_loss}")
             val_loss += current_val_loss
         val_loss /= len(val_list)
@@ -142,7 +143,7 @@ for idx_epoch in range(n_epoch):
             print(f"Best model saved at {save_folder}best_model.pth")
     
             for case_name in test_list:
-                current_test_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "test", "axial", device, vq_weights, config)
+                current_test_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "test", "axial", device, vq_weights, config, if_masked=True)
                 print(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, test_loss: {current_test_loss}")
                 test_loss += current_test_loss
             test_loss /= len(test_list)

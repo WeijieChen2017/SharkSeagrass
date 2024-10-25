@@ -83,9 +83,10 @@
 #     ]
 # }
 
-
+import nibabel as nib
 import numpy as np
 import torch
+from scipy.ndimage import zoom
 
 
 def train_or_eval_or_test(
@@ -94,14 +95,31 @@ def train_or_eval_or_test(
         loss, # the loss function
         case_name, # the case_name to find in folders
         stage, # "train", "eval", "test"
-        ana_planes, # "axial", "coronal", "sagittal"
+        anatomical_plane, # "axial", "coronal", "sagittal"
         device, # cpu or cuda
         vq_weights, # the vq weights for each embedding
         config, # the config file
+        if_masked=False # if the loss is masked
     ):
+
+    # input 256, 256, 468
+    # activated axis is sagittal, coronal, axial
+    # 468 64 64
+    # axial (64, 64, 3) (64, 64, 3)
+    # axial (64, 64, 3) (64, 64, 3)
+    # 256 117 64
+    # coronal (64, 117, 3) (64, 117, 3)
+    # coronal (64, 117, 3) (64, 117, 3)
+    # 256 117 64
+    # sagittal (64, 117, 3) (64, 117, 3)
+    # sagittal (64, 117, 3) (64, 117, 3)
+    # axial slice is 256, 256, 1 -> 1/4 -> 64, 64, 1 -> 64, 64
+    # coronal slice is 256, 1, 468 -> 1/4 -> 64, 1, 117 -> 64, 117
+    # sagittal slice is 1, 256, 468 -> 1/4 -> 1, 64, 117 -> 64, 117
 
     root_folder = config["root_folder"]
     batch_size = config["batch_size"]
+    vq_norm_factor = config["vq_norm_factor"]
 
 
     if stage == "train":
@@ -112,116 +130,104 @@ def train_or_eval_or_test(
     case_loss = []
     cnt_batch = 0
 
-    if ana_planes == "axial":
-        path_x_axial = root_folder + f"index/{case_name}_x_axial_ind.npy"
-        path_y_axial = root_folder + f"index/{case_name}_y_axial_ind.npy"
+    mask_path = root_folder + f"mask/mask_body_contour_{case_name}.nii.gz"
+    mask_file = nib.load(mask_path)
+    mask_data = mask_file.get_fdata()
+    mask_binary = mask_data > 0
+
+    if anatomical_plane == "axial":
+        anatomical_zoom_factor = (1/4, 1/4, 1)
+        anatomical_mask = zoom(mask_binary, anatomical_zoom_factor, order=0)  # order=1 for bilinear interpolation
+        anatomical_mask = np.squeeze(anatomical_mask)
+        anatomical_mask = np.transpose(anatomical_mask, (2, 0, 1))
+    elif anatomical_plane == "coronal":
+        anatomical_zoom_factor = (1/4, 1, 1/4)
+        anatomical_mask = zoom(mask_binary, anatomical_zoom_factor, order=0)  # order=1 for bilinear interpolation
+        anatomical_mask = np.squeeze(anatomical_mask)
+        anatomical_mask = np.transpose(anatomical_mask, (1, 2, 0))
+    elif anatomical_plane == "sagittal":
+        anatomical_zoom_factor = (1, 1/4, 1/4)
+        anatomical_mask = zoom(mask_binary, anatomical_zoom_factor, order=0)  # order=1 for bilinear interpolation
+        anatomical_mask = np.squeeze(anatomical_mask)
+        anatomical_mask = np.transpose(anatomical_mask, (0, 2, 1))
+
+    path_x = root_folder + f"index/{case_name}_x_{anatomical_plane}_ind.npy"
+    path_y = root_folder + f"index/{case_name}_y_{anatomical_plane}_ind.npy"
+
+    ind_data_x = np.load(path_x)
+    ind_data_y = np.load(path_y)
+
+    len_z = ind_data_y.shape[0] # padded
+    len_x_len_y = ind_data_y.shape[1] # x*y
+    len_x = 64
+    len_y = int(len_x_len_y // len_x)
+
+    # Initialize tensors to hold the batch results
+    x_batch = []
+    y_batch = []
+    mask_batch = []
+
+    for i in range(len_z):
         
-        file_x_axial = np.load(path_x_axial)
-        file_y_axial = np.load(path_y_axial)
+        slice_x = ind_data_x[i, :].reshape(len_x, len_y)
+        slice_y = ind_data_y[i, :].reshape(len_x, len_y)
 
-        len_z = file_x_axial.shape[0] # padded
-        len_x_len_y = file_x_axial.shape[1] # x*y
-        len_x = int(np.sqrt(len_x_len_y))
-        len_y = len_x
+        x_post_quan = vq_weights[slice_x]
+        y_post_quan = vq_weights[slice_y]
 
-        # Initialize tensors to hold the batch results
-        x_axial_batch = []
-        y_axial_batch = []
+        slice_x = slice_x / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
+        slice_y = slice_y / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
+        slice_mask = anatomical_mask[i, :, :]
 
-        for i in range(len_z):
-            
-            x_axial_ind = file_x_axial[i, :]
-            y_axial_ind = file_y_axial[i, :]
+        slice_x = np.rot90(slice_x)
+        slice_y = np.rot90(slice_y)
+        slice_mask = np.rot90(slice_mask)
 
-            x_axial_post_quan = vq_weights[x_axial_ind.astype(int)].reshape(len_x, len_y, 3)
-            y_axial_post_quan = vq_weights[y_axial_ind.astype(int)].reshape(len_x, len_y, 3)
+        x_post_quan = torch.from_numpy(x_post_quan).float().to(device)
+        x_post_quan = x_post_quan.unsqueeze(0)
+        x_post_quan = x_post_quan.permute(0, 3, 1, 2)
 
-            x_axial_post_quan = torch.from_numpy(x_axial_post_quan).float().to(device)
-            x_axial_post_quan = x_axial_post_quan.unsqueeze(0)
-            x_axial_post_quan = x_axial_post_quan.permute(0, 3, 1, 2)
+        y_post_quan = torch.from_numpy(y_post_quan).float().to(device)
+        y_post_quan = y_post_quan.unsqueeze(0)
+        y_post_quan = y_post_quan.permute(0, 3, 1, 2)
 
-            y_axial_post_quan = torch.from_numpy(y_axial_post_quan).float().to(device)
-            y_axial_post_quan = y_axial_post_quan.unsqueeze(0)
-            y_axial_post_quan = y_axial_post_quan.permute(0, 3, 1, 2)
-            
-            cnt_batch += 1
-            x_axial_batch.append(x_axial_post_quan)
-            y_axial_batch.append(y_axial_post_quan)
+        tensor_mask = torch.from_numpy(slice_mask).float().to(device)
+        tensor_mask = tensor_mask.unsqueeze(0)
+        tensor_mask = tensor_mask.permute(0, 3, 1, 2)
 
-            if cnt_batch == batch_size or i == len_z - 1:
-                x_axial_batch = torch.cat(x_axial_batch, dim=0)
-                y_axial_batch = torch.cat(y_axial_batch, dim=0)
+        cnt_batch += 1
+        x_batch.append(x_post_quan)
+        y_batch.append(y_post_quan)
+        mask_batch.append(tensor_mask)
 
-                if stage == "train":
-                    optimizer.zero_grad()
-                    y_hat = model(x_axial_batch)
-                    loss_val = loss(y_hat, y_axial_batch)
-                    loss_val.backward()
-                    optimizer.step()
+        if cnt_batch == batch_size or i == len_z - 1:
+            x_batch = torch.cat(x_batch, dim=0)
+            y_batch = torch.cat(y_batch, dim=0)
+            mask_batch = torch.cat(mask_batch, dim=0)
+
+            if stage == "train":
+                optimizer.zero_grad()
+                y_hat = model(x_batch)
+                if if_masked:
+                    loss_term = ((loss(y_hat, y_batch) * mask_batch).mean())
                 else:
-                    with torch.no_grad():
-                        y_hat = model(x_axial_batch)
-                        loss_val = loss(y_hat, y_axial_batch)
-                    
-                case_loss.append(loss_val.item())
-                cnt_batch = 0
-                x_axial_batch = []
-                y_axial_batch = []
-
-    if ana_planes = "coronal":
-        path_x_coronal = root_folder + f"index/{case_name}_x_coronal_ind.npy"
-        path_y_coronal = root_folder + f"index/{case_name}_y_coronal_ind.npy"
-        
-        file_x_coronal = np.load(path_x_coronal)
-        file_y_coronal = np.load(path_y_coronal)
-
-        len_z = file_x_coronal.shape[0]
-        len_x_len_y = file_x_coronal.shape[1]
-        len_x = int(np.sqrt(len_x_len_y))
-        len_y = len_x
-
-        x_coronal_batch = []
-        y_coronal_batch = []
-
-        for i in range(len_z):
-                
-                x_coronal_ind = file_x_coronal[i, :]
-                y_coronal_ind = file_y_coronal[i, :]
-    
-                x_coronal_post_quan = vq_weights[x_coronal_ind.astype(int)].reshape(len_x, len_y, 3)
-                y_coronal_post_quan = vq_weights[y_coronal_ind.astype(int)].reshape(len_x, len_y, 3)
-    
-                x_coronal_post_quan = torch.from_numpy(x_coronal_post_quan).float().to(device)
-                x_coronal_post_quan = x_coronal_post_quan.unsqueeze(0)
-                x_coronal_post_quan = x_coronal_post_quan.permute(0, 3, 1, 2)
-    
-                y_coronal_post_quan = torch.from_numpy(y_coronal_post_quan).float().to(device)
-                y_coronal_post_quan = y_coronal_post_quan.unsqueeze(0)
-                y_coronal_post_quan = y_coronal_post_quan.permute(0, 3, 1, 2)
-                
-                cnt_batch += 1
-                x_coronal_batch.append(x_coronal_post_quan)
-                y_coronal_batch.append(y_coronal_post_quan)
-    
-                if cnt_batch == batch_size or i == len_z - 1:
-                    x_coronal_batch = torch.cat(x_coronal_batch, dim=0)
-                    y_coronal_batch = torch.cat(y_coronal_batch, dim=0)
-    
-                    if stage == "train":
-                        optimizer.zero_grad()
-                        y_hat = model(x_coronal_batch)
-                        loss_val = loss(y_hat, y_coronal_batch)
-                        loss_val.backward()
-                        optimizer.step()
+                    loss_term = loss(y_hat, y_batch).mean()
+                loss_term.backward()
+                optimizer.step()
+            else:
+                with torch.no_grad():
+                    y_hat = model(x_batch)
+                    if if_masked:
+                        loss_term = ((loss(y_hat, y_batch) * mask_batch).mean())
                     else:
-                        with torch.no_grad():
-                            y_hat = model(x_coronal_batch)
-                            loss_val = loss(y_hat, y_coronal_batch)
-                        
-                    case_loss.append(loss_val.item())
-                    cnt_batch = 0
-                    x_coronal_batch = []
-                    y_coronal_batch = []
+                        loss_term = loss(y_hat, y_batch).mean()
+                
+            case_loss.append(loss_term.item())
+            cnt_batch = 0
+            x_batch = []
+            y_batch = []
+            mask_batch = []
+
 
     case_loss = np.asarray(case_loss)
     return np.mean(case_loss)
