@@ -123,11 +123,12 @@ def train_or_eval_or_test(
     is_mask_train = config["apply_mask_train"]
     is_mask_eval = config["apply_mask_eval"]
     if "apply_mask_test" not in config:
-        config["apply_mask_test"] = False
+        is_mask_test = False
     else:
         is_mask_test = config["apply_mask_test"]
+
     if "model_zoom" not in config:
-        config["model_zoom"] = 2 ** len((2, 2, 2))
+        model_zoom = 2 ** len((2, 2, 2))
     else:
         model_zoom = config["model_zoom"]
 
