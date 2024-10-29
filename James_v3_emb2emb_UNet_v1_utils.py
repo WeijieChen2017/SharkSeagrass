@@ -123,7 +123,7 @@ def train_or_eval_or_test(
     is_mask_train = config["apply_mask_train"]
     is_mask_eval = config["apply_mask_eval"]
     model_zoom = config["model_zoom"]
-    print("model_zoom: ", model_zoom)
+    # print("model_zoom: ", model_zoom)
 
     if stage == "train":
         model.train()
@@ -234,7 +234,7 @@ def train_or_eval_or_test(
             y_batch = torch.cat(y_batch, dim=0)
             mask_batch = torch.cat(mask_batch, dim=0)
 
-            print(x_batch.shape, y_batch.shape, mask_batch.shape)
+            # print(x_batch.shape, y_batch.shape, mask_batch.shape)
 
             if stage == "train":
                 optimizer.zero_grad()
