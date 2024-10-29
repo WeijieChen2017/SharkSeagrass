@@ -122,6 +122,8 @@ def train_or_eval_or_test(
     zoom_factor = config["zoom_factor"]
     is_mask_train = config["apply_mask_train"]
     is_mask_eval = config["apply_mask_eval"]
+    model_zoom = config["model_zoom"]
+    print("model_zoom: ", model_zoom)
 
     if stage == "train":
         model.train()
@@ -207,14 +209,20 @@ def train_or_eval_or_test(
         tensor_mask = tensor_mask.unsqueeze(0)
         tensor_mask = tensor_mask.permute(0, 3, 1, 2)
 
-        # if the last dim is not divided by 4, pad it to the nearest multiple of 4
-        # if x_post_quan.shape[-1] % zoom_factor != 0:
-        #     pad_len = zoom_factor - x_post_quan.shape[2] % zoom_factor
-        #     x_post_quan = torch.nn.functional.pad(x_post_quan, (0, pad_len, 0, pad_len), mode="constant", value=0)
-        #     y_post_quan = torch.nn.functional.pad(y_post_quan, (0, pad_len, 0, pad_len), mode="constant", value=0)
-        #     tensor_mask = torch.nn.functional.pad(tensor_mask, (0, pad_len, 0, pad_len), mode="constant", value=0)
+        # if the last two dim is not divided by model_zoom, pad it to the nearest multiple of model_zoom
+        if x_post_quan.shape[-1] % model_zoom != 0:
+            pad_len = model_zoom - x_post_quan.shape[-1] % model_zoom
+            x_post_quan = torch.nn.functional.pad(x_post_quan, (0, pad_len), mode="constant", value=0)
+            y_post_quan = torch.nn.functional.pad(y_post_quan, (0, pad_len), mode="constant", value=0)
+            tensor_mask = torch.nn.functional.pad(tensor_mask, (0, pad_len), mode="constant", value=0)
 
-        print(x_post_quan.shape, y_post_quan.shape, tensor_mask.shape)
+        if x_post_quan.shape[-2] % model_zoom != 0:
+            pad_len = model_zoom - x_post_quan.shape[-2] % model_zoom
+            x_post_quan = torch.nn.functional.pad(x_post_quan, (0, 0, 0, pad_len), mode="constant", value=0)
+            y_post_quan = torch.nn.functional.pad(y_post_quan, (0, 0, 0, pad_len), mode="constant", value=0)
+            tensor_mask = torch.nn.functional.pad(tensor_mask, (0, 0, 0, pad_len), mode="constant", value=0)
+
+        # print(x_post_quan.shape, y_post_quan.shape, tensor_mask.shape)
 
         cnt_batch += 1
         x_batch.append(x_post_quan)

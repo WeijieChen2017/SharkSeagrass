@@ -98,6 +98,8 @@ model = UNet(
     num_res_units=6,
 )
 
+config["model_zoom"] = len((2, 2, 2))
+
 model.to(device)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
