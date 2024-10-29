@@ -159,7 +159,7 @@ def train_or_eval_or_test(
         anatomical_zoom_factor = (1, 1/zoom_factor, 1/zoom_factor)
         anatomical_mask = zoom(mask_data, anatomical_zoom_factor, order=0)  # order=1 for bilinear interpolation
         anatomical_mask = np.squeeze(anatomical_mask)
-        anatomical_mask = np.transpose(anatomical_mask, (0, 2, 1))
+        anatomical_mask = np.transpose(anatomical_mask, (0, 1, 2))
 
     path_x = root_folder + f"index/{case_name}_x_{anatomical_plane}_ind.npy"
     path_y = root_folder + f"index/{case_name}_y_{anatomical_plane}_ind.npy"
