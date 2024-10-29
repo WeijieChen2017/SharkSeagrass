@@ -14,6 +14,11 @@
 # --------------------------------
 # PART: data division 
 # --------------------------------
+
+MAX_CT = 2976
+MIN_CT = -1024
+RANGE_CT = MAX_CT - MIN_CT
+
 import os
 
 root_folder = "James_data_v3/"
@@ -153,15 +158,33 @@ import nibabel as nib
 
 from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test, VQ_NN_embedings
 
-axial_emb_loss = 0.0
-coronal_emb_loss = 0.0
-sagittal_emb_loss = 0.0
+MAE_all = {
+    "axial": {
+        "no_VQ": [],
+        "VQ_order_one": [],
+        "VQ_order_two": [],
+    },
+    "coronal": {
+        "no_VQ": [],
+        "VQ_order_one": [],
+        "VQ_order_two": [],
+    },
+    "sagittal": {
+        "no_VQ": [],
+        "VQ_order_one": [],
+        "VQ_order_two": [],
+    },
+}
+
 
 for case_name in test_list:
 
     # load the ground truth
     CTAC_path = root_folder + f"CTACIVV_256_norm/CTACIVV_{case_name}_norm.nii.gz"
     CTAC_file = nib.load(CTAC_path)
+    CTAC_data = CTAC_file.get_fdata()
+    print(f"CTACIVV_{case_name}_norm.nii.gz loaded, shape: {CTAC_data.shape}")
+    gt_x, gt_y, gt_z = CTAC_data.shape
 
     axial_loss, axial_pred_output = train_or_eval_or_test(
         model=model, 
@@ -173,7 +196,7 @@ for case_name in test_list:
         device=device,
         vq_weights=vq_weights,
         config=config)
-    axial_emb_loss += axial_loss
+    
     print(f"case_name: {case_name}, axial_loss: {axial_loss}, axial_pred_output: {axial_pred_output.shape}")
     # de-norm the embeddings
     axial_no_VQ = axial_pred_output * vq_norm_factor
@@ -182,42 +205,47 @@ for case_name in test_list:
     print(f"axial_no_VQ: {axial_no_VQ.shape}, axial_VQ_order_one: {axial_VQ_order_one.shape}, axial_VQ_order_two: {axial_VQ_order_two.shape}")
 
     len_z = axial_pred_output.shape[0]
-    recon_axial_no_VQ = []
-    recon_axial_VQ_order_one = []
-    recon_axial_VQ_order_two = []
+    recon_axial_no_VQ = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
+    recon_axial_VQ_order_one = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
+    recon_axial_VQ_order_two = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
     for idx_z in range(len_z):
-        recon_axial_no_VQ.append(model_decoder(axial_no_VQ[idx_z].unsqueeze(0)).detach().cpu().numpy())
-        recon_axial_VQ_order_one.append(model_decoder(axial_VQ_order_one[idx_z].unsqueeze(0)).detach().cpu().numpy())
-        recon_axial_VQ_order_two.append(model_decoder(axial_VQ_order_two[idx_z].unsqueeze(0)).detach().cpu().numpy())
+        recon_axial_no_VQ[:, :, idx_z] = model_decoder(axial_no_VQ[idx_z].unsqueeze(0)).detach().cpu().numpy()[:, 1, :, :]
+        recon_axial_VQ_order_one[:, :, idx_z] = model_decoder(axial_VQ_order_one[idx_z].unsqueeze(0)).detach().cpu().numpy()[:, 1, :, :]
+        recon_axial_VQ_order_two[:, :, idx_z] = model_decoder(axial_VQ_order_two[idx_z].unsqueeze(0)).detach().cpu().numpy()[:, 1, :, :]
     
-    recon_axial_no_VQ = np.concatenate(recon_axial_no_VQ, axis=0)
-    recon_axial_VQ_order_one = np.concatenate(recon_axial_VQ_order_one, axis=0)
-    recon_axial_VQ_order_two = np.concatenate(recon_axial_VQ_order_two, axis=0)
+    recon_axial_no_VQ = recon_axial_no_VQ[:, :, :gt_z]
+    recon_axial_VQ_order_one = recon_axial_VQ_order_one[:, :, :gt_z]
+    recon_axial_VQ_order_two = recon_axial_VQ_order_two[:, :, :gt_z]
+
+    # de-norm the reconstructions from -1 -> 1 to 0 -> 1
+    recon_axial_no_VQ = (recon_axial_no_VQ + 1) / 2
+    recon_axial_VQ_order_one = (recon_axial_VQ_order_one + 1) / 2
+    recon_axial_VQ_order_two = (recon_axial_VQ_order_two + 1) / 2
+
+    # compute the MAE
+    MAE_no_VQ = np.mean(np.abs(CTAC_data - recon_axial_no_VQ)) * RANGE_CT
+    MAE_VQ_order_one = np.mean(np.abs(CTAC_data - recon_axial_VQ_order_one)) * RANGE_CT
+    MAE_VQ_order_two = np.mean(np.abs(CTAC_data - recon_axial_VQ_order_two)) * RANGE_CT
+    print(f"MAE_no_VQ: {MAE_no_VQ}, MAE_VQ_order_one: {MAE_VQ_order_one}, MAE_VQ_order_two: {MAE_VQ_order_two}")
+    MAE_all["axial"]["no_VQ"].append(MAE_no_VQ)
+    MAE_all["axial"]["VQ_order_one"].append(MAE_VQ_order_one)
+    MAE_all["axial"]["VQ_order_two"].append(MAE_VQ_order_two)
+
+    # save the reconstructions
+    denorm_recon_axial_no_VQ = recon_axial_no_VQ * RANGE_CT + MIN_CT
+    denorm_recon_axial_VQ_order_one = recon_axial_VQ_order_one * RANGE_CT + MIN_CT
+    denorm_recon_axial_VQ_order_two = recon_axial_VQ_order_two * RANGE_CT + MIN_CT
+
+    denorm_recon_axial_no_VQ_nii = nib.Nifti1Image(denorm_recon_axial_no_VQ, CTAC_file.affine, CTAC_file.header)
+    denorm_recon_axial_VQ_order_one_nii = nib.Nifti1Image(denorm_recon_axial_VQ_order_one, CTAC_file.affine, CTAC_file.header)
+    denorm_recon_axial_VQ_order_two_nii = nib.Nifti1Image(denorm_recon_axial_VQ_order_two, CTAC_file.affine, CTAC_file.header)
+
+    denorm_recon_axial_no_VQ_path = save_folder + f"denorm_recon_axial_no_VQ_{case_name}.nii.gz"
+    denorm_recon_axial_VQ_order_one_path = save_folder + f"denorm_recon_axial_VQ_order_one_{case_name}.nii.gz"
+    denorm_recon_axial_VQ_order_two_path = save_folder + f"denorm_recon_axial_VQ_order_two_{case_name}.nii.gz"
+
+    nib.save(denorm_recon_axial_no_VQ_nii, denorm_recon_axial_no_VQ_path)
+    nib.save(denorm_recon_axial_VQ_order_one_nii, denorm_recon_axial_VQ_order_one_path)
+    nib.save(denorm_recon_axial_VQ_order_two_nii, denorm_recon_axial_VQ_order_two_path)
+
     
-    print(f"recon_axial_no_VQ: {recon_axial_no_VQ.shape}, recon_axial_VQ_order_one: {recon_axial_VQ_order_one.shape}, recon_axial_VQ_order_two: {recon_axial_VQ_order_two.shape}")
-
-
-    # coronal_loss, coronal_pred_output = train_or_eval_or_test(
-    #     model=model, 
-    #     optimizer=None, 
-    #     loss=loss,
-    #     case_name=case_name,
-    #     stage="test",
-    #     anatomical_plane="coronal",
-    #     device=device,
-    #     vq_weights=vq_weights,
-    #     config=config)
-    # coronal_emb_loss += coronal_loss
-
-
-    # sagittal_loss, sagittal_pred_output = train_or_eval_or_test(
-    #     model=model, 
-    #     optimizer=None, 
-    #     loss=loss,
-    #     case_name=case_name,
-    #     stage="test",
-    #     anatomical_plane="sagittal",
-    #     device=device,
-    #     vq_weights=vq_weights,
-    #     config=config)
-    # sagittal_emb_loss += sagittal_loss
