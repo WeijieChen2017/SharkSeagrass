@@ -120,8 +120,8 @@ def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
         VQ_NN_slice = np.transpose(VQ_NN_slice, (2, 0, 1))
         # VQ_NN_slice is a 3*64*64 tensor
         VQ_NN_embedings[idz, :, :, :] = VQ_NN_slice
-        
-        print(f"VQ_NN_embedings[{idz}] shape: ", VQ_NN_embedings[idz].shape)
+
+        # print(f"VQ_NN_embedings[{idz}] shape: ", VQ_NN_embedings[idz].shape)
 
     return VQ_NN_embedings
 

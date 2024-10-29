@@ -200,18 +200,38 @@ for case_name in test_list:
     print(f"case_name: {case_name}, axial_loss: {axial_loss}, axial_pred_output: {axial_pred_output.shape}")
     # de-norm the embeddings
     axial_no_VQ = axial_pred_output * vq_norm_factor
-    axial_VQ_order_one = VQ_NN_embedings(vq_weights, axial_no_VQ, dist_order=1)
-    axial_VQ_order_two = VQ_NN_embedings(vq_weights, axial_no_VQ, dist_order=2)
-    print(f"axial_no_VQ: {axial_no_VQ.shape}, axial_VQ_order_one: {axial_VQ_order_one.shape}, axial_VQ_order_two: {axial_VQ_order_two.shape}")
+
+    # load the embeddings if not computed
+    axial_no_VQ_path = save_folder + f"axial_no_VQ_{case_name}.npy"
+    axial_VQ_order_one_path = save_folder + f"axial_VQ_order_one_{case_name}.npy"
+    axial_VQ_order_two_path = save_folder + f"axial_VQ_order_two_{case_name}.npy"
+
+    if os.path.exists(axial_no_VQ_path):
+        axial_no_VQ = np.load(axial_no_VQ_path)
+        print(f"axial_no_VQ loaded from {axial_no_VQ_path}, shape: {axial_no_VQ.shape}")
+    if os.path.exists(axial_VQ_order_one_path):
+        axial_VQ_order_one = np.load(axial_VQ_order_one_path)
+        print(f"axial_VQ_order_one loaded from {axial_VQ_order_one_path}, shape: {axial_VQ_order_one.shape}")
+    else:
+        axial_VQ_order_one = VQ_NN_embedings(vq_weights, axial_no_VQ, dist_order=1)
+        np.save(axial_VQ_order_one_path, axial_VQ_order_one)
+        print(f"axial_VQ_order_one saved to {axial_VQ_order_one_path}")
+    if os.path.exists(axial_VQ_order_two_path):
+        axial_VQ_order_two = np.load(axial_VQ_order_two_path)
+        print(f"axial_VQ_order_two loaded from {axial_VQ_order_two_path}, shape: {axial_VQ_order_two.shape}")
+    else:
+        axial_VQ_order_two = VQ_NN_embedings(vq_weights, axial_no_VQ, dist_order=2)
+        np.save(axial_VQ_order_two_path, axial_VQ_order_two)
+        print(f"axial_VQ_order_two saved to {axial_VQ_order_two_path}")
 
     len_z = axial_pred_output.shape[0]
     recon_axial_no_VQ = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
     recon_axial_VQ_order_one = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
     recon_axial_VQ_order_two = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
     for idx_z in range(len_z):
-        recon_axial_no_VQ[:, :, idx_z] = model_decoder(axial_no_VQ[idx_z].unsqueeze(0)).detach().cpu().numpy()[:, 1, :, :]
-        recon_axial_VQ_order_one[:, :, idx_z] = model_decoder(axial_VQ_order_one[idx_z].unsqueeze(0)).detach().cpu().numpy()[:, 1, :, :]
-        recon_axial_VQ_order_two[:, :, idx_z] = model_decoder(axial_VQ_order_two[idx_z].unsqueeze(0)).detach().cpu().numpy()[:, 1, :, :]
+        recon_axial_no_VQ[:, :, idx_z] = model_decoder(torch.from_numpy(axial_pred_output[idx_z, :, :, :]).float().to(device)).detach().cpu().numpy()[:, 1, :, :]
+        recon_axial_VQ_order_one[:, :, idx_z] = model_decoder(torch.from_numpy(axial_VQ_order_one[idx_z, :, :, :]).float().to(device)).detach().cpu().numpy()[:, 1, :, :]
+        recon_axial_VQ_order_two[:, :, idx_z] = model_decoder(torch.from_numpy(axial_VQ_order_two[idx_z, :, :, :]).float().to(device)).detach().cpu().numpy()[:, 1, :, :]        
     
     recon_axial_no_VQ = recon_axial_no_VQ[:, :, :gt_z]
     recon_axial_VQ_order_one = recon_axial_VQ_order_one[:, :, :gt_z]
@@ -248,4 +268,3 @@ for case_name in test_list:
     nib.save(denorm_recon_axial_VQ_order_one_nii, denorm_recon_axial_VQ_order_one_path)
     nib.save(denorm_recon_axial_VQ_order_two_nii, denorm_recon_axial_VQ_order_two_path)
 
-    
