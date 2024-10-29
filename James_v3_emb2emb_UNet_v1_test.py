@@ -110,13 +110,13 @@ else:
 import os
 os.makedirs(save_folder, exist_ok=True)
 
-from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test
+from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test, VQ_NN_embedings
 
 axial_emb_loss = 0.0
 coronal_emb_loss = 0.0
 sagittal_emb_loss = 0.0
 
-for case_name in train_list:
+for case_name in test_list:
     axial_loss, axial_pred_output = train_or_eval_or_test(
         model=model, 
         optimizer=None, 
@@ -129,6 +129,9 @@ for case_name in train_list:
         config=config)
     axial_emb_loss += axial_loss
     print(f"case_name: {case_name}, axial_loss: {axial_loss}, axial_pred_output: {axial_pred_output.shape}")
+    order_one_axial = VQ_NN_embedings(axial_pred_output, vq_weights, dist_order=1)
+    order_two_axial = VQ_NN_embedings(axial_pred_output, vq_weights, dist_order=2)
+    print(f"order_one_axial: {order_one_axial.shape}, order_two_axial: {order_two_axial.shape}")
     exit()
 
     coronal_loss, coronal_pred_output = train_or_eval_or_test(

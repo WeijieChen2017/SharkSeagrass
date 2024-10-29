@@ -89,6 +89,26 @@ import torch
 from scipy.ndimage import zoom
 
 
+def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
+    # pred_output: (batch_size, 256, 256, 3)
+    # vq_weights: (8192, 3)
+    # here for each 1*3 vector in the pred_output, we find the nearest 1*3 vector in the vq_weights
+    # and replace the pred_output with the nearest 1*3 vector in the vq_weights 
+
+    VQ_NN_embedings = np.zeros_like(pred_output)
+
+    for i in range(pred_output.shape[0]):
+        for j in range(pred_output.shape[1]):
+            for k in range(pred_output.shape[2]):
+                dist = np.linalg.norm(pred_output[i, j, k] - vq_weights, ord=dist_order, axis=1)
+                min_dist_ind = np.argmin(dist)
+                VQ_NN_embedings[i, j, k] = vq_weights[min_dist_ind]
+
+    return VQ_NN_embedings
+
+
+
+
 def train_or_eval_or_test(
         model, # the adapter model
         optimizer, # the optimizer
@@ -281,7 +301,7 @@ def train_or_eval_or_test(
     if stage == "test":
         recon_post_quan = np.concatenate(recon_post_quan, axis=0)
         # change the shape from 468, 3, 256, 256 to 256, 256, 468, 3
-        recon_post_quan = np.transpose(recon_post_quan, (2, 3, 0, 1))
+        # recon_post_quan = np.transpose(recon_post_quan, (2, 3, 0, 1))
         return np.mean(case_loss), recon_post_quan
     else:
         return np.mean(case_loss)
