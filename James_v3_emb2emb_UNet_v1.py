@@ -17,10 +17,14 @@
 config = {}
 
 root_folder = "James_data_v3/"
-fold_cv = 0
-fold_cv_train = [0, 1, 2]
-fold_cv_val = [3]
-fold_cv_test = [4]
+fold_cv = 1
+fold_cv_train = [fold_cv, fold_cv+1, fold_cv+2]
+fold_cv_val = [fold_cv+3]
+fold_cv_test = [fold_cv+4]
+# mod 5 for the 5-fold cross-validation
+fold_cv_train = [x % 5 for x in fold_cv_train]
+fold_cv_val = [x % 5 for x in fold_cv_val]
+fold_cv_test = [x % 5 for x in fold_cv_test]
 
 config["root_folder"] = root_folder
 config["fold_cv"] = fold_cv
@@ -73,7 +77,7 @@ out_channel = 3
 n_epoch = 2000
 n_epoch_eval = 20
 n_epoch_save = 100
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("The current device is: ", device)
 
 config["vq_norm_factor"] = vq_norm_factor
