@@ -203,7 +203,7 @@ def train_or_eval_or_test(
 
         y_post_quan = torch.from_numpy(y_post_quan).float().to(device)
         y_post_quan = y_post_quan.unsqueeze(0)
-        y_post_quan = y_post_quan.permute(0, 3, 2, 1)
+        y_post_quan = y_post_quan.permute(0, 3, 1, 2)
 
         tensor_mask = torch.from_numpy(slice_mask).float().to(device)
         tensor_mask = tensor_mask.unsqueeze(0)
