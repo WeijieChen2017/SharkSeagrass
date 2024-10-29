@@ -236,6 +236,10 @@ def train_or_eval_or_test(
     else:
         model.eval()
 
+
+    # project the vq_weights to the unit sphere
+    vq_weights = vq_weights / np.linalg.norm(vq_weights, axis=-1, keepdims=True)
+
     case_loss = []
     cnt_batch = 0
 
@@ -297,8 +301,8 @@ def train_or_eval_or_test(
         # x_post_quan = x_post_quan / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
         # y_post_quan = y_post_quan / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
 
-        x_post_quan = x_post_quan / vq_norm_factor # [-1, 1]
-        y_post_quan = y_post_quan / vq_norm_factor # [-1, 1]
+        # x_post_quan = x_post_quan / vq_norm_factor # [-1, 1]
+        # y_post_quan = y_post_quan / vq_norm_factor # [-1, 1]
 
         slice_mask = anatomical_mask[i, :, :]
         # duplicate the slice_mask to 3 channels at last axis

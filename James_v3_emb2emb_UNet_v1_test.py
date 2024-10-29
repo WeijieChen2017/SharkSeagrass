@@ -217,21 +217,21 @@ for case_name in test_list:
         np.save(axial_no_VQ_path, axial_no_VQ)
         print(f"axial_no_VQ saved to {axial_no_VQ_path}, shape: {axial_no_VQ.shape}")
     
-    if os.path.exists(axial_VQ_order_one_path):
-        axial_VQ_order_one = np.load(axial_VQ_order_one_path)
-        print(f"axial_VQ_order_one loaded from {axial_VQ_order_one_path}, shape: {axial_VQ_order_one.shape}")
-    else:
-        axial_VQ_order_one = VQ_NN_embedings(vq_weights, axial_no_VQ, dist_order=1)
-        np.save(axial_VQ_order_one_path, axial_VQ_order_one)
-        print(f"axial_VQ_order_one saved to {axial_VQ_order_one_path}")
+    # if os.path.exists(axial_VQ_order_one_path):
+    #     axial_VQ_order_one = np.load(axial_VQ_order_one_path)
+    #     print(f"axial_VQ_order_one loaded from {axial_VQ_order_one_path}, shape: {axial_VQ_order_one.shape}")
+    # else:
+    #     axial_VQ_order_one = VQ_NN_embedings(vq_weights, axial_no_VQ, dist_order=1)
+    #     np.save(axial_VQ_order_one_path, axial_VQ_order_one)
+    #     print(f"axial_VQ_order_one saved to {axial_VQ_order_one_path}")
 
-    if os.path.exists(axial_VQ_order_two_path):
-        axial_VQ_order_two = np.load(axial_VQ_order_two_path)
-        print(f"axial_VQ_order_two loaded from {axial_VQ_order_two_path}, shape: {axial_VQ_order_two.shape}")
-    else:
-        axial_VQ_order_two = VQ_NN_embedings(vq_weights, axial_no_VQ, dist_order=2)
-        np.save(axial_VQ_order_two_path, axial_VQ_order_two)
-        print(f"axial_VQ_order_two saved to {axial_VQ_order_two_path}")
+    # if os.path.exists(axial_VQ_order_two_path):
+    #     axial_VQ_order_two = np.load(axial_VQ_order_two_path)
+    #     print(f"axial_VQ_order_two loaded from {axial_VQ_order_two_path}, shape: {axial_VQ_order_two.shape}")
+    # else:
+    #     axial_VQ_order_two = VQ_NN_embedings(vq_weights, axial_no_VQ, dist_order=2)
+    #     np.save(axial_VQ_order_two_path, axial_VQ_order_two)
+    #     print(f"axial_VQ_order_two saved to {axial_VQ_order_two_path}")
 
     if os.path.exists(axial_VQ_sphere_path):
         axial_VQ_sphere = np.load(axial_VQ_sphere_path)
@@ -272,6 +272,7 @@ for case_name in test_list:
     # # MAE_VQ_order_one = np.mean(np.abs(CTAC_data - recon_axial_VQ_order_one)) * RANGE_CT
     # # MAE_VQ_order_two = np.mean(np.abs(CTAC_data - recon_axial_VQ_order_two)) * RANGE_CT
     MAE_VQ_sphere = np.mean(np.abs(CTAC_data - recon_axial_VQ_sphere)) * RANGE_CT
+    print(f"MAE_VQ_sphere: {MAE_VQ_sphere}")
     # print(f"MAE_no_VQ: {MAE_no_VQ}, MAE_VQ_order_one: {MAE_VQ_order_one}, MAE_VQ_order_two: {MAE_VQ_order_two}")
     # MAE_all["axial"]["no_VQ"].append(MAE_no_VQ)
     # MAE_all["axial"]["VQ_order_one"].append(MAE_VQ_order_one)
