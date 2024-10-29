@@ -120,7 +120,7 @@ for case_name in train_list:
     axial_loss, axial_pred_output = train_or_eval_or_test(
         model=model, 
         optimizer=None, 
-        loss=None,
+        loss=loss,
         case_name=case_name,
         stage="test",
         anatomical_plane="axial",
@@ -134,7 +134,7 @@ for case_name in train_list:
     coronal_loss, coronal_pred_output = train_or_eval_or_test(
         model=model, 
         optimizer=None, 
-        loss=None,
+        loss=loss,
         case_name=case_name,
         stage="test",
         anatomical_plane="coronal",
@@ -147,7 +147,7 @@ for case_name in train_list:
     sagittal_loss, sagittal_pred_output = train_or_eval_or_test(
         model=model, 
         optimizer=None, 
-        loss=None,
+        loss=loss,
         case_name=case_name,
         stage="test",
         anatomical_plane="sagittal",
