@@ -126,8 +126,10 @@ def train_or_eval_or_test(
         config["apply_mask_test"] = False
     else:
         is_mask_test = config["apply_mask_test"]
-    model_zoom = config["model_zoom"]
-    # print("model_zoom: ", model_zoom)
+    if "model_zoom" not in config:
+        config["model_zoom"] = 2 ** len((2, 2, 2))
+    else:
+        model_zoom = config["model_zoom"]
 
     if stage == "train":
         model.train()
