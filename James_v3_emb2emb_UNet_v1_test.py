@@ -163,16 +163,19 @@ MAE_all = {
         "no_VQ": [],
         "VQ_order_one": [],
         "VQ_order_two": [],
+        "VQ_sphere": [],
     },
     "coronal": {
         "no_VQ": [],
         "VQ_order_one": [],
         "VQ_order_two": [],
+        "VQ_sphere": [],
     },
     "sagittal": {
         "no_VQ": [],
         "VQ_order_one": [],
         "VQ_order_two": [],
+        "VQ_sphere": [],
     },
 }
 
