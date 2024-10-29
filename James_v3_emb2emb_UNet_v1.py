@@ -73,7 +73,7 @@ out_channel = 3
 n_epoch = 2000
 n_epoch_eval = 20
 n_epoch_save = 100
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("The current device is: ", device)
 
 config["vq_norm_factor"] = vq_norm_factor
