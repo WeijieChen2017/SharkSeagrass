@@ -23,7 +23,7 @@ import os
 
 root_folder = "James_data_v3/"
 fold_cv = 0
-save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_maskTrain/"
+save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_NomaskTrain/"
 json_config =save_folder + "config.json"
 import json
 
@@ -271,4 +271,7 @@ for case_name in test_list:
     nib.save(denorm_recon_axial_no_VQ_nii, denorm_recon_axial_no_VQ_path)
     nib.save(denorm_recon_axial_VQ_order_one_nii, denorm_recon_axial_VQ_order_one_path)
     nib.save(denorm_recon_axial_VQ_order_two_nii, denorm_recon_axial_VQ_order_two_path)
+    print(f"denorm_recon_axial_no_VQ saved to {denorm_recon_axial_no_VQ_path}")
+    print(f"denorm_recon_axial_VQ_order_one saved to {denorm_recon_axial_VQ_order_one_path}")
+    print(f"denorm_recon_axial_VQ_order_two saved to {denorm_recon_axial_VQ_order_two_path}")
 
