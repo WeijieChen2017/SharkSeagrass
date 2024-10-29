@@ -165,6 +165,8 @@ def train_or_eval_or_test(
     ind_data_x = np.load(path_x)
     ind_data_y = np.load(path_y)
 
+    print(ind_data_x.shape, ind_data_y.shape)
+
     len_z = ind_data_y.shape[0] # padded
     len_x_len_y = ind_data_y.shape[1] # x*y
     len_x = 64
@@ -208,11 +210,11 @@ def train_or_eval_or_test(
         tensor_mask = tensor_mask.permute(0, 3, 1, 2)
 
         # if the last dim is not divided by 4, pad it to the nearest multiple of 4
-        if x_post_quan.shape[-1] % zoom_factor != 0:
-            pad_len = zoom_factor - x_post_quan.shape[2] % zoom_factor
-            x_post_quan = torch.nn.functional.pad(x_post_quan, (0, pad_len, 0, pad_len), mode="constant", value=0)
-            y_post_quan = torch.nn.functional.pad(y_post_quan, (0, pad_len, 0, pad_len), mode="constant", value=0)
-            tensor_mask = torch.nn.functional.pad(tensor_mask, (0, pad_len, 0, pad_len), mode="constant", value=0)
+        # if x_post_quan.shape[-1] % zoom_factor != 0:
+        #     pad_len = zoom_factor - x_post_quan.shape[2] % zoom_factor
+        #     x_post_quan = torch.nn.functional.pad(x_post_quan, (0, pad_len, 0, pad_len), mode="constant", value=0)
+        #     y_post_quan = torch.nn.functional.pad(y_post_quan, (0, pad_len, 0, pad_len), mode="constant", value=0)
+        #     tensor_mask = torch.nn.functional.pad(tensor_mask, (0, pad_len, 0, pad_len), mode="constant", value=0)
 
         print(x_post_quan.shape, y_post_quan.shape, tensor_mask.shape)
 
