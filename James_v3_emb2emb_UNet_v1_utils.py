@@ -90,7 +90,7 @@ from scipy.ndimage import zoom
 
 
 def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
-    # pred_output: (batch_size, 256, 256, 3)
+    # pred_output: (batch_size, 3, 256, 256)
     # vq_weights: (8192, 3)
     # here for each 1*3 vector in the pred_output, we find the nearest 1*3 vector in the vq_weights
     # and replace the pred_output with the nearest 1*3 vector in the vq_weights 
@@ -98,11 +98,11 @@ def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
     VQ_NN_embedings = np.zeros_like(pred_output)
 
     for i in range(pred_output.shape[0]):
-        for j in range(pred_output.shape[1]):
-            for k in range(pred_output.shape[2]):
-                dist = np.linalg.norm(pred_output[i, j, k] - vq_weights, ord=dist_order, axis=1)
+        for j in range(pred_output.shape[2]):
+            for k in range(pred_output.shape[3]):
+                dist = np.linalg.norm(pred_output[i, :, j, k] - vq_weights, ord=dist_order, axis=1)
                 min_dist_ind = np.argmin(dist)
-                VQ_NN_embedings[i, j, k] = vq_weights[min_dist_ind]
+                VQ_NN_embedings[i, :, j, k] = vq_weights[min_dist_ind]
 
     return VQ_NN_embedings
 
