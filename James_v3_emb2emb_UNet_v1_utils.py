@@ -165,8 +165,6 @@ def train_or_eval_or_test(
     ind_data_x = np.load(path_x)
     ind_data_y = np.load(path_y)
 
-    print(ind_data_x.shape, ind_data_y.shape)
-
     len_z = ind_data_y.shape[0] # padded
     len_x_len_y = ind_data_y.shape[1] # x*y
     len_x = 64
@@ -227,6 +225,8 @@ def train_or_eval_or_test(
             x_batch = torch.cat(x_batch, dim=0)
             y_batch = torch.cat(y_batch, dim=0)
             mask_batch = torch.cat(mask_batch, dim=0)
+
+            print(x_batch.shape, y_batch.shape, mask_batch.shape)
 
             if stage == "train":
                 optimizer.zero_grad()
