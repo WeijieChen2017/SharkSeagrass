@@ -28,7 +28,7 @@ config["fold_cv_train"] = fold_cv_train
 config["fold_cv_val"] = fold_cv_val
 config["fold_cv_test"] = fold_cv_test
 
-
+import os
 import json
 
 data_division = json.load(open(root_folder + "cv_list.json", "r"))
@@ -130,14 +130,6 @@ config["apply_mask_eval"] = True
 config["apply_mask_test"] = True
 
 from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test
-
-# save the config file
-with open(save_folder + "config.json", "w") as f:
-    json.dump(config, f, indent=4)
-print(f"Config file saved at {save_folder}config.json")
-
-txt_log_file = open(save_folder + "log.txt", "w")
-txt_log_file.close()
 
 axial_emb_loss = 0.0
 coronal_emb_loss = 0.0
