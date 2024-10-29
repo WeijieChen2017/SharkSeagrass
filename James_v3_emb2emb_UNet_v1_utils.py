@@ -183,12 +183,6 @@ def train_or_eval_or_test(
         x_post_quan = vq_weights[slice_x]
         y_post_quan = vq_weights[slice_y]
 
-        # if the last dim is not divided by 4, pad it to the nearest multiple of 4
-        if x_post_quan.shape[2] % zoom_factor != 0:
-            pad_len = zoom_factor - x_post_quan.shape[2] % zoom_factor
-            x_post_quan = np.pad(x_post_quan, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
-            y_post_quan = np.pad(y_post_quan, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
-
         x_post_quan = x_post_quan / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
         y_post_quan = y_post_quan / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
         slice_mask = anatomical_mask[i, :, :]
@@ -212,6 +206,13 @@ def train_or_eval_or_test(
         tensor_mask = torch.from_numpy(slice_mask).float().to(device)
         tensor_mask = tensor_mask.unsqueeze(0)
         tensor_mask = tensor_mask.permute(0, 3, 1, 2)
+
+        # if the last dim is not divided by 4, pad it to the nearest multiple of 4
+        if x_post_quan.shape[-1] % zoom_factor != 0:
+            pad_len = zoom_factor - x_post_quan.shape[2] % zoom_factor
+            x_post_quan = np.pad(x_post_quan, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
+            y_post_quan = np.pad(y_post_quan, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
+            tensor_mask = np.pad(tensor_mask, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
 
         print(x_post_quan.shape, y_post_quan.shape, tensor_mask.shape)
 
