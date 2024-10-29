@@ -95,18 +95,26 @@ def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
     # here for each 1*3 vector in the pred_output, we find the nearest 1*3 vector in the vq_weights
     # and replace the pred_output with the nearest 1*3 vector in the vq_weights 
 
-    # Reshape pred_output to (batch_size * 256 * 256, 3)
-    reshaped_pred_output = pred_output.transpose(0, 2, 3, 1).reshape(-1, 3)
-    
-    # Compute distances between each vector in reshaped_pred_output and vq_weights
-    dist = np.linalg.norm(reshaped_pred_output[:, np.newaxis, :] - vq_weights, ord=dist_order, axis=2)
-    
-    # Find the index of the nearest vector in vq_weights for each vector in reshaped_pred_output
-    min_dist_inds = np.argmin(dist, axis=1)
-    
-    # Replace each vector in reshaped_pred_output with the nearest vector in vq_weights
-    VQ_NN_embedings = vq_weights[min_dist_inds].reshape(pred_output.shape[0], pred_output.shape[2], pred_output.shape[3], 3).transpose(0, 3, 1, 2)
-    
+    VQ_NN_embedings = np.zeros_like(pred_output)
+    print("pred_output.shape: ", pred_output.shape)
+
+    for idz in range(pred_output.shape[0]):
+        current_slice = pred_output[idz, :, :, :]
+        # this is a 3*256*256 tensor
+        current_slice = np.transpose(current_slice, (1, 2, 0))
+        # this is a 256*256*3 tensor
+        current_slice = current_slice.reshape(-1, 3)
+        # this is a 65536*3 tensor
+        if dist_order == 1:
+            dist = np.sum(np.abs(current_slice[:, None, :] - vq_weights[None, :, :]), axis=-1)
+        else:
+            dist = np.sum((current_slice[:, None, :] - vq_weights[None, :, :]) ** 2, axis=-1)
+        # dist is a 65536*8192 tensor
+        nearest_ind = np.argmin(dist, axis=-1)
+        # nearest_ind is a 65536 tensor
+        VQ_NN_embedings[idz, :, :, :] = vq_weights[nearest_ind].reshape(256, 256, 3)
+        print(f"VQ_NN_embedings[{idz}] shape: ", VQ_NN_embedings[idz].shape)
+
     return VQ_NN_embedings
 
 
