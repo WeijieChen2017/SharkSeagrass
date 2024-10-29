@@ -113,7 +113,7 @@ print(f"Loading vq weights from {vq_weights_path}, shape: {vq_weights.shape}")
 # PART: start training
 # --------------------------------
 
-save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_NomaskTrain_acs_newNorm/"
+save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_NomaskTrain_acs_sphere/"
 import os
 os.makedirs(save_folder, exist_ok=True)
 best_eval_loss = 1e10
