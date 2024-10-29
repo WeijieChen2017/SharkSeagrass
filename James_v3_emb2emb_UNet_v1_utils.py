@@ -210,9 +210,9 @@ def train_or_eval_or_test(
         # if the last dim is not divided by 4, pad it to the nearest multiple of 4
         if x_post_quan.shape[-1] % zoom_factor != 0:
             pad_len = zoom_factor - x_post_quan.shape[2] % zoom_factor
-            x_post_quan = np.pad(x_post_quan, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
-            y_post_quan = np.pad(y_post_quan, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
-            tensor_mask = np.pad(tensor_mask, ((0, 0), (0, 0), (0, pad_len)), mode="constant", constant_values=0)
+            x_post_quan = torch.nn.functional.pad(x_post_quan, (0, pad_len, 0, pad_len), mode="constant", value=0)
+            y_post_quan = torch.nn.functional.pad(y_post_quan, (0, pad_len, 0, pad_len), mode="constant", value=0)
+            tensor_mask = torch.nn.functional.pad(tensor_mask, (0, pad_len, 0, pad_len), mode="constant", value=0)
 
         print(x_post_quan.shape, y_post_quan.shape, tensor_mask.shape)
 
