@@ -207,6 +207,8 @@ def train_or_eval_or_test(
         tensor_mask = tensor_mask.unsqueeze(0)
         tensor_mask = tensor_mask.permute(0, 3, 1, 2)
 
+        print(x_post_quan.shape, y_post_quan.shape, tensor_mask.shape)
+
         cnt_batch += 1
         x_batch.append(x_post_quan)
         y_batch.append(y_post_quan)
