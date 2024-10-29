@@ -98,7 +98,7 @@ model = UNet(
     num_res_units=6,
 )
 
-config["model_zoom"] = len((2, 2, 2))
+config["model_zoom"] = 2 ** len((2, 2, 2))
 
 model.to(device)
 
