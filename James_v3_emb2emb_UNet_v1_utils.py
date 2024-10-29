@@ -86,6 +86,8 @@
 import nibabel as nib
 import numpy as np
 import torch
+import torch.nn.functional as F
+
 from scipy.ndimage import zoom
 
 
@@ -186,7 +188,19 @@ def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
     return VQ_NN_embedings
 
 
-
+def cosine_loss(x, y):
+    # Normalize x and y along the channel dimension (dim=1)
+    x = F.normalize(x, p=2, dim=1)
+    y = F.normalize(y, p=2, dim=1)
+    
+    # Compute cosine similarity
+    cosine_similarity = F.cosine_similarity(x, y, dim=1)  # Shape: (n_batch, w, h)
+    
+    # Cosine distance is 1 - cosine similarity
+    cosine_distance = 1 - cosine_similarity
+    
+    # Return mean cosine distance across the batch and spatial dimensions
+    return cosine_distance.mean()
 
 def train_or_eval_or_test(
         model, # the adapter model

@@ -103,7 +103,7 @@ config["model_zoom"] = 2 ** len((2, 2, 2))
 model.to(device)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
-loss = torch.nn.MSELoss()
+# loss = torch.nn.MSELoss()
 
 vq_weights_path = "f4_vq_weights.npy"
 vq_weights = np.load(vq_weights_path)
@@ -113,7 +113,7 @@ print(f"Loading vq weights from {vq_weights_path}, shape: {vq_weights.shape}")
 # PART: start training
 # --------------------------------
 
-save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_NomaskTrain_acs_sphere/"
+save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_NomaskTrain_acs_sphere_cosine_loss/"
 import os
 os.makedirs(save_folder, exist_ok=True)
 best_eval_loss = 1e10
@@ -121,7 +121,9 @@ best_eval_loss = 1e10
 config["apply_mask_train"] = False
 config["apply_mask_eval"] = True
 
-from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test
+from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test, cosine_loss
+
+loss = cosine_loss
 
 # save the config file
 with open(save_folder + "config.json", "w") as f:

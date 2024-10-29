@@ -160,21 +160,21 @@ from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test, VQ_NN_embeding
 
 MAE_all = {
     "axial": {
-        "no_VQ": [],
-        "VQ_order_one": [],
-        "VQ_order_two": [],
+        # "no_VQ": [],
+        # "VQ_order_one": [],
+        # "VQ_order_two": [],
         "VQ_sphere": [],
     },
     "coronal": {
-        "no_VQ": [],
-        "VQ_order_one": [],
-        "VQ_order_two": [],
+        # "no_VQ": [],
+        # "VQ_order_one": [],
+        # "VQ_order_two": [],
         "VQ_sphere": [],
     },
     "sagittal": {
-        "no_VQ": [],
-        "VQ_order_one": [],
-        "VQ_order_two": [],
+        # "no_VQ": [],
+        # "VQ_order_one": [],
+        # "VQ_order_two": [],
         "VQ_sphere": [],
     },
 }
@@ -191,8 +191,8 @@ for case_name in test_list:
 
     # load the embeddings if not computed
     axial_no_VQ_path = save_folder + f"axial_no_VQ_{case_name}.npy"
-    axial_VQ_order_one_path = save_folder + f"axial_VQ_order_one_{case_name}.npy"
-    axial_VQ_order_two_path = save_folder + f"axial_VQ_order_two_{case_name}.npy"
+    # axial_VQ_order_one_path = save_folder + f"axial_VQ_order_one_{case_name}.npy"
+    # axial_VQ_order_two_path = save_folder + f"axial_VQ_order_two_{case_name}.npy"
     axial_VQ_sphere_path = save_folder + f"axial_VQ_sphere_{case_name}.npy"
 
     if os.path.exists(axial_no_VQ_path):
@@ -212,8 +212,8 @@ for case_name in test_list:
             config=config)
         
         # norm method: x_post_quan = x_post_quan / (vq_norm_factor * 2) + 0.5
-        # de-norm the embeddings
-        axial_no_VQ = (axial_pred_output - 0.5) * (vq_norm_factor * 2)
+        # project the embeddings back to a unit sphere
+        axial_no_VQ = axial_no_VQ / np.linalg.norm(axial_no_VQ, axis=-1, keepdims=True)
         np.save(axial_no_VQ_path, axial_no_VQ)
         print(f"axial_no_VQ saved to {axial_no_VQ_path}, shape: {axial_no_VQ.shape}")
     
