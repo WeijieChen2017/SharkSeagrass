@@ -235,45 +235,47 @@ for case_name in test_list:
     recon_axial_VQ_order_two = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
     for idx_z in range(len_z):
         recon_axial_no_VQ[:, :, idx_z] = model_decoder(torch.from_numpy(axial_no_VQ[idx_z, :, :, :]).float().unsqueeze(0).to(device)).detach().cpu().numpy()[:, 1, :, :]
-        recon_axial_VQ_order_one[:, :, idx_z] = model_decoder(torch.from_numpy(axial_VQ_order_one[idx_z, :, :, :]).float().unsqueeze(0).to(device)).detach().cpu().numpy()[:, 1, :, :]
-        recon_axial_VQ_order_two[:, :, idx_z] = model_decoder(torch.from_numpy(axial_VQ_order_two[idx_z, :, :, :]).float().unsqueeze(0).to(device)).detach().cpu().numpy()[:, 1, :, :]        
+        # recon_axial_VQ_order_one[:, :, idx_z] = model_decoder(torch.from_numpy(axial_VQ_order_one[idx_z, :, :, :]).float().unsqueeze(0).to(device)).detach().cpu().numpy()[:, 1, :, :]
+        # recon_axial_VQ_order_two[:, :, idx_z] = model_decoder(torch.from_numpy(axial_VQ_order_two[idx_z, :, :, :]).float().unsqueeze(0).to(device)).detach().cpu().numpy()[:, 1, :, :]        
     
     recon_axial_no_VQ = recon_axial_no_VQ[:, :, :gt_z]
-    recon_axial_VQ_order_one = recon_axial_VQ_order_one[:, :, :gt_z]
-    recon_axial_VQ_order_two = recon_axial_VQ_order_two[:, :, :gt_z]
+    # recon_axial_VQ_order_one = recon_axial_VQ_order_one[:, :, :gt_z]
+    # recon_axial_VQ_order_two = recon_axial_VQ_order_two[:, :, :gt_z]
 
     # de-norm the reconstructions from -1 -> 1 to 0 -> 1
-    print(f"recon_axial_no_VQ: mean: {recon_axial_no_VQ.mean()}, recon_axial_VQ_order_one: mean: {recon_axial_VQ_order_one.mean()}, recon_axial_VQ_order_two: mean: {recon_axial_VQ_order_two.mean()}")
+    print(f"recon_axial_no_VQ: mean: {recon_axial_no_VQ.mean()}, std: {recon_axial_no_VQ.std()}")
+    # print(f"recon_axial_VQ_order_one: mean: {recon_axial_VQ_order_one.mean()}, std: {recon_axial_VQ_order_one.std()}")
+    # print(f"recon_axial_VQ_order_two: mean: {recon_axial_VQ_order_two.mean()}, std: {recon_axial_VQ_order_two.std()}")
     recon_axial_no_VQ = (recon_axial_no_VQ + 1) / 2
-    recon_axial_VQ_order_one = (recon_axial_VQ_order_one + 1) / 2
-    recon_axial_VQ_order_two = (recon_axial_VQ_order_two + 1) / 2
+    # recon_axial_VQ_order_one = (recon_axial_VQ_order_one + 1) / 2
+    # recon_axial_VQ_order_two = (recon_axial_VQ_order_two + 1) / 2
 
     # compute the MAE
     MAE_no_VQ = np.mean(np.abs(CTAC_data - recon_axial_no_VQ)) * RANGE_CT
-    MAE_VQ_order_one = np.mean(np.abs(CTAC_data - recon_axial_VQ_order_one)) * RANGE_CT
-    MAE_VQ_order_two = np.mean(np.abs(CTAC_data - recon_axial_VQ_order_two)) * RANGE_CT
-    print(f"MAE_no_VQ: {MAE_no_VQ}, MAE_VQ_order_one: {MAE_VQ_order_one}, MAE_VQ_order_two: {MAE_VQ_order_two}")
+    # MAE_VQ_order_one = np.mean(np.abs(CTAC_data - recon_axial_VQ_order_one)) * RANGE_CT
+    # MAE_VQ_order_two = np.mean(np.abs(CTAC_data - recon_axial_VQ_order_two)) * RANGE_CT
+    # print(f"MAE_no_VQ: {MAE_no_VQ}, MAE_VQ_order_one: {MAE_VQ_order_one}, MAE_VQ_order_two: {MAE_VQ_order_two}")
     MAE_all["axial"]["no_VQ"].append(MAE_no_VQ)
-    MAE_all["axial"]["VQ_order_one"].append(MAE_VQ_order_one)
-    MAE_all["axial"]["VQ_order_two"].append(MAE_VQ_order_two)
+    # MAE_all["axial"]["VQ_order_one"].append(MAE_VQ_order_one)
+    # MAE_all["axial"]["VQ_order_two"].append(MAE_VQ_order_two)
 
     # save the reconstructions
     denorm_recon_axial_no_VQ = recon_axial_no_VQ * RANGE_CT + MIN_CT
-    denorm_recon_axial_VQ_order_one = recon_axial_VQ_order_one * RANGE_CT + MIN_CT
-    denorm_recon_axial_VQ_order_two = recon_axial_VQ_order_two * RANGE_CT + MIN_CT
+    # denorm_recon_axial_VQ_order_one = recon_axial_VQ_order_one * RANGE_CT + MIN_CT
+    # denorm_recon_axial_VQ_order_two = recon_axial_VQ_order_two * RANGE_CT + MIN_CT
 
     denorm_recon_axial_no_VQ_nii = nib.Nifti1Image(denorm_recon_axial_no_VQ, CTAC_file.affine, CTAC_file.header)
-    denorm_recon_axial_VQ_order_one_nii = nib.Nifti1Image(denorm_recon_axial_VQ_order_one, CTAC_file.affine, CTAC_file.header)
-    denorm_recon_axial_VQ_order_two_nii = nib.Nifti1Image(denorm_recon_axial_VQ_order_two, CTAC_file.affine, CTAC_file.header)
+    # denorm_recon_axial_VQ_order_one_nii = nib.Nifti1Image(denorm_recon_axial_VQ_order_one, CTAC_file.affine, CTAC_file.header)
+    # denorm_recon_axial_VQ_order_two_nii = nib.Nifti1Image(denorm_recon_axial_VQ_order_two, CTAC_file.affine, CTAC_file.header)
 
     denorm_recon_axial_no_VQ_path = save_folder + f"denorm_recon_axial_no_VQ_{case_name}.nii.gz"
-    denorm_recon_axial_VQ_order_one_path = save_folder + f"denorm_recon_axial_VQ_order_one_{case_name}.nii.gz"
-    denorm_recon_axial_VQ_order_two_path = save_folder + f"denorm_recon_axial_VQ_order_two_{case_name}.nii.gz"
+    # denorm_recon_axial_VQ_order_one_path = save_folder + f"denorm_recon_axial_VQ_order_one_{case_name}.nii.gz"
+    # denorm_recon_axial_VQ_order_two_path = save_folder + f"denorm_recon_axial_VQ_order_two_{case_name}.nii.gz"
 
     nib.save(denorm_recon_axial_no_VQ_nii, denorm_recon_axial_no_VQ_path)
-    nib.save(denorm_recon_axial_VQ_order_one_nii, denorm_recon_axial_VQ_order_one_path)
-    nib.save(denorm_recon_axial_VQ_order_two_nii, denorm_recon_axial_VQ_order_two_path)
+    # nib.save(denorm_recon_axial_VQ_order_one_nii, denorm_recon_axial_VQ_order_one_path)
+    # nib.save(denorm_recon_axial_VQ_order_two_nii, denorm_recon_axial_VQ_order_two_path)
     print(f"denorm_recon_axial_no_VQ saved to {denorm_recon_axial_no_VQ_path}")
-    print(f"denorm_recon_axial_VQ_order_one saved to {denorm_recon_axial_VQ_order_one_path}")
-    print(f"denorm_recon_axial_VQ_order_two saved to {denorm_recon_axial_VQ_order_two_path}")
+    # print(f"denorm_recon_axial_VQ_order_one saved to {denorm_recon_axial_VQ_order_one_path}")
+    # print(f"denorm_recon_axial_VQ_order_two saved to {denorm_recon_axial_VQ_order_two_path}")
 
