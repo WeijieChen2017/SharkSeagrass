@@ -183,7 +183,7 @@ for case_name in test_list:
     CTAC_path = root_folder + f"CTACIVV_256_norm/CTACIVV_{case_name}_norm.nii.gz"
     CTAC_file = nib.load(CTAC_path)
     CTAC_data = CTAC_file.get_fdata()
-    print(f"CTACIVV_{case_name}_norm.nii.gz loaded, shape: {CTAC_data.shape}")
+    print(f"CTACIVV_{case_name}_norm.nii.gz loaded, shape: {CTAC_data.shape}, mean: {CTAC_data.mean()}, std: {CTAC_data.std()}")
     gt_x, gt_y, gt_z = CTAC_data.shape
 
     # load the embeddings if not computed
@@ -207,8 +207,9 @@ for case_name in test_list:
             vq_weights=vq_weights,
             config=config)
         
+        # norm method: x_post_quan = x_post_quan / (vq_norm_factor * 2) + 0.5
         # de-norm the embeddings
-        axial_no_VQ = axial_pred_output * vq_norm_factor
+        axial_no_VQ = (axial_pred_output - 0.5) * (vq_norm_factor * 2)
         np.save(axial_no_VQ_path, axial_no_VQ)
         print(f"axial_no_VQ saved to {axial_no_VQ_path}, shape: {axial_no_VQ.shape}")
     
@@ -242,6 +243,7 @@ for case_name in test_list:
     recon_axial_VQ_order_two = recon_axial_VQ_order_two[:, :, :gt_z]
 
     # de-norm the reconstructions from -1 -> 1 to 0 -> 1
+    print(f"recon_axial_no_VQ: mean: {recon_axial_no_VQ.mean()}, recon_axial_VQ_order_one: mean: {recon_axial_VQ_order_one.mean()}, recon_axial_VQ_order_two: mean: {recon_axial_VQ_order_two.mean()}")
     recon_axial_no_VQ = (recon_axial_no_VQ + 1) / 2
     recon_axial_VQ_order_one = (recon_axial_VQ_order_one + 1) / 2
     recon_axial_VQ_order_two = (recon_axial_VQ_order_two + 1) / 2
