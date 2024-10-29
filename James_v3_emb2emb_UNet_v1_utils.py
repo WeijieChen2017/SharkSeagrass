@@ -90,10 +90,13 @@ from scipy.ndimage import zoom
 
 
 def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
-    # pred_output: (batch_size, 3, 256, 256)
+    # pred_output: (batch_size, 3, 64, 64)
     # vq_weights: (8192, 3)
     # here for each 1*3 vector in the pred_output, we find the nearest 1*3 vector in the vq_weights
     # and replace the pred_output with the nearest 1*3 vector in the vq_weights 
+
+    len_x = pred_output.shape[2]
+    len_y = pred_output.shape[3]
 
     VQ_NN_embedings = np.zeros_like(pred_output)
     print("pred_output.shape: ", pred_output.shape)
@@ -112,7 +115,7 @@ def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
         # dist is a 65536*8192 tensor
         nearest_ind = np.argmin(dist, axis=-1)
         # nearest_ind is a 65536 tensor
-        VQ_NN_embedings[idz, :, :, :] = vq_weights[nearest_ind].reshape(256, 256, 3)
+        VQ_NN_embedings[idz, :, :, :] = vq_weights[nearest_ind].reshape(len_x, len_y, 3)
         print(f"VQ_NN_embedings[{idz}] shape: ", VQ_NN_embedings[idz].shape)
 
     return VQ_NN_embedings
