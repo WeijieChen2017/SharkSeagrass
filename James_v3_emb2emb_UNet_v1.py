@@ -174,9 +174,9 @@ for idx_epoch in range(n_epoch):
     
             for case_name in test_list:
                 current_loss = 0
-                current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "test", "axial", device, vq_weights, config)
-                current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "test", "coronal", device, vq_weights, config)
-                current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "test", "sagittal", device, vq_weights, config)
+                current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "axial", device, vq_weights, config)
+                current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "coronal", device, vq_weights, config)
+                current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "sagittal", device, vq_weights, config)
                 current_test_loss = current_loss / 3
                 print(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, test_loss: {current_test_loss}")
                 test_loss += current_test_loss
