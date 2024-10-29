@@ -96,6 +96,7 @@ def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
     # and replace the pred_output with the nearest 1*3 vector in the vq_weights 
 
     VQ_NN_embedings = np.zeros_like(pred_output)
+    print("pred_output.shape: ", pred_output.shape)
 
     for i in range(pred_output.shape[0]):
         for j in range(pred_output.shape[2]):
