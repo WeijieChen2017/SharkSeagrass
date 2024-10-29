@@ -112,12 +112,12 @@ print(f"Loading vq weights from {vq_weights_path}, shape: {vq_weights.shape}")
 # PART: start training
 # --------------------------------
 
-save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_maskTrain/"
+save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_NomaskTrain_acs/"
 import os
 os.makedirs(save_folder, exist_ok=True)
 best_eval_loss = 1e10
 
-config["apply_mask_train"] = True
+config["apply_mask_train"] = False
 config["apply_mask_eval"] = True
 
 from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test
@@ -137,7 +137,11 @@ for idx_epoch in range(n_epoch):
     test_loss = 0.0
 
     for case_name in train_list:
-        current_train_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "train", "axial", device, vq_weights, config)
+        current_loss = 0
+        current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "train", "axial", device, vq_weights, config)
+        current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "train", "coronal", device, vq_weights, config)
+        current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "train", "sagittal", device, vq_weights, config)
+        current_train_loss = current_loss / 3
         print(f"Epoch [Train]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, train_loss: {current_train_loss}")
         train_loss += current_train_loss
     train_loss /= len(train_list)
@@ -147,7 +151,11 @@ for idx_epoch in range(n_epoch):
 
     if (idx_epoch+1) % n_epoch_eval == 0:
         for case_name in val_list:
-            current_val_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "axial", device, vq_weights, config)
+            current_loss = 0
+            current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "axial", device, vq_weights, config)
+            current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "coronal", device, vq_weights, config)
+            current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "sagittal", device, vq_weights, config)
+            current_val_loss = current_loss / 3
             print(f"Epoch [Eval]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, val_loss: {current_val_loss}")
             val_loss += current_val_loss
         val_loss /= len(val_list)
@@ -162,7 +170,11 @@ for idx_epoch in range(n_epoch):
                 f.write(f"Best model saved at {save_folder}best_model.pth\n")
     
             for case_name in test_list:
-                current_test_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "test", "axial", device, vq_weights, config)
+                current_loss = 0
+                current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "test", "axial", device, vq_weights, config)
+                current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "test", "coronal", device, vq_weights, config)
+                current_loss += train_or_eval_or_test(model, optimizer, loss, case_name, "test", "sagittal", device, vq_weights, config)
+                current_test_loss = current_loss / 3
                 print(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, test_loss: {current_test_loss}")
                 test_loss += current_test_loss
             test_loss /= len(test_list)
