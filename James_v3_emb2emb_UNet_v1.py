@@ -70,7 +70,6 @@ batch_size = -1
 dim = 64
 in_channel = 3
 out_channel = 3
-batch_size = 8
 n_epoch = 2000
 n_epoch_eval = 20
 n_epoch_save = 100
