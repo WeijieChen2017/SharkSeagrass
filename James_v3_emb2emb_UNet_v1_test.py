@@ -233,7 +233,7 @@ for case_name in test_list:
     recon_axial_VQ_order_one = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
     recon_axial_VQ_order_two = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
     for idx_z in range(len_z):
-        recon_axial_no_VQ[:, :, idx_z] = model_decoder(torch.from_numpy(axial_pred_output[idx_z, :, :, :]).float().unsqueeze(0).to(device)).detach().cpu().numpy()[:, 1, :, :]
+        recon_axial_no_VQ[:, :, idx_z] = model_decoder(torch.from_numpy(axial_no_VQ[idx_z, :, :, :]).float().unsqueeze(0).to(device)).detach().cpu().numpy()[:, 1, :, :]
         recon_axial_VQ_order_one[:, :, idx_z] = model_decoder(torch.from_numpy(axial_VQ_order_one[idx_z, :, :, :]).float().unsqueeze(0).to(device)).detach().cpu().numpy()[:, 1, :, :]
         recon_axial_VQ_order_two[:, :, idx_z] = model_decoder(torch.from_numpy(axial_VQ_order_two[idx_z, :, :, :]).float().unsqueeze(0).to(device)).detach().cpu().numpy()[:, 1, :, :]        
     
