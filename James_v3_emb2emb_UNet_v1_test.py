@@ -14,22 +14,23 @@
 # --------------------------------
 # PART: data division 
 # --------------------------------
-config = {}
+import os
 
 root_folder = "James_data_v3/"
 fold_cv = 0
-fold_cv_train = [0, 1, 2]
-fold_cv_val = [3]
-fold_cv_test = [4]
-
-config["root_folder"] = root_folder
-config["fold_cv"] = fold_cv
-config["fold_cv_train"] = fold_cv_train
-config["fold_cv_val"] = fold_cv_val
-config["fold_cv_test"] = fold_cv_test
-
-import os
+save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_maskTrain/"
+json_config =save_folder + "config.json"
 import json
+
+config = json.load(open(json_config, "r"))
+print("Loaded config from ", json_config)
+for key in config:
+    print(key, ":", config[key])
+
+fold_cv_train = config["fold_cv_train"]
+fold_cv_val = config["fold_cv_val"]
+fold_cv_test = config["fold_cv_test"]
+
 
 data_division = json.load(open(root_folder + "cv_list.json", "r"))
 
@@ -53,7 +54,7 @@ import torch
 import numpy as np
 import random
 
-random_seed = 729
+random_seed = config["random_seed"]
 random.seed(random_seed)
 np.random.seed(random_seed)
 torch.manual_seed(random_seed)
@@ -61,32 +62,17 @@ torch.cuda.manual_seed(random_seed)
 torch.cuda.manual_seed_all(random_seed)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
-config["random_seed"] = random_seed
 
 
-vq_norm_factor = 4
-zoom_factor = 4
-batch_size = -1
-dim = 64
-in_channel = 3
-out_channel = 3
-batch_size = 8
-n_epoch = 2000
-n_epoch_eval = 20
-n_epoch_save = 100
+vq_norm_factor = config["vq_norm_factor"]
+zoom_factor = config["zoom_factor"]
+batch_size = config["batch_size"]
+dim = config["dim"]
+in_channel = config["in_channel"]
+out_channel = config["out_channel"]
+
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("The current device is: ", device)
-
-config["vq_norm_factor"] = vq_norm_factor
-config["zoom_factor"] = zoom_factor
-config["batch_size"] = batch_size
-config["dim"] = dim
-config["in_channel"] = in_channel
-config["out_channel"] = out_channel
-config["n_epoch"] = n_epoch
-config["n_epoch_eval"] = n_epoch_eval
-config["n_epoch_save"] = n_epoch_save
-# config["device"] = device
 
 from monai.networks.nets import UNet
 
@@ -112,7 +98,6 @@ print(f"Loading vq weights from {vq_weights_path}, shape: {vq_weights.shape}")
 # PART: start training
 # --------------------------------
 
-save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_maskTrain/"
 
 # load the pretrained weights
 pretrain_model_path = save_folder + "best_model.pth"
@@ -124,10 +109,6 @@ else:
 
 import os
 os.makedirs(save_folder, exist_ok=True)
-
-config["apply_mask_train"] = True
-config["apply_mask_eval"] = True
-config["apply_mask_test"] = True
 
 from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test
 
