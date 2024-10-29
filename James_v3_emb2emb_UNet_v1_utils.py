@@ -89,6 +89,66 @@ import torch
 from scipy.ndimage import zoom
 
 
+def VQ_NN_embedings_sphere(vq_weights, pred_output, dist_order=2):
+    # pred_output: (batch_size, 3, 64, 64)
+    # vq_weights: (8192, 3)
+    # here for each 1*3 vector in the pred_output, we find the nearest 1*3 vector in the vq_weights
+    # and replace the pred_output with the nearest 1*3 vector in the vq_weights 
+
+    len_x = pred_output.shape[2]
+    len_y = pred_output.shape[3]
+
+    # project the pred_output to the unit sphere
+    sphere_vq_weights = vq_weights / np.linalg.norm(vq_weights, axis=-1, keepdims=True)
+
+    VQ_NN_embedings = np.zeros_like(pred_output)
+    print("pred_output.shape: ", pred_output.shape)
+
+    for idz in range(pred_output.shape[0]):
+        # this is a 3*256*256 tensor
+        current_slice = pred_output[idz, :, :, :]
+        # this is a 256*256*3 tensor
+        current_slice = np.transpose(current_slice, (1, 2, 0))
+        # this is a 65536*3 tensor
+        current_slice = current_slice.reshape(-1, 3)
+        # now project the current_slice to the unit sphere
+        current_slice = current_slice / np.linalg.norm(current_slice, axis=-1, keepdims=True)
+        
+        # find the nearest vector in the sphere_vq_weights using cosine distance
+        dot_product_matrix = np.dot(current_slice, sphere_vq_weights.T)
+        # dot_product_matrix is a 65536*8192 tensor
+        # Clamp values to the range [-1, 1] to avoid numerical issues with arccos
+        dot_product_matrix = np.clip(dot_product_matrix, -1.0, 1.0)
+        # Calculate the angular distance (in radians) by taking arccos
+        spherical_distances = np.arccos(dot_product_matrix)
+
+        # Find the index of the minimum distance for each vector in current_slice
+        # This gives a (256,) array of indices corresponding to the closest match in sphere_vq_weights
+        closest_indices = np.argmin(spherical_distances, axis=1)
+
+        # Retrieve the closest vectors from sphere_vq_weights
+        VQ_NN_slice = sphere_vq_weights[closest_indices].reshape(len_x, len_y, 3)
+        VQ_NN_embedings[idz, :, :, :] = np.transpose(VQ_NN_slice, (2, 0, 1))
+
+        # find the nearest vector in the sphere_vq_weights
+        # if dist_order == 1:
+        #     dist = np.sum(np.abs(current_slice[:, None, :] - sphere_vq_weights[None, :, :]), axis=-1)
+        # else:
+        #     dist = np.sum((current_slice[:, None, :] - sphere_vq_weights[None, :, :]) ** 2, axis=-1)
+        # # dist is a 65536*8192 tensor
+        # nearest_ind = np.argmin(dist, axis=-1)
+        # # nearest_ind is a 65536 tensor
+        # VQ_NN_slice = vq_weights[nearest_ind].reshape(len_x, len_y, 3)
+        # # VQ_NN_slice is a 64*64*3 tensor
+        # VQ_NN_slice = np.transpose(VQ_NN_slice, (2, 0, 1))
+        # # VQ_NN_slice is a 3*64*64 tensor
+        # VQ_NN_embedings[idz, :, :, :] = VQ_NN_slice
+
+        # print(f"VQ_NN_embedings[{idz}] shape: ", VQ_NN_embedings[idz].shape)
+
+    return VQ_NN_embedings
+
+
 def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
     # pred_output: (batch_size, 3, 64, 64)
     # vq_weights: (8192, 3)
@@ -234,8 +294,12 @@ def train_or_eval_or_test(
         x_post_quan = vq_weights[slice_x]
         y_post_quan = vq_weights[slice_y]
 
-        x_post_quan = x_post_quan / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
-        y_post_quan = y_post_quan / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
+        # x_post_quan = x_post_quan / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
+        # y_post_quan = y_post_quan / (vq_norm_factor * 2) + 0.5 # [-1, 1] -> [0, 1] for ReLU activation
+
+        x_post_quan = x_post_quan / vq_norm_factor # [-1, 1]
+        y_post_quan = y_post_quan / vq_norm_factor # [-1, 1]
+
         slice_mask = anatomical_mask[i, :, :]
         # duplicate the slice_mask to 3 channels at last axis
         slice_mask = np.stack((slice_mask, slice_mask, slice_mask), axis=-1)
