@@ -122,6 +122,7 @@ def train_or_eval_or_test(
     zoom_factor = config["zoom_factor"]
     is_mask_train = config["apply_mask_train"]
     is_mask_eval = config["apply_mask_eval"]
+    is_mask_test = config["apply_mask_test"]
     model_zoom = config["model_zoom"]
     # print("model_zoom: ", model_zoom)
 
@@ -176,6 +177,9 @@ def train_or_eval_or_test(
     x_batch = []
     y_batch = []
     mask_batch = []
+
+    if stage == "test":
+        recon_post_quan = []
 
     for i in range(len_z):
         
@@ -245,21 +249,34 @@ def train_or_eval_or_test(
                     loss_term = loss(y_hat, y_batch).mean()
                 loss_term.backward()
                 optimizer.step()
-            else:
+            elif stage == "eval":
                 with torch.no_grad():
                     y_hat = model(x_batch)
                     if is_mask_eval:
                         loss_term = ((loss(y_hat, y_batch) * mask_batch).mean())
                     else:
                         loss_term = loss(y_hat, y_batch).mean()
-                
+            else:
+                with torch.no_grad():
+                    y_hat = model(x_batch)
+                    if is_mask_test:
+                        loss_term = ((loss(y_hat, y_batch) * mask_batch).mean())
+                    else:
+                        loss_term = loss(y_hat, y_batch).mean()
+                    recon_post_quan.append(y_hat.cpu().numpy())
+
             case_loss.append(loss_term.item())
             cnt_batch = 0
             x_batch = []
             y_batch = []
             mask_batch = []
 
-
     case_loss = np.asarray(case_loss)
-    return np.mean(case_loss)
+    if stage == "test":
+        recon_post_quan = np.concatenate(recon_post_quan, axis=0)
+        # change the shape from 468, 3, 256, 256 to 256, 256, 468, 3
+        recon_post_quan = np.transpose(recon_post_quan, (2, 3, 0, 1))
+        return np.mean(case_loss), recon_post_quan
+    else:
+        return np.mean(case_loss)
 

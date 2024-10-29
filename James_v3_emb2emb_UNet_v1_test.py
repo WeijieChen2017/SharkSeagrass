@@ -127,6 +127,7 @@ os.makedirs(save_folder, exist_ok=True)
 
 config["apply_mask_train"] = True
 config["apply_mask_eval"] = True
+config["apply_mask_test"] = True
 
 from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test
 
@@ -138,55 +139,46 @@ print(f"Config file saved at {save_folder}config.json")
 txt_log_file = open(save_folder + "log.txt", "w")
 txt_log_file.close()
 
-
+axial_emb_loss = 0.0
+coronal_emb_loss = 0.0
+sagittal_emb_loss = 0.0
 
 for case_name in train_list:
-    current_train_loss, pred_output = train_or_eval_or_test(
+    axial_loss, axial_pred_output = train_or_eval_or_test(
         model=model, 
         optimizer=None, 
         loss=None,
         case_name=case_name,
-        "test",
-        "axial",
+        stage="test",
+        anatomical_plane="axial",
         device=device,
         vq_weights=vq_weights,
         config=config)
-    print(f"Epoch [Train]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, train_loss: {current_train_loss}")
-    train_loss += current_train_loss
-train_loss /= len(train_list)
-print(f"Epoch [Train]: {idx_epoch+1}/{n_epoch}, train_loss: {train_loss}")
-with open(save_folder + "log.txt", "a") as f:
-    f.write(f"Epoch [Train]: {idx_epoch+1}/{n_epoch}, train_loss: {train_loss}\n")
+    axial_emb_loss += axial_loss
+    print(f"case_name: {case_name}, axial_loss: {axial_loss}, axial_pred_output: {axial_pred_output.shape}")
+    exit()
 
-if (idx_epoch+1) % n_epoch_eval == 0:
-    for case_name in val_list:
-        current_val_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "eval", "axial", device, vq_weights, config)
-        print(f"Epoch [Eval]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, val_loss: {current_val_loss}")
-        val_loss += current_val_loss
-    val_loss /= len(val_list)
-    print(f"Epoch [Eval]: {idx_epoch+1}/{n_epoch}, val_loss: {val_loss}")
-    with open(save_folder + "log.txt", "a") as f:
-        f.write(f"Epoch [Eval]: {idx_epoch+1}/{n_epoch}, val_loss: {val_loss}\n")
-    if val_loss < best_eval_loss:
-        best_eval_loss = val_loss
-        torch.save(model.state_dict(), save_folder + "best_model.pth")
-        print(f"Best model saved at {save_folder}best_model.pth")
-        with open(save_folder + "log.txt", "a") as f:
-            f.write(f"Best model saved at {save_folder}best_model.pth\n")
+    coronal_loss, coronal_pred_output = train_or_eval_or_test(
+        model=model, 
+        optimizer=None, 
+        loss=None,
+        case_name=case_name,
+        stage="test",
+        anatomical_plane="coronal",
+        device=device,
+        vq_weights=vq_weights,
+        config=config)
+    coronal_emb_loss += coronal_loss
 
-        for case_name in test_list:
-            current_test_loss = train_or_eval_or_test(model, optimizer, loss, case_name, "test", "axial", device, vq_weights, config)
-            print(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, case_name: {case_name}, test_loss: {current_test_loss}")
-            test_loss += current_test_loss
-        test_loss /= len(test_list)
-        print(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, test_loss: {test_loss}")
-        with open(save_folder + "log.txt", "a") as f:
-            f.write(f"Epoch [Test]: {idx_epoch+1}/{n_epoch}, test_loss: {test_loss}\n")
 
-if (idx_epoch+1) % n_epoch_save == 0:
-    torch.save(model.state_dict(), save_folder + f"model_{idx_epoch+1}.pth")
-    print(f"Model saved at {save_folder}model_{idx_epoch+1}.pth")
-    with open(save_folder + "log.txt", "a") as f:
-        f.write(f"Model saved at {save_folder}model_{idx_epoch+1}.pth\n")
-
-    
+    sagittal_loss, sagittal_pred_output = train_or_eval_or_test(
+        model=model, 
+        optimizer=None, 
+        loss=None,
+        case_name=case_name,
+        stage="test",
+        anatomical_plane="sagittal",
+        device=device,
+        vq_weights=vq_weights,
+        config=config)
+    sagittal_emb_loss += sagittal_loss
