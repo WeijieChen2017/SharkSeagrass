@@ -74,6 +74,10 @@ out_channel = config["out_channel"]
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("The current device is: ", device)
 
+# --------------------------------
+# PART: adapter model
+# --------------------------------
+
 from monai.networks.nets import UNet
 
 model = UNet(
@@ -94,11 +98,6 @@ vq_weights_path = "f4_vq_weights.npy"
 vq_weights = np.load(vq_weights_path)
 print(f"Loading vq weights from {vq_weights_path}, shape: {vq_weights.shape}")
 
-# --------------------------------
-# PART: start training
-# --------------------------------
-
-
 # load the pretrained weights
 pretrain_model_path = save_folder + "best_model.pth"
 if os.path.exists(pretrain_model_path):
@@ -107,8 +106,50 @@ if os.path.exists(pretrain_model_path):
 else:
     print(f"No pretrained model found at {pretrain_model_path}")
 
+# --------------------------------
+# PART: decoder model
+# --------------------------------
+
+model_params = {
+    "vq_weights_path": "f4_vq_weights.npy",
+    "VQ_NAME": "f4",
+    "n_embed": 8192,
+    "embed_dim": 3,
+    "img_size" : 256,
+    "input_modality" : ["TOFNAC", "CTAC"],
+    # "ckpt_path": f"B100/TC256_best_ckpt/best_model_cv{cross_validation}.pth",
+    "ckpt_path": f"f4_nnmodel.pth",
+    "ddconfig": {
+            "double_z": False,
+            "z_channels": 3,
+            "resolution": 256,
+            "in_channels": 3,
+            "out_ch": 3,
+            "ch": 128,
+            "ch_mult": [1, 2, 4],
+            "num_res_blocks": 2,
+            "attn_resolutions": [],
+            "dropout": 0.0,
+    },
+}
+
+from James_v3_token2img_utils import VQModel_decoder
+
+model_decoder = VQModel_decoder(
+    ddconfig=model_params["ddconfig"],
+    n_embed=model_params["n_embed"],
+    embed_dim=model_params["embed_dim"],
+)
+model_decoder.load_pretrain_weights(model_params["ckpt_path"])
+print("Loaded model weights from", model_params["ckpt_path"])
+model_decoder.to(device)
+model_decoder.eval()
+
+# --------------------------------
+# PART: do evaluation
+# --------------------------------
 import os
-os.makedirs(save_folder, exist_ok=True)
+import nibabel as nib
 
 from James_v3_emb2emb_UNet_v1_utils import train_or_eval_or_test, VQ_NN_embedings
 
@@ -117,6 +158,11 @@ coronal_emb_loss = 0.0
 sagittal_emb_loss = 0.0
 
 for case_name in test_list:
+
+    # load the ground truth
+    CTAC_path = root_folder + f"CTACIVV_256_norm/CTACIVV_{case_name}_norm.nii.gz"
+    CTAC_file = nib.load(CTAC_path)
+
     axial_loss, axial_pred_output = train_or_eval_or_test(
         model=model, 
         optimizer=None, 
@@ -129,32 +175,49 @@ for case_name in test_list:
         config=config)
     axial_emb_loss += axial_loss
     print(f"case_name: {case_name}, axial_loss: {axial_loss}, axial_pred_output: {axial_pred_output.shape}")
-    order_one_axial = VQ_NN_embedings(vq_weights, axial_pred_output, dist_order=1)
-    order_two_axial = VQ_NN_embedings(vq_weights, axial_pred_output, dist_order=2)
-    print(f"order_one_axial: {order_one_axial.shape}, order_two_axial: {order_two_axial.shape}")
-    exit()
+    # de-norm the embeddings
+    axial_no_VQ = axial_pred_output * vq_norm_factor
+    axial_VQ_order_one = VQ_NN_embedings(vq_weights, axial_no_VQ, dist_order=1)
+    axial_VQ_order_two = VQ_NN_embedings(vq_weights, axial_no_VQ, dist_order=2)
+    print(f"axial_no_VQ: {axial_no_VQ.shape}, axial_VQ_order_one: {axial_VQ_order_one.shape}, axial_VQ_order_two: {axial_VQ_order_two.shape}")
 
-    coronal_loss, coronal_pred_output = train_or_eval_or_test(
-        model=model, 
-        optimizer=None, 
-        loss=loss,
-        case_name=case_name,
-        stage="test",
-        anatomical_plane="coronal",
-        device=device,
-        vq_weights=vq_weights,
-        config=config)
-    coronal_emb_loss += coronal_loss
+    len_z = axial_pred_output.shape[0]
+    recon_axial_no_VQ = []
+    recon_axial_VQ_order_one = []
+    recon_axial_VQ_order_two = []
+    for idx_z in range(len_z):
+        recon_axial_no_VQ.append(model_decoder(axial_no_VQ[idx_z].unsqueeze(0)).detach().cpu().numpy())
+        recon_axial_VQ_order_one.append(model_decoder(axial_VQ_order_one[idx_z].unsqueeze(0)).detach().cpu().numpy())
+        recon_axial_VQ_order_two.append(model_decoder(axial_VQ_order_two[idx_z].unsqueeze(0)).detach().cpu().numpy())
+    
+    recon_axial_no_VQ = np.concatenate(recon_axial_no_VQ, axis=0)
+    recon_axial_VQ_order_one = np.concatenate(recon_axial_VQ_order_one, axis=0)
+    recon_axial_VQ_order_two = np.concatenate(recon_axial_VQ_order_two, axis=0)
+    
+    print(f"recon_axial_no_VQ: {recon_axial_no_VQ.shape}, recon_axial_VQ_order_one: {recon_axial_VQ_order_one.shape}, recon_axial_VQ_order_two: {recon_axial_VQ_order_two.shape}")
 
 
-    sagittal_loss, sagittal_pred_output = train_or_eval_or_test(
-        model=model, 
-        optimizer=None, 
-        loss=loss,
-        case_name=case_name,
-        stage="test",
-        anatomical_plane="sagittal",
-        device=device,
-        vq_weights=vq_weights,
-        config=config)
-    sagittal_emb_loss += sagittal_loss
+    # coronal_loss, coronal_pred_output = train_or_eval_or_test(
+    #     model=model, 
+    #     optimizer=None, 
+    #     loss=loss,
+    #     case_name=case_name,
+    #     stage="test",
+    #     anatomical_plane="coronal",
+    #     device=device,
+    #     vq_weights=vq_weights,
+    #     config=config)
+    # coronal_emb_loss += coronal_loss
+
+
+    # sagittal_loss, sagittal_pred_output = train_or_eval_or_test(
+    #     model=model, 
+    #     optimizer=None, 
+    #     loss=loss,
+    #     case_name=case_name,
+    #     stage="test",
+    #     anatomical_plane="sagittal",
+    #     device=device,
+    #     vq_weights=vq_weights,
+    #     config=config)
+    # sagittal_emb_loss += sagittal_loss

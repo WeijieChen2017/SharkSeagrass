@@ -95,16 +95,18 @@ def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
     # here for each 1*3 vector in the pred_output, we find the nearest 1*3 vector in the vq_weights
     # and replace the pred_output with the nearest 1*3 vector in the vq_weights 
 
-    VQ_NN_embedings = np.zeros_like(pred_output)
-    print("pred_output.shape: ", pred_output.shape)
-
-    for i in range(pred_output.shape[0]):
-        for j in range(pred_output.shape[2]):
-            for k in range(pred_output.shape[3]):
-                dist = np.linalg.norm(pred_output[i, :, j, k] - vq_weights, ord=dist_order, axis=1)
-                min_dist_ind = np.argmin(dist)
-                VQ_NN_embedings[i, :, j, k] = vq_weights[min_dist_ind]
-
+    # Reshape pred_output to (batch_size * 256 * 256, 3)
+    reshaped_pred_output = pred_output.transpose(0, 2, 3, 1).reshape(-1, 3)
+    
+    # Compute distances between each vector in reshaped_pred_output and vq_weights
+    dist = np.linalg.norm(reshaped_pred_output[:, np.newaxis, :] - vq_weights, ord=dist_order, axis=2)
+    
+    # Find the index of the nearest vector in vq_weights for each vector in reshaped_pred_output
+    min_dist_inds = np.argmin(dist, axis=1)
+    
+    # Replace each vector in reshaped_pred_output with the nearest vector in vq_weights
+    VQ_NN_embedings = vq_weights[min_dist_inds].reshape(pred_output.shape[0], pred_output.shape[2], pred_output.shape[3], 3).transpose(0, 3, 1, 2)
+    
     return VQ_NN_embedings
 
 
