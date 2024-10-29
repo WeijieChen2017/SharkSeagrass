@@ -122,7 +122,10 @@ def train_or_eval_or_test(
     zoom_factor = config["zoom_factor"]
     is_mask_train = config["apply_mask_train"]
     is_mask_eval = config["apply_mask_eval"]
-    is_mask_test = config["apply_mask_test"]
+    if "apply_mask_test" not in config:
+        config["apply_mask_test"] = False
+    else:
+        is_mask_test = config["apply_mask_test"]
     model_zoom = config["model_zoom"]
     # print("model_zoom: ", model_zoom)
 
