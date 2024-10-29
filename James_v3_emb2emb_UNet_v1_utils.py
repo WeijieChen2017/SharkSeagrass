@@ -115,7 +115,12 @@ def VQ_NN_embedings(vq_weights, pred_output, dist_order=2):
         # dist is a 65536*8192 tensor
         nearest_ind = np.argmin(dist, axis=-1)
         # nearest_ind is a 65536 tensor
-        VQ_NN_embedings[idz, :, :, :] = vq_weights[nearest_ind].reshape(len_x, len_y, 3)
+        VQ_NN_slice = vq_weights[nearest_ind].reshape(len_x, len_y, 3)
+        # VQ_NN_slice is a 64*64*3 tensor
+        VQ_NN_slice = np.transpose(VQ_NN_slice, (2, 0, 1))
+        # VQ_NN_slice is a 3*64*64 tensor
+        VQ_NN_embedings[idz, :, :, :] = VQ_NN_slice
+        
         print(f"VQ_NN_embedings[{idz}] shape: ", VQ_NN_embedings[idz].shape)
 
     return VQ_NN_embedings
