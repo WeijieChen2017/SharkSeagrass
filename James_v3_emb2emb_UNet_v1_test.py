@@ -228,7 +228,7 @@ for case_name in test_list:
         np.save(axial_VQ_order_two_path, axial_VQ_order_two)
         print(f"axial_VQ_order_two saved to {axial_VQ_order_two_path}")
 
-    len_z = axial_pred_output.shape[0]
+    len_z = axial_no_VQ.shape[0]
     recon_axial_no_VQ = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
     recon_axial_VQ_order_one = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
     recon_axial_VQ_order_two = np.zeros((gt_x, gt_y, len_z), dtype=np.float32)
