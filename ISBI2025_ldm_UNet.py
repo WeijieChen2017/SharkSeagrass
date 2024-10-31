@@ -25,7 +25,7 @@ WRONG_CT_RANGE = WRONG_MAX_CT - MIN_CT
 CORRECT_CT_RANGE = CORRECT_MAX_CT - MIN_CT
 
 
-CT_mask_folder = "TC256_v2_mask/"
+CT_mask_folder = "ISBI2025_mask/"
 os.makedirs(CT_mask_folder, exist_ok=True)
 HU_boundary_valid_air = -450
 # HU_boundary_air_soft = -250
