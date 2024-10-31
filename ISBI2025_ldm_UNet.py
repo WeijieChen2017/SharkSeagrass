@@ -46,7 +46,7 @@ for cv in cv_list:
 
 
     for split in split_list:
-        print("Processing split: ", split)
+        # print("Processing split: ", split)
         metrics_dict = {}
         for region in region_list:
             for data_fusion in data_fusion_list:
@@ -76,7 +76,7 @@ for cv in cv_list:
             if os.path.exists(CT_GT_correct_path):
                 CT_GT_file = nib.load(CT_GT_correct_path)
                 CT_GT_data = CT_GT_file.get_fdata()
-                print("Loaded corrected CT_GT from: ", CT_GT_correct_path)
+                # print("Loaded corrected CT_GT from: ", CT_GT_correct_path)
             else:
                 CT_GT_file = nib.load(CT_GT_path)
                 CT_GT_data = CT_GT_file.get_fdata()
@@ -90,7 +90,7 @@ for cv in cv_list:
                 # save the corrected CT_GT_data
                 CT_GT_correct_file = nib.Nifti1Image(CT_GT_data, CT_GT_file.affine, CT_GT_file.header)
                 nib.save(CT_GT_correct_file, CT_GT_correct_path)
-                print("Saved corrected CT_GT to: ", CT_GT_correct_path)
+                # print("Saved corrected CT_GT to: ", CT_GT_correct_path)
             
             # prepare the CT mask
             mask_CT_whole_path = os.path.join(CT_mask_folder, f"CT_mask_{casename}.nii.gz")
@@ -115,7 +115,7 @@ for cv in cv_list:
                 mask_CT_bone = mask_CT_bone_file.get_fdata()
                 mask_CT_bone = mask_CT_bone > 0
 
-                print("Loaded masks for whole, air, soft, bone from: ", CT_mask_folder)
+                # print("Loaded masks for whole, air, soft, bone from: ", CT_mask_folder)
             else:
                 mask_CT_whole = CT_GT_data > HU_boundary_valid_air
                 for i in range(CT_GT_data.shape[2]):
@@ -124,7 +124,7 @@ for cv in cv_list:
                 # save the mask_CT_whole
                 mask_CT_whole_file = nib.Nifti1Image(mask_CT_whole.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
                 nib.save(mask_CT_whole_file, mask_CT_whole_path)
-                print("Saved whole mask to: ", mask_CT_whole_path)
+                # print("Saved whole mask to: ", mask_CT_whole_path)
                 
                 # air mask is from MIN to HU_boundary_air_soft
                 mask_CT_air = (CT_GT_data >= HU_boundary_air[0]) & (CT_GT_data <= HU_boundary_air[1])
@@ -133,7 +133,7 @@ for cv in cv_list:
                 # save the mask
                 mask_CT_air_file = nib.Nifti1Image(mask_CT_air.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
                 nib.save(mask_CT_air_file, mask_CT_air_path)
-                print("Saved air mask to: ", mask_CT_air_path)
+                # print("Saved air mask to: ", mask_CT_air_path)
 
                 # soft mask is from HU_boundary_air_soft to HU_boundary_soft_bone
                 mask_CT_soft = (CT_GT_data >= HU_boundary_soft[0]) & (CT_GT_data <= HU_boundary_soft[1])
@@ -142,7 +142,7 @@ for cv in cv_list:
                 # save the mask
                 mask_CT_soft_file = nib.Nifti1Image(mask_CT_soft.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
                 nib.save(mask_CT_soft_file, mask_CT_soft_path)
-                print("Saved soft mask to: ", mask_CT_soft_path)
+                # print("Saved soft mask to: ", mask_CT_soft_path)
 
                 # bone mask is from HU_boundary_soft_bone to MAX
                 mask_CT_bone = (CT_GT_data >= HU_boundary_bone[0]) & (CT_GT_data <= HU_boundary_bone[1])
@@ -151,7 +151,7 @@ for cv in cv_list:
                 # save the mask
                 mask_CT_bone_file = nib.Nifti1Image(mask_CT_bone.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
                 nib.save(mask_CT_bone_file, mask_CT_bone_path)
-                print("Saved bone mask to: ", mask_CT_bone_path)
+                # print("Saved bone mask to: ", mask_CT_bone_path)
 
             # prepare the predicted CT data
             for data_fusion in data_fusion_list:
@@ -160,7 +160,7 @@ for cv in cv_list:
                 if os.path.exists(pred_correct_path):
                     pred_correct_file = nib.load(pred_correct_path)
                     pred_data_correct = pred_correct_file.get_fdata()
-                    print("Loaded corrected pred from: ", pred_correct_path)
+                    # print("Loaded corrected pred from: ", pred_correct_path)
                 else:
                     pred_file = nib.load(pred_path)
                     pred_data = pred_file.get_fdata()
@@ -169,7 +169,7 @@ for cv in cv_list:
                     # save the corrected pred_data
                     pred_correct_file = nib.Nifti1Image(pred_data_correct, pred_file.affine, pred_file.header)
                     nib.save(pred_correct_file, pred_correct_path)
-                    print("Saved corrected pred to: ", pred_correct_path)
+                    # print("Saved corrected pred to: ", pred_correct_path)
                 
                 # check whether the third dimension is the same
                 if pred_data_correct.shape[2] != mask_CT_whole.shape[2]:
