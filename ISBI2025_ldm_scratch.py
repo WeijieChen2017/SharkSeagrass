@@ -238,6 +238,7 @@ for cv in cv_list:
                     metrics_dict[f"synCT_DSC_{region}_{data_fusion}"].append(DSC)
                     # print(f"Case {casename}, split {split}, synCT_DSC_{region}_{data_fusion}: ", DSC)
                     print(f"{DSC:.6f}")
+                    print()
 
         for key in metrics_dict.keys():
             metrics_dict[key] = np.mean(metrics_dict[key])
