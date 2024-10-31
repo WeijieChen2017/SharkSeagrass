@@ -205,12 +205,12 @@ for cv in cv_list:
                     # compute psnr
                     postive_CT_GT_data = CT_GT_data- MIN_CT
                     postive_pred_data_correct = pred_data_correct - MIN_CT
-                    PSNR = psnr(postive_CT_GT_data[mask], postive_pred_data_correct[mask], data_range=SCRATCH_CT_RANGE)
+                    PSNR = psnr(postive_CT_GT_data[mask], postive_pred_data_correct[mask], data_range=WRONG_CT_RANGE)
                     metrics_dict[f"synCT_PSNR_{region}_{data_fusion}"].append(PSNR)
                     print(f"Case {casename}, split {split}, synCT_PSNR_{region}_{data_fusion}: ", PSNR)
 
                     # compute ssim
-                    SSIM = ssim(postive_CT_GT_data[mask], postive_pred_data_correct[mask], data_range=SCRATCH_CT_RANGE)
+                    SSIM = ssim(postive_CT_GT_data[mask], postive_pred_data_correct[mask], data_range=WRONG_CT_RANGE)
                     metrics_dict[f"synCT_SSIM_{region}_{data_fusion}"].append(SSIM)
                     print(f"Case {casename}, split {split}, synCT_SSIM_{region}_{data_fusion}: ", SSIM)
 
