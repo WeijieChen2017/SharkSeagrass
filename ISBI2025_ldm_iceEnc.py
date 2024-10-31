@@ -180,6 +180,7 @@ for cv in cv_list:
                 
                 # compute the predicted data mask
                 mask_CT_whole_pred = pred_data_correct > -500
+                mask_CT_whole_pred = mask_CT_whole_pred[:, :, :mask_CT_whole.shape[2]]
                 for i in range(pred_data_correct.shape[2]):
                     mask_CT_whole_pred[:, :, i] = binary_fill_holes(mask_CT_whole_pred[:, :, i])
                 
