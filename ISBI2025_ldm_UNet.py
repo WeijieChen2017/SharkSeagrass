@@ -15,6 +15,9 @@ import numpy as np
 from scipy.ndimage import binary_fill_holes
 import json
 
+from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import peak_signal_noise_ratio as psnr
+
 WRONG_MAX_CT = 2976
 CORRECT_MAX_CT = 1976
 MIN_CT = -1024
@@ -24,11 +27,12 @@ CORRECT_CT_RANGE = CORRECT_MAX_CT - MIN_CT
 
 CT_mask_folder = "TC256_v2_mask/"
 os.makedirs(CT_mask_folder, exist_ok=True)
-HU_boundary_valid_air = -500
-# HU_boundary_air_soft = -200
-# HU_boundary_soft_bone = 500
-HU_boundary_soft = [-200, 200]
-HU_boundary_bone = [500, 2976]
+HU_boundary_valid_air = -450
+# HU_boundary_air_soft = -250
+# HU_boundary_soft_bone = 150
+HU_boundary_air = [-1024, -450]
+HU_boundary_soft = [-450, 150]
+HU_boundary_bone = [150, 2976]
 
 
 
@@ -45,7 +49,10 @@ for cv in cv_list:
         for region in region_list:
             for data_fusion in data_fusion_list:
                 metrics_dict[f"synCT_MAE_{region}_{data_fusion}"] = []
-        result_save_json = f"ISBI2025_ldm_pretrained_metrics_{cv}_{split}.json"
+                metrics_dict[f"synCT_PSNR_{region}_{data_fusion}"] = []
+                metrics_dict[f"synCT_SSIM_{region}_{data_fusion}"] = []
+                metrics_dict[f"synCT_DSC_{region}_{data_fusion}"] = []
+        result_save_json = f"ISBI2025_ldm_pretrained_metrics_{cv}_{split}_updatedMask.json"
         casename_list = sorted(split_dict[split])
         pred_folder = f"results/{cv}_256/{split}/"
 
@@ -108,7 +115,7 @@ for cv in cv_list:
 
                 print("Loaded masks for whole, air, soft, bone from: ", CT_mask_folder)
             else:
-                mask_CT_whole = CT_GT_data > -500
+                mask_CT_whole = CT_GT_data > HU_boundary_valid_air
                 for i in range(CT_GT_data.shape[2]):
                     mask_CT_whole[:, :, i] = binary_fill_holes(mask_CT_whole[:, :, i])
                 
@@ -118,7 +125,7 @@ for cv in cv_list:
                 print("Saved whole mask to: ", mask_CT_whole_path)
                 
                 # air mask is from MIN to HU_boundary_air_soft
-                mask_CT_air = (CT_GT_data > MIN_CT) & (CT_GT_data < HU_boundary_air_soft)
+                mask_CT_air = (CT_GT_data >= HU_boundary_air[0]) & (CT_GT_data <= HU_boundary_air[1])
                 # intersection with the whole mask
                 mask_CT_air = mask_CT_air & mask_CT_whole
                 # save the mask
@@ -127,7 +134,7 @@ for cv in cv_list:
                 print("Saved air mask to: ", mask_CT_air_path)
 
                 # soft mask is from HU_boundary_air_soft to HU_boundary_soft_bone
-                mask_CT_soft = (CT_GT_data > HU_boundary_air_soft) & (CT_GT_data < HU_boundary_soft_bone)
+                mask_CT_soft = (CT_GT_data >= HU_boundary_soft[0]) & (CT_GT_data <= HU_boundary_soft[1])
                 # intersection with the whole mask
                 mask_CT_soft = mask_CT_soft & mask_CT_whole
                 # save the mask
@@ -136,7 +143,7 @@ for cv in cv_list:
                 print("Saved soft mask to: ", mask_CT_soft_path)
 
                 # bone mask is from HU_boundary_soft_bone to MAX
-                mask_CT_bone = CT_GT_data > HU_boundary_soft_bone
+                mask_CT_bone = (CT_GT_data >= HU_boundary_bone[0]) & (CT_GT_data <= HU_boundary_bone[1])
                 # intersection with the whole mask
                 mask_CT_bone = mask_CT_bone & mask_CT_whole
                 # save the mask
@@ -162,6 +169,22 @@ for cv in cv_list:
                     nib.save(pred_correct_file, pred_correct_path)
                     print("Saved corrected pred to: ", pred_correct_path)
                 
+                # check whether the third dimension is the same
+                if pred_data_correct.shape[2] != mask_CT_whole.shape[2]:
+                    pred_data_correct = pred_data_correct[:, :, :mask_CT_whole.shape[2]]
+
+                # compute the predicted data mask
+                mask_CT_whole_pred = pred_data_correct > -500
+                for i in range(pred_data_correct.shape[2]):
+                    mask_CT_whole_pred[:, :, i] = binary_fill_holes(mask_CT_whole_pred[:, :, i])
+                
+                pred_mask_dict = {
+                    "whole": mask_CT_whole_pred,
+                    "air": (pred_data_correct >= HU_boundary_air[0]) & (pred_data_correct <= HU_boundary_air[1]),
+                    "soft": (pred_data_correct >= HU_boundary_soft[0]) & (pred_data_correct <= HU_boundary_soft[1]),
+                    "bone": (pred_data_correct >= HU_boundary_bone[0]) & (pred_data_correct <= HU_boundary_bone[1])
+                }
+
                 # compute the metrics
                 for region in region_list:
                     if region == "whole":
@@ -174,14 +197,31 @@ for cv in cv_list:
                         mask = mask_CT_bone
                     else:
                         raise ValueError("Invalid region")
-                    
-                    # check whether the third dimension is the same
-                    if pred_data_correct.shape[2] != mask.shape[2]:
-                        pred_data_correct = pred_data_correct[:, :, :mask.shape[2]]
 
                     MAE = np.mean(np.abs(CT_GT_data[mask] - pred_data_correct[mask]))
                     metrics_dict[f"synCT_MAE_{region}_{data_fusion}"].append(MAE)
                     print(f"Case {casename}, split {split}, synCT_MAE_{region}_{data_fusion}: ", MAE)
+
+                    # compute psnr
+                    postive_CT_GT_data = CT_GT_data- MIN_CT
+                    postive_pred_data_correct = pred_data_correct - MIN_CT
+                    PSNR = psnr(postive_CT_GT_data[mask], postive_pred_data_correct[mask], data_range=SCRATCH_CT_RANGE)
+                    metrics_dict[f"synCT_PSNR_{region}_{data_fusion}"].append(PSNR)
+                    print(f"Case {casename}, split {split}, synCT_PSNR_{region}_{data_fusion}: ", PSNR)
+
+                    # compute ssim
+                    SSIM = ssim(postive_CT_GT_data[mask], postive_pred_data_correct[mask], data_range=SCRATCH_CT_RANGE)
+                    metrics_dict[f"synCT_SSIM_{region}_{data_fusion}"].append(SSIM)
+                    print(f"Case {casename}, split {split}, synCT_SSIM_{region}_{data_fusion}: ", SSIM)
+
+                    # compute dice coefficient
+                    GT_mask = mask
+                    pred_mask = pred_mask_dict[region]
+                    intersection = np.sum(GT_mask & pred_mask)
+                    union = np.sum(GT_mask) + np.sum(pred_mask)
+                    DSC = 2 * intersection / union
+                    metrics_dict[f"synCT_DSC_{region}_{data_fusion}"].append(DSC)
+                    print(f"Case {casename}, split {split}, synCT_DSC_{region}_{data_fusion}: ", DSC)
 
         for key in metrics_dict.keys():
             metrics_dict[key] = np.mean(metrics_dict[key])

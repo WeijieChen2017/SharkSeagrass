@@ -123,7 +123,7 @@ for cv in cv_list:
 
                 print("Loaded masks for whole, air, soft, bone from: ", CT_mask_folder)
             else:
-                mask_CT_whole = CT_GT_data > -500
+                mask_CT_whole = CT_GT_data > HU_boundary_valid_air
                 for i in range(CT_GT_data.shape[2]):
                     mask_CT_whole[:, :, i] = binary_fill_holes(mask_CT_whole[:, :, i])
                 
