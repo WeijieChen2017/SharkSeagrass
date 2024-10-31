@@ -80,10 +80,10 @@ for model_spec in model_spec_list:
     }
     result_save_json = f"ISBI2025_ldm_recon_metrics_{model_spec}.json"
 
-    print("Processing model spec: ", model_spec)
+    # print("Processing model spec: ", model_spec)
     recon_folder = f"B100/vq_{model_spec}_recon_nifti/"
     for casename in case_list:
-        print("Processing case: ", casename)
+        # print("Processing case: ", casename)
         # vq_f8_E4077_CTr_recon.nii.gz
         CT_path = f"vq_{model_spec}_{casename}_CTr_recon.nii.gz"
         CT_path = os.path.join(recon_folder, CT_path)
@@ -148,7 +148,7 @@ for model_spec in model_spec_list:
             # save the mask_CT_whole
             mask_CT_whole_file = nib.Nifti1Image(mask_CT_whole.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
             nib.save(mask_CT_whole_file, mask_CT_whole_path)
-            print("Saved whole mask to: ", mask_CT_whole_path)
+            # print("Saved whole mask to: ", mask_CT_whole_path)
             
             # air mask is from MIN to HU_boundary_air_soft
             mask_CT_air = (CT_GT_data > MIN_CT) & (CT_GT_data < HU_boundary_air_soft)
@@ -157,7 +157,7 @@ for model_spec in model_spec_list:
             # save the mask
             mask_CT_air_file = nib.Nifti1Image(mask_CT_air.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
             nib.save(mask_CT_air_file, mask_CT_air_path)
-            print("Saved air mask to: ", mask_CT_air_path)
+            # print("Saved air mask to: ", mask_CT_air_path)
 
             # soft mask is from HU_boundary_air_soft to HU_boundary_soft_bone
             mask_CT_soft = (CT_GT_data > HU_boundary_air_soft) & (CT_GT_data < HU_boundary_soft_bone)
@@ -166,7 +166,7 @@ for model_spec in model_spec_list:
             # save the mask
             mask_CT_soft_file = nib.Nifti1Image(mask_CT_soft.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
             nib.save(mask_CT_soft_file, mask_CT_soft_path)
-            print("Saved soft mask to: ", mask_CT_soft_path)
+            # print("Saved soft mask to: ", mask_CT_soft_path)
 
             # bone mask is from HU_boundary_soft_bone to MAX
             mask_CT_bone = (CT_GT_data > HU_boundary_soft_bone) & (CT_GT_data < MAX_CT)
@@ -210,7 +210,7 @@ for model_spec in model_spec_list:
     # save the dict
     metric_dict_name = f"ISBI2025_ldm_recon_metrics_dict_{model_spec}.npy"
     np.save(metric_dict_name, metrics_dict)
-    print("Saved metrics dict to: ", metric_dict_name)
+    # print("Saved metrics dict to: ", metric_dict_name)
 
     for key in metrics_dict.keys():
         metrics_dict[key] = np.mean(metrics_dict[key])
@@ -218,11 +218,11 @@ for model_spec in model_spec_list:
     # in json, output metric names first per row
     with open(result_save_json, "w") as f:
         json.dump(metrics_dict, f, indent=4)
-    print("Saved metrics to: ", result_save_json)
+    # print("Saved metrics to: ", result_save_json)
 
-    print("Metrics: ", metrics_dict)
-    print(">"*50)
-    print()
+    # print("Metrics: ", metrics_dict)
+    # print(">"*50)
+    # print()
 
  
 
