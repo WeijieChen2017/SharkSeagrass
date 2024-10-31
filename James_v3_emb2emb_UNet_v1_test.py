@@ -23,7 +23,7 @@ import os
 
 root_folder = "James_data_v3/"
 fold_cv = 0
-save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_NomaskTrain/"
+save_folder = root_folder + f"James_v3_emb2emb_UNet_v1_cv{fold_cv}_NomaskTrain_acs_sphere_cosine_loss/"
 json_config =save_folder + "config.json"
 import json
 
@@ -76,7 +76,7 @@ dim = config["dim"]
 in_channel = config["in_channel"]
 out_channel = config["out_channel"]
 
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("The current device is: ", device)
 
 # --------------------------------
