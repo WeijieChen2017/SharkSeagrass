@@ -1,6 +1,6 @@
 # cv_list = ["cv1", "cv3", "cv4"] # for ldm
-# cv_list = ["cv0", "cv1", "cv2", "cv3", "cv4"] # for iceEnc
-cv_list = ["cv0", "cv1"]
+cv_list = ["cv0", "cv1", "cv2", "cv3", "cv4"] # for iceEnc
+# cv_list = ["cv0", "cv1"]
 
 split_list = ["test"]
 
