@@ -189,7 +189,7 @@ for cv in cv_list:
                 for i in range(pred_data_correct.shape[2]):
                     mask_CT_whole_pred[:, :, i] = binary_fill_holes(mask_CT_whole_pred[:, :, i])
                 
-                pred_mask = {
+                pred_mask_dict = {
                     "whole": mask_CT_whole_pred,
                     "air": (pred_data_correct >= HU_boundary_air[0]) & (pred_data_correct <= HU_boundary_air[1]),
                     "soft": (pred_data_correct >= HU_boundary_soft[0]) & (pred_data_correct <= HU_boundary_soft[1]),
@@ -236,7 +236,7 @@ for cv in cv_list:
 
                     # compute dice coefficient
                     GT_mask = mask
-                    pred_mask = pred_mask[region]
+                    pred_mask = pred_mask_dict[region]
                     intersection = np.sum(GT_mask & pred_mask)
                     union = np.sum(GT_mask | pred_mask)
                     DSC = 2 * intersection / union
