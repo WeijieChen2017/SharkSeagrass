@@ -3,9 +3,11 @@ cv_list = ["cv0", "cv1"] # for scratch
 
 split_list = ["test"]
 
-data_fusion_list = ["axial", "sagittal", "coronal", "average", "median"]
+# data_fusion_list = ["axial", "sagittal", "coronal", "average", "median"]
+data_fusion_list = ["median"]
 
-region_list = ["whole", "air", "soft", "bone"]
+# region_list = ["whole", "air", "soft", "bone"]
+region_list = ["whole", "soft", "bone"]
 # CT unit is HU
 # PET unit is Bq/ml
 
