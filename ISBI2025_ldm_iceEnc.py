@@ -238,7 +238,7 @@ for cv in cv_list:
                     GT_mask = mask
                     pred_mask = pred_mask_dict[region]
                     intersection = np.sum(GT_mask & pred_mask)
-                    union = np.sum(GT_mask | pred_mask)
+                    union = np.sum(GT_mask) + np.sum(pred_mask)
                     DSC = 2 * intersection / union
                     metrics_dict[f"synCT_DSC_{region}_{data_fusion}"].append(DSC)
                     print(f"Case {casename}, split {split}, synCT_DSC_{region}_{data_fusion}: ", DSC)
