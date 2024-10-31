@@ -202,19 +202,22 @@ for cv in cv_list:
 
                     MAE = np.mean(np.abs(CT_GT_data[mask] - pred_data_correct[mask]))
                     metrics_dict[f"synCT_MAE_{region}_{data_fusion}"].append(MAE)
-                    print(f"Case {casename}, split {split}, synCT_MAE_{region}_{data_fusion}: ", MAE)
+                    # print(f"Case {casename}, split {split}, synCT_MAE_{region}_{data_fusion}: ", MAE)
+                    print(f"{MAE:.6f}")
 
                     # compute psnr
                     postive_CT_GT_data = CT_GT_data- MIN_CT
                     postive_pred_data_correct = pred_data_correct - MIN_CT
                     PSNR = psnr(postive_CT_GT_data[mask], postive_pred_data_correct[mask], data_range=WRONG_CT_RANGE)
                     metrics_dict[f"synCT_PSNR_{region}_{data_fusion}"].append(PSNR)
-                    print(f"Case {casename}, split {split}, synCT_PSNR_{region}_{data_fusion}: ", PSNR)
+                    # print(f"Case {casename}, split {split}, synCT_PSNR_{region}_{data_fusion}: ", PSNR)
+                    print(f"{PSNR:.6f}")
 
                     # compute ssim
                     SSIM = ssim(postive_CT_GT_data[mask], postive_pred_data_correct[mask], data_range=WRONG_CT_RANGE)
                     metrics_dict[f"synCT_SSIM_{region}_{data_fusion}"].append(SSIM)
-                    print(f"Case {casename}, split {split}, synCT_SSIM_{region}_{data_fusion}: ", SSIM)
+                    # print(f"Case {casename}, split {split}, synCT_SSIM_{region}_{data_fusion}: ", SSIM)
+                    print(f"{SSIM:.6f}")
 
                     # compute dice coefficient
                     GT_mask = mask
@@ -223,7 +226,8 @@ for cv in cv_list:
                     union = np.sum(GT_mask) + np.sum(pred_mask)
                     DSC = 2 * intersection / union
                     metrics_dict[f"synCT_DSC_{region}_{data_fusion}"].append(DSC)
-                    print(f"Case {casename}, split {split}, synCT_DSC_{region}_{data_fusion}: ", DSC)
+                    # print(f"Case {casename}, split {split}, synCT_DSC_{region}_{data_fusion}: ", DSC)
+                    print(f"{DSC:.6f}")
 
         for key in metrics_dict.keys():
             metrics_dict[key] = np.mean(metrics_dict[key])
@@ -232,12 +236,12 @@ for cv in cv_list:
         with open(result_save_json, "w") as f:
             json.dump(metrics_dict, f, indent=4)
 
-        print("Saved metrics to: ", result_save_json)
-        print("Metrics: ", metrics_dict)
-        print(">"*50)
+    #     print("Saved metrics to: ", result_save_json)
+    #     print("Metrics: ", metrics_dict)
+    #     print(">"*50)
     
-    print(">"*50)
-    print()
+    # print(">"*50)
+    # print()
 
     #     # CT data is from -1 to 1
     #     # PET data is from -1 to 1
