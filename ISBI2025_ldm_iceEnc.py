@@ -196,13 +196,13 @@ for cv in cv_list:
                     "bone": (pred_data_correct >= HU_boundary_bone[0]) & (pred_data_correct <= HU_boundary_bone[1])
                 }
                 # save the predicted mask
-                pred_mask_whole_file = nib.Nifti1Image(mask_CT_whole_pred.astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
+                pred_mask_whole_file = nib.Nifti1Image(pred_mask_dict["whole"].astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
                 nib.save(pred_mask_whole_file, os.path.join(CT_mask_folder, f"pred_mask_whole_{casename}_{data_fusion}_{cv}.nii.gz"))
-                pred_mask_air_file = nib.Nifti1Image(pred_mask["air"].astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
+                pred_mask_air_file = nib.Nifti1Image(pred_mask_dict["air"].astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
                 nib.save(pred_mask_air_file, os.path.join(CT_mask_folder, f"pred_mask_air_{casename}_{data_fusion}_{cv}.nii.gz"))
-                pred_mask_soft_file = nib.Nifti1Image(pred_mask["soft"].astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
+                pred_mask_soft_file = nib.Nifti1Image(pred_mask_dict["soft"].astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
                 nib.save(pred_mask_soft_file, os.path.join(CT_mask_folder, f"pred_mask_soft_{casename}_{data_fusion}_{cv}.nii.gz"))
-                pred_mask_bone_file = nib.Nifti1Image(pred_mask["bone"].astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
+                pred_mask_bone_file = nib.Nifti1Image(pred_mask_dict["bone"].astype(np.float32), CT_GT_file.affine, CT_GT_file.header)
                 nib.save(pred_mask_bone_file, os.path.join(CT_mask_folder, f"pred_mask_bone_{casename}_{data_fusion}_{cv}.nii.gz"))
 
                 # compute the metrics
