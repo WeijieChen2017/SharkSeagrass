@@ -200,7 +200,7 @@ for case_name in test_list:
         print(f"axial_no_VQ loaded from {axial_no_VQ_path}, shape: {axial_no_VQ.shape}")
     else:
 
-        axial_loss, axial_pred_output = train_or_eval_or_test(
+        axial_loss, axial_no_VQ = train_or_eval_or_test(
             model=model, 
             optimizer=None, 
             loss=loss,
