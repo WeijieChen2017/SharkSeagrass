@@ -178,9 +178,12 @@ for cv in cv_list:
                     nib.save(pred_correct_file, pred_correct_path)
                     print("Saved corrected pred to: ", pred_correct_path)
                 
+                # check whether the third dimension is the same
+                if pred_data_correct.shape[2] != mask_CT_whole.shape[2]:
+                    pred_data_correct = pred_data_correct[:, :, :mask_CT_whole.shape[2]]
+
                 # compute the predicted data mask
                 mask_CT_whole_pred = pred_data_correct > -500
-                mask_CT_whole_pred = mask_CT_whole_pred[:, :, :mask_CT_whole.shape[2]]
                 for i in range(pred_data_correct.shape[2]):
                     mask_CT_whole_pred[:, :, i] = binary_fill_holes(mask_CT_whole_pred[:, :, i])
                 
@@ -203,10 +206,6 @@ for cv in cv_list:
                         mask = mask_CT_bone
                     else:
                         raise ValueError("Invalid region")
-                    
-                    # check whether the third dimension is the same
-                    if pred_data_correct.shape[2] != mask.shape[2]:
-                        pred_data_correct = pred_data_correct[:, :, :mask.shape[2]]
 
                     MAE = np.mean(np.abs(CT_GT_data[mask] - pred_data_correct[mask]))
                     metrics_dict[f"synCT_MAE_{region}_{data_fusion}"].append(MAE)
