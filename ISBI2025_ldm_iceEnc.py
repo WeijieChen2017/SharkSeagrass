@@ -55,6 +55,9 @@ for cv in cv_list:
         for region in region_list:
             for data_fusion in data_fusion_list:
                 metrics_dict[f"synCT_MAE_{region}_{data_fusion}"] = []
+                metrics_dict[f"synCT_PSNR_{region}_{data_fusion}"] = []
+                metrics_dict[f"synCT_SSIM_{region}_{data_fusion}"] = []
+                metrics_dict[f"synCT_DSC_{region}_{data_fusion}"] = []
         result_save_json = f"ISBI2025_ldm_iceEnc_metrics_{cv}_{split}_updatedMask.json"
         casename_list = sorted(split_dict[split])
         pred_folder = f"results/{cv}_256_iceEnc/{split}/"
