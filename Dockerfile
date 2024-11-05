@@ -1,14 +1,11 @@
-# # Use the MONAI base image
-# # FROM projectmonai/monai:latest
-# FROM huggingface/transformers-pytorch-gpu
-
-# # Install additional Python packages using pip
-# RUN pip install wandb
-# Use a more recent CUDA and Ubuntu image
-FROM nvidia/cuda:11.0.3-cudnn8-runtime-ubuntu20.04
+# Use a stable CUDA base image
+FROM nvidia/cuda:11.0-base-ubuntu20.04
 
 # Set environment variables to prevent interactive prompts during the build
 ENV DEBIAN_FRONTEND=noninteractive
+
+# Disable problematic NVIDIA repositories (if any)
+RUN rm -f /etc/apt/sources.list.d/cuda.list /etc/apt/sources.list.d/nvidia-ml.list
 
 # Install Python and basic dependencies
 RUN apt-get update && \
@@ -18,7 +15,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install CUDA and PyTorch
+# Install CUDA-compatible PyTorch
 RUN pip install torch==1.7.0+cu110 torchvision==0.8.1+cu110 -f https://download.pytorch.org/whl/torch_stable.html
 
 # Install Python packages specified in the environment.yaml file
