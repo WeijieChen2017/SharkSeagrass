@@ -1,5 +1,5 @@
 # Use a stable CUDA base image
-FROM nvidia/cuda:11.0-base-ubuntu20.04
+FROM nvidia/cuda:11.0.3-runtime-ubuntu20.04
 
 # Set environment variables to prevent interactive prompts during the build
 ENV DEBIAN_FRONTEND=noninteractive
@@ -28,5 +28,4 @@ RUN pip install -e git+https://github.com/CompVis/taming-transformers.git@master
     pip install -e git+https://github.com/openai/CLIP.git@main#egg=clip && \
     pip install -e .
 
-# Set default command to open a shell
-CMD ["/bin/bash"]
+# Set default comm
