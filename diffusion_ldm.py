@@ -32,7 +32,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--indir", type=str, default="./inpaint")
 parser.add_argument("--outdir", type=str, default="./inpaint_output")
 parser.add_argument("--steps", type=int, default=50)
-parser.add_argument("--ckpt_path", type=str, default="../model_inpaint_big.ckpt")
+parser.add_argument("--ckpt_path", type=str, default="model_inpaint_big.ckpt")
 parser.add_argument("--config_path", type=str, default="diffusion_ldm_config.yaml")
 
 # load experiment config
