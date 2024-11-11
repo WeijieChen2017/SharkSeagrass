@@ -32,7 +32,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--indir", type=str, default="./inpaint")
 parser.add_argument("--outdir", type=str, default="./inpaint_output")
 parser.add_argument("--steps", type=int, default=50)
-parser.add_argument("--ckpt_path", type=str, default="model_inpaint_big.ckpt")
+parser.add_argument("--ckpt_path", type=str, default="model_inpaint.ckpt")
 parser.add_argument("--config_path", type=str, default="diffusion_ldm_config.yaml")
 
 # load experiment config
@@ -51,8 +51,7 @@ config = OmegaConf.load(opt.config_path)
 # print("Create a diffusion model and a vq model from the pretrained weights {}".format(opt.ckpt_path))
 
 model = instantiate_from_config(config.model)
-model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"],
-                        strict=False)
+model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"], strict=False)
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 model = model.to(device)
