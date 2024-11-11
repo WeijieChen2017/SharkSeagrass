@@ -45,7 +45,7 @@ images = [x.replace("_mask.png", ".png") for x in masks]
 print(f"Found {len(masks)} inputs.")
 
 # load pretrained model config
-config = OmegaConf.load(opt.config_path)['model']
+config = OmegaConf.load(opt.config_path)
 
 # diffsuion_model, vq_model = load_diffusion_vq_model_from(opt.ckpt_path, config)
 # print("Create a diffusion model and a vq model from the pretrained weights {}".format(opt.ckpt_path))
