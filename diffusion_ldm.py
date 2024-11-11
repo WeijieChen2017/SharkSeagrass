@@ -5,7 +5,7 @@ import yaml
 with open("diffusion_ldm_config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
-print(config)
+# print(config)
 # ----------------------------------------------------
 
 # 2, load the model from the configuration
@@ -16,8 +16,13 @@ from PIL import Image
 from tqdm import tqdm
 import numpy as np
 import torch
+
+# from diffusion_ldm_utils_diffusion_model import UNetModel
+# from diffusion_ldm_utils_vq_model import VQModel
 from main import instantiate_from_config
 from ldm.models.diffusion.ddim import DDIMSampler
+
+from diffusion_ldm_utils import load_diffusion_vq_model_from
 
 # pip install omegaconf
 # pip install pip install pillow
@@ -27,17 +32,24 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--indir", type=str, default="./inpaint")
 parser.add_argument("--outdir", type=str, default="./inpaint_output")
 parser.add_argument("--steps", type=int, default=50)
-parser.add_argument("--ckpt_path", type=str, default="model_inpaint.ckpt")
+parser.add_argument("--ckpt_path", type=str, default="../model_inpaint_big.ckpt")
 parser.add_argument("--config_path", type=str, default="diffusion_ldm_config.yaml")
 
+# load experiment config
 opt = parser.parse_args()
-
 print(opt)
+
+# load input
 masks = sorted(glob.glob(os.path.join(opt.indir, "*_mask.png")))
 images = [x.replace("_mask.png", ".png") for x in masks]
 print(f"Found {len(masks)} inputs.")
 
-config = OmegaConf.load(opt.config_path)
+# load pretrained model config
+config = OmegaConf.load(opt.config_path)['model']
+
+# diffsuion_model, vq_model = load_diffusion_vq_model_from(opt.ckpt_path, config)
+# print("Create a diffusion model and a vq model from the pretrained weights {}".format(opt.ckpt_path))
+
 model = instantiate_from_config(config.model)
 model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"],
                         strict=False)
@@ -46,26 +58,14 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 model = model.to(device)
 sampler = DDIMSampler(model)
 
-def make_batch(image, mask, device):
-    image = np.array(Image.open(image).convert("RGB"))
-    image = image.astype(np.float32)/255.0
-    image = image[None].transpose(0,3,1,2)
-    image = torch.from_numpy(image)
 
-    mask = np.array(Image.open(mask).convert("L"))
-    mask = mask.astype(np.float32)/255.0
-    mask = mask[None,None]
-    mask[mask < 0.5] = 0
-    mask[mask >= 0.5] = 1
-    mask = torch.from_numpy(mask)
 
-    masked_image = (1-mask)*image
-
-    batch = {"image": image, "mask": mask, "masked_image": masked_image}
-    for k in batch:
-        batch[k] = batch[k].to(device=device)
-        batch[k] = batch[k]*2.0-1.0
-    return batch
+# check input size
+# image = images[0]
+# mask = masks[0]
+# batch = make_batch(image, mask, device=torch.device('cpu'))
+# print(batch["image"].size(), batch["mask"].size(), batch["masked_image"].size())
+# torch.Size([1, 3, 512, 512]) torch.Size([1, 1, 512, 512]) torch.Size([1, 3, 512, 512])
 
 os.makedirs(opt.outdir, exist_ok=True)
 with torch.no_grad():
@@ -76,10 +76,10 @@ with torch.no_grad():
             batch = make_batch(image, mask, device=device)
 
             # encode masked image and concat downsampled mask
-            c = model.cond_stage_model.encode(batch["masked_image"])
+            c = model.cond_stage_model.encode(batch["masked_image"]) # channel = 3
             cc = torch.nn.functional.interpolate(batch["mask"],
-                                                    size=c.shape[-2:])
-            c = torch.cat((c, cc), dim=1)
+                                                    size=c.shape[-2:]) # channel = 1
+            c = torch.cat((c, cc), dim=1) # channel = 4
 
             shape = (c.shape[1]-1,)+c.shape[2:]
             samples_ddim, _ = sampler.sample(S=opt.steps,
