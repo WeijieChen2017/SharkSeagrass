@@ -22,7 +22,7 @@ import torch
 from main import instantiate_from_config
 from ldm.models.diffusion.ddim import DDIMSampler
 
-from diffusion_ldm_utils import load_diffusion_vq_model_from
+from diffusion_ldm_utils import load_diffusion_vq_model_from, make_batch
 
 # pip install omegaconf
 # pip install pip install pillow
@@ -54,6 +54,7 @@ model = instantiate_from_config(config.model)
 model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"], strict=False)
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+print(f"The current device is {device}")
 model = model.to(device)
 sampler = DDIMSampler(model)
 
