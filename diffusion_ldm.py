@@ -48,19 +48,54 @@ print(f"Found {len(masks)} inputs.")
 # load pretrained model config
 config = OmegaConf.load(opt.config_path)
 
-# diffsuion_model, vq_model = load_diffusion_vq_model_from(opt.ckpt_path, config)
-# print("Create a diffusion model and a vq model from the pretrained weights {}".format(opt.ckpt_path))
+diffsuion_model, vq_model = load_diffusion_vq_model_from(opt.ckpt_path, config)
+print("Create a diffusion model and a vq model from the pretrained weights {}".format(opt.ckpt_path))
 
-# model = instantiate_from_config(config.model)
-# model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"], strict=False)
+model = instantiate_from_config(config.model)
+model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"], strict=False)
 
-# device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-# print(f"The current device is {device}")
-# model = model.to(device)
-# sampler = DDIMSampler(model)
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+print(f"The current device is {device}")
+model = model.to(device)
+sampler = DDIMSampler(model)
 
 PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
-print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
+# print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
+# torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
+
+
+with torch.no_grad():
+    with model.ema_scope():
+        outpath = os.path.dirname(opt.test_path)
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
+        c = model.cond_stage_model.encode(CT0_img) # channel = 3
+        # cc = torch.nn.functional.interpolate(batch["mask"],
+        #                                         size=c.shape[-2:]) # channel = 1
+        cc = PET_mask
+        c = torch.cat((c, cc), dim=1) # channel = 4
+
+        shape = (c.shape[1]-1,)+c.shape[2:]
+        samples_ddim, _ = sampler.sample(S=opt.steps,
+                                            conditioning=c,
+                                            batch_size=c.shape[0],
+                                            shape=shape,
+                                            verbose=False)
+        x_samples_ddim = model.decode_first_stage(samples_ddim)
+
+        
+
+        image = torch.clamp((CT0_img+1.0)/2.0, min=0.0, max=1.0)
+        mask = torch.clamp((PET_mask+1.0)/2.0, min=0.0, max=1.0)
+        predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0, min=0.0, max=1.0)
+
+        inpainted = (1-mask)*image+mask*predicted_image
+        inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
+        inpainted_savename = opt.test_path.replace(".npy", "_im.npy")
+        np.save(inpainted_savename, inpainted)
+        print("The output file is saved to", inpainted_savename)
+
+
+
 
 # check input size
 # image = images[0]
