@@ -48,8 +48,8 @@ print(f"Found {len(masks)} inputs.")
 # load pretrained model config
 config = OmegaConf.load(opt.config_path)
 
-diffsuion_model, vq_model = load_diffusion_vq_model_from(opt.ckpt_path, config)
-print("Create a diffusion model and a vq model from the pretrained weights {}".format(opt.ckpt_path))
+# diffsuion_model, vq_model = load_diffusion_vq_model_from(opt.ckpt_path, config)
+# print("Create a diffusion model and a vq model from the pretrained weights {}".format(opt.ckpt_path))
 
 model = instantiate_from_config(config.model)
 model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"], strict=False)
