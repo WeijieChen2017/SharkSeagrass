@@ -62,7 +62,10 @@ sampler = DDIMSampler(model)
 PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
 # print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
 # torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
-
+PET_img = PET_img.to(device)
+PET_mask = PET_mask.to(device)
+CT0_img = CT0_img.to(device)
+CT1_img = CT1_img.to(device)
 
 with torch.no_grad():
     with model.ema_scope():
