@@ -49,7 +49,7 @@ def load_diffusion_vq_model_from(ckpt_path, config):
     return diffusion_model, vq_model
 
 def make_batch_PET_CT_CT(path):
-    image_dict = np.load(path, allow_pickle=True)
+    image_dict = np.load(path, allow_pickle=True).item()
     PET_img = image_dict['PET_img']
     PET_mask = image_dict['PET_mask']
     CT0_img = image_dict['CT0_img']
