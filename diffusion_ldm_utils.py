@@ -61,7 +61,6 @@ def make_batch_PET_CT_CT(path):
     # now they are in -1 to 1
     # they are in shape 256,256,3
     PET_img = PET_img.transpose(2,0,1)
-    PET_mask = PET_mask.transpose(2,0,1)
     CT0_img = CT0_img.transpose(2,0,1)
     CT1_img = CT1_img.transpose(2,0,1)
     # convert to tensor
@@ -71,7 +70,7 @@ def make_batch_PET_CT_CT(path):
     CT1_img = torch.from_numpy(CT1_img)
     # add new axis to make them in shape 1,3,256,256
     PET_img = PET_img.unsqueeze(0)
-    PET_mask = PET_mask.unsqueeze(0)
+    PET_mask = PET_mask.unsqueeze(0).unsqueeze(0)
     CT0_img = CT0_img.unsqueeze(0)
     CT1_img = CT1_img.unsqueeze(0)
 
