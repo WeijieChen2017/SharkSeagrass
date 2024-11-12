@@ -48,6 +48,36 @@ def load_diffusion_vq_model_from(ckpt_path, config):
 
     return diffusion_model, vq_model
 
+def make_batch_PET_CT_CT(path):
+    image_dict = np.load(path, allow_pickle=True)
+    PET_img = image_dict['PET_img']
+    PET_mask = image_dict['PET_mask']
+    CT0_img = image_dict['CT0_img']
+    CT1_img = image_dict['CT1_img']
+    # they are noramlized to [0,1]
+    PET_img = PET_img * 2.0 - 1.0
+    CT0_img = CT0_img * 2.0 - 1.0
+    CT1_img = CT1_img * 2.0 - 1.0
+    # now they are in -1 to 1
+    # they are in shape 256,256,3
+    PET_img = PET_img.transpose(2,0,1)
+    PET_mask = PET_mask.transpose(2,0,1)
+    CT0_img = CT0_img.transpose(2,0,1)
+    CT1_img = CT1_img.transpose(2,0,1)
+    # convert to tensor
+    PET_img = torch.from_numpy(PET_img)
+    PET_mask = torch.from_numpy(PET_mask)
+    CT0_img = torch.from_numpy(CT0_img)
+    CT1_img = torch.from_numpy(CT1_img)
+    # add new axis to make them in shape 1,3,256,256
+    PET_img = PET_img.unsqueeze(0)
+    PET_mask = PET_mask.unsqueeze(0)
+    CT0_img = CT0_img.unsqueeze(0)
+    CT1_img = CT1_img.unsqueeze(0)
+
+    return PET_img, PET_mask, CT0_img, CT1_img
+
+
 
 def make_batch(image, mask, device):
     image = np.array(Image.open(image).convert("RGB"))

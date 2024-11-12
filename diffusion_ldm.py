@@ -22,7 +22,7 @@ import torch
 from main import instantiate_from_config
 from ldm.models.diffusion.ddim import DDIMSampler
 
-from diffusion_ldm_utils import load_diffusion_vq_model_from, make_batch
+from diffusion_ldm_utils import load_diffusion_vq_model_from, make_batch, make_batch_PET_CT_CT
 
 # pip install omegaconf
 # pip install pip install pillow
@@ -34,6 +34,7 @@ parser.add_argument("--outdir", type=str, default="./inpaint_output")
 parser.add_argument("--steps", type=int, default=50)
 parser.add_argument("--ckpt_path", type=str, default="model_inpaint.ckpt")
 parser.add_argument("--config_path", type=str, default="diffusion_ldm_config.yaml")
+parser.add_argument("--test_path", type=str, default="James_data_v3/diffusion_slices/pE4055_E4058_z100_n01.npy")
 
 # load experiment config
 opt = parser.parse_args()
@@ -58,7 +59,8 @@ print(f"The current device is {device}")
 model = model.to(device)
 sampler = DDIMSampler(model)
 
-
+PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
+print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
 
 # check input size
 # image = images[0]
@@ -67,36 +69,36 @@ sampler = DDIMSampler(model)
 # print(batch["image"].size(), batch["mask"].size(), batch["masked_image"].size())
 # torch.Size([1, 3, 512, 512]) torch.Size([1, 1, 512, 512]) torch.Size([1, 3, 512, 512])
 
-os.makedirs(opt.outdir, exist_ok=True)
-with torch.no_grad():
-    with model.ema_scope():
-        for image, mask in tqdm(zip(images, masks)):
-            outpath = os.path.join(opt.outdir, os.path.split(image)[1])
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
-            batch = make_batch(image, mask, device=device)
+# os.makedirs(opt.outdir, exist_ok=True)
+# with torch.no_grad():
+#     with model.ema_scope():
+#         for image, mask in tqdm(zip(images, masks)):
+#             outpath = os.path.join(opt.outdir, os.path.split(image)[1])
+#             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
+#             batch = make_batch(image, mask, device=device)
 
-            # encode masked image and concat downsampled mask
-            c = model.cond_stage_model.encode(batch["masked_image"]) # channel = 3
-            cc = torch.nn.functional.interpolate(batch["mask"],
-                                                    size=c.shape[-2:]) # channel = 1
-            c = torch.cat((c, cc), dim=1) # channel = 4
+#             # encode masked image and concat downsampled mask
+#             c = model.cond_stage_model.encode(batch["masked_image"]) # channel = 3
+#             cc = torch.nn.functional.interpolate(batch["mask"],
+#                                                     size=c.shape[-2:]) # channel = 1
+#             c = torch.cat((c, cc), dim=1) # channel = 4
 
-            shape = (c.shape[1]-1,)+c.shape[2:]
-            samples_ddim, _ = sampler.sample(S=opt.steps,
-                                                conditioning=c,
-                                                batch_size=c.shape[0],
-                                                shape=shape,
-                                                verbose=False)
-            x_samples_ddim = model.decode_first_stage(samples_ddim)
+#             shape = (c.shape[1]-1,)+c.shape[2:]
+#             samples_ddim, _ = sampler.sample(S=opt.steps,
+#                                                 conditioning=c,
+#                                                 batch_size=c.shape[0],
+#                                                 shape=shape,
+#                                                 verbose=False)
+#             x_samples_ddim = model.decode_first_stage(samples_ddim)
 
-            image = torch.clamp((batch["image"]+1.0)/2.0,
-                                min=0.0, max=1.0)
-            mask = torch.clamp((batch["mask"]+1.0)/2.0,
-                                min=0.0, max=1.0)
-            predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0,
-                                            min=0.0, max=1.0)
+#             image = torch.clamp((batch["image"]+1.0)/2.0,
+#                                 min=0.0, max=1.0)
+#             mask = torch.clamp((batch["mask"]+1.0)/2.0,
+#                                 min=0.0, max=1.0)
+#             predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0,
+#                                             min=0.0, max=1.0)
 
-            inpainted = (1-mask)*image+mask*predicted_image
-            inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]*255
-            Image.fromarray(inpainted.astype(np.uint8)).save(outpath)
+#             inpainted = (1-mask)*image+mask*predicted_image
+#             inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]*255
+#             Image.fromarray(inpainted.astype(np.uint8)).save(outpath)
 # ----------------------------------------------------
