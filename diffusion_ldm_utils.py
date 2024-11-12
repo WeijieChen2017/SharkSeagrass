@@ -69,10 +69,10 @@ def make_batch_PET_CT_CT(path):
     CT0_img = torch.from_numpy(CT0_img)
     CT1_img = torch.from_numpy(CT1_img)
     # add new axis to make them in shape 1,3,256,256
-    PET_img = PET_img.unsqueeze(0)
-    PET_mask = PET_mask.unsqueeze(0).unsqueeze(0)
-    CT0_img = CT0_img.unsqueeze(0)
-    CT1_img = CT1_img.unsqueeze(0)
+    PET_img = PET_img.unsqueeze(0).float()
+    PET_mask = PET_mask.unsqueeze(0).unsqueeze(0).float()
+    CT0_img = CT0_img.unsqueeze(0).float()
+    CT1_img = CT1_img.unsqueeze(0).float()
 
     return PET_img, PET_mask, CT0_img, CT1_img
 
