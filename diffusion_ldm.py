@@ -81,7 +81,8 @@ with torch.no_grad():
                                             conditioning=c,
                                             batch_size=c.shape[0],
                                             shape=shape,
-                                            verbose=False)
+                                            verbose=False,
+                                            x_T=CT1_img)
         x_samples_ddim = model.decode_first_stage(samples_ddim)
 
         
