@@ -81,13 +81,19 @@ os.makedirs(ckptdir, exist_ok=True)
 
 # Load configuration
 # config = OmegaConf.load("path/to/your_config.yaml")
-train_config = config["model"]["params"]
-base_learning_rate = train_config.base_learning_rate
-linear_start = train_config.params.linear_start
-linear_end = train_config.params.linear_end
-timesteps = train_config.params.timesteps
+# train_config = config["model"]["params"]
+# base_learning_rate = train_config.base_learning_rate
+# linear_start = train_config.params.linear_start
+# linear_end = train_config.params.linear_end
+# timesteps = train_config.params.timesteps
 # image_size = train_config.params.image_size
 # channels = train_config.params.channels
+
+base_learning_rate = 1.0e-06
+linear_start = 0.0015
+linear_end = 0.0205
+timesteps = 1000
+
 
 optimizer = optim.AdamW(model.parameters(), lr=base_learning_rate)
 
