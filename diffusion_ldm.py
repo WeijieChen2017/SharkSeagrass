@@ -71,7 +71,8 @@ with torch.no_grad():
     with model.ema_scope():
         outpath = os.path.dirname(opt.test_path)
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
-        c = model.cond_stage_model.encode(CT0_img) # channel = 3
+        # c = model.cond_stage_model.encode(CT0_img) # channel = 3
+        c = model.cond_stage_model.encode(PET_img) # channel = 3
         cc = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:]) # channel = 1
         x_T = model.cond_stage_model.encode(CT1_img) # channel = 3
         # cc = PET_mask
