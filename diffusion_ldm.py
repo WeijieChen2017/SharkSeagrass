@@ -80,7 +80,7 @@ with torch.no_grad():
         ct0_64 = model.cond_stage_model.encode(CT0_img)
         pet_64 = model.cond_stage_model.encode(PET_img)
         ct1_64 = model.cond_stage_model.encode(CT1_img)
-        mask_64 = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:])
+        mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
         
         savename_list = [
             [opt.test_path.replace(".npy", "_ct0_c.npy"), ct0_64, None],
