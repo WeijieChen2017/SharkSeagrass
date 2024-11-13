@@ -72,32 +72,47 @@ with torch.no_grad():
         outpath = os.path.dirname(opt.test_path)
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
         # c = model.cond_stage_model.encode(CT0_img) # channel = 3
-        c = model.cond_stage_model.encode(PET_img) # channel = 3
-        cc = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:]) # channel = 1
+        # c = model.cond_stage_model.encode(PET_img) # channel = 3
+        # cc = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:]) # channel = 1
         # x_T = model.cond_stage_model.encode(CT1_img) # channel = 3
         # cc = PET_mask
-        c = torch.cat((c, cc), dim=1) # channel = 4
 
-        shape = (c.shape[1]-1,)+c.shape[2:]
-        samples_ddim, _ = sampler.sample(S=opt.steps,
-                                            conditioning=c,
-                                            batch_size=c.shape[0],
-                                            shape=shape,
-                                            verbose=False,)
-                                            # x_T=x_T)
-        x_samples_ddim = model.decode_first_stage(samples_ddim)
-
+        ct0_64 = model.cond_stage_model.encode(CT0_img)
+        pet_64 = model.cond_stage_model.encode(PET_img)
+        ct1_64 = model.cond_stage_model.encode(CT1_img)
+        mask_64 = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:])
         
+        savename_list = [
+            [opt.test_path.replace(".npy", "_ct0_c.npy"), ct0_64, None],
+            [opt.test_path.replace(".npy", "_pet_c.npy"), pet_64, None],
+            [opt.test_path.replace(".npy", "_ct0_c_ct1_xT.npy"), ct0_64, ct1_64],
+            [opt.test_path.replace(".npy", "_pet_c_ct1_xT.npy"), pet_64, ct1_64],
+        ]
 
-        image = torch.clamp((CT0_img+1.0)/2.0, min=0.0, max=1.0)
-        mask = torch.clamp((PET_mask+1.0)/2.0, min=0.0, max=1.0)
-        predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0, min=0.0, max=1.0)
+        cc = mask_64
 
-        inpainted = (1-mask)*image+mask*predicted_image
-        inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
-        inpainted_savename = opt.test_path.replace(".npy", "_im.npy")
-        np.save(inpainted_savename, inpainted)
-        print("The output file is saved to", inpainted_savename)
+        for config in savename_list:
+            savename = config[0]
+            c = config[1]
+            x_T = config[2]
+            c = torch.cat((c, cc), dim=1) # channel = 4
+            shape = (c.shape[1]-1,)+c.shape[2:]
+            samples_ddim, _ = sampler.sample(
+                S=opt.steps,
+                conditioning=c,
+                batch_size=c.shape[0],
+                shape=shape,
+                verbose=False,
+                x_T=x_T
+            )
+            x_samples_ddim = model.decode_first_stage(samples_ddim)
+            image = torch.clamp((CT0_img+1.0)/2.0, min=0.0, max=1.0)
+            mask = torch.clamp((PET_mask+1.0)/2.0, min=0.0, max=1.0)
+            predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0, min=0.0, max=1.0)
+            inpainted = (1-mask)*image+mask*predicted_image
+            inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
+            np.save(savename, inpainted)
+            print("The output file is saved to", savename)
 
 
 
