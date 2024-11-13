@@ -72,9 +72,8 @@ with torch.no_grad():
         outpath = os.path.dirname(opt.test_path)
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
         c = model.cond_stage_model.encode(CT0_img) # channel = 3
-        # cc = torch.nn.functional.interpolate(batch["mask"],
-        #                                         size=c.shape[-2:]) # channel = 1
-        cc = PET_mask
+        cc = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:]) # channel = 1
+        # cc = PET_mask
         c = torch.cat((c, cc), dim=1) # channel = 4
 
         shape = (c.shape[1]-1,)+c.shape[2:]
