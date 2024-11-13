@@ -73,6 +73,7 @@ with torch.no_grad():
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
         c = model.cond_stage_model.encode(CT0_img) # channel = 3
         cc = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:]) # channel = 1
+        x_T = model.cond_stage_model.encode(CT1_img) # channel = 3
         # cc = PET_mask
         c = torch.cat((c, cc), dim=1) # channel = 4
 
@@ -82,7 +83,7 @@ with torch.no_grad():
                                             batch_size=c.shape[0],
                                             shape=shape,
                                             verbose=False,
-                                            x_T=CT1_img)
+                                            x_T=x_T)
         x_samples_ddim = model.decode_first_stage(samples_ddim)
 
         
