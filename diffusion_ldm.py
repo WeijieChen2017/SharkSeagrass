@@ -80,14 +80,14 @@ ckptdir = os.path.join(logdir, "checkpoints")
 os.makedirs(ckptdir, exist_ok=True)
 
 # Load configuration
-config = OmegaConf.load("path/to/your_config.yaml")
-model_config = config.model
-base_learning_rate = model_config.base_learning_rate
-linear_start = model_config.params.linear_start
-linear_end = model_config.params.linear_end
-timesteps = model_config.params.timesteps
-image_size = model_config.params.image_size
-channels = model_config.params.channels
+# config = OmegaConf.load("path/to/your_config.yaml")
+train_config = config["model"]["params"]
+base_learning_rate = train_config.base_learning_rate
+linear_start = train_config.params.linear_start
+linear_end = train_config.params.linear_end
+timesteps = train_config.params.timesteps
+# image_size = train_config.params.image_size
+# channels = train_config.params.channels
 
 optimizer = optim.AdamW(model.parameters(), lr=base_learning_rate)
 
