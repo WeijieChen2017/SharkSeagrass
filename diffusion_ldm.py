@@ -59,6 +59,8 @@ print(f"The current device is {device}")
 model = model.to(device)
 sampler = DDIMSampler(model)
 
+model.freeze_vq_model()
+
 PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
 # print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
 # torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
@@ -66,6 +68,72 @@ PET_img = PET_img.to(device)
 PET_mask = PET_mask.to(device)
 CT0_img = CT0_img.to(device)
 CT1_img = CT1_img.to(device)
+
+
+import datetime
+import torch.optim as optim
+
+# Set up directories
+now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+logdir = f"./logs/{now}"
+ckptdir = os.path.join(logdir, "checkpoints")
+os.makedirs(ckptdir, exist_ok=True)
+
+# Load configuration
+config = OmegaConf.load("path/to/your_config.yaml")
+model_config = config.model
+base_learning_rate = model_config.base_learning_rate
+linear_start = model_config.params.linear_start
+linear_end = model_config.params.linear_end
+timesteps = model_config.params.timesteps
+image_size = model_config.params.image_size
+channels = model_config.params.channels
+
+optimizer = optim.AdamW(model.parameters(), lr=base_learning_rate)
+
+# Learning rate adjustment
+def adjust_learning_rate(optimizer, epoch, base_lr):
+    # Example: Linear decay from linear_start to linear_end over epochs
+    lr = base_lr * (1 - epoch / timesteps)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
+# Training and validation loop
+best_val_loss = float("inf")
+
+
+ct0_64 = model.cond_stage_model.encode(CT0_img)
+pet_64 = model.cond_stage_model.encode(PET_img)
+ct1_64 = model.cond_stage_model.encode(CT1_img)
+mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
+cc = mask_64
+
+c = pet_64
+x_T = ct1_64
+c = torch.cat((c, cc), dim=1) # channel = 4
+shape = (c.shape[1]-1,)+c.shape[2:]
+
+for idz in range(100):
+    samples_ddim, _ = sampler.sample(
+        S=opt.steps,
+        conditioning=c,
+        batch_size=c.shape[0],
+        shape=shape,
+        verbose=False,
+        x_T=x_T
+    )
+
+    # compute loss between samples_ddim to ct0_64
+    loss = torch.nn.functional.mse_loss(samples_ddim, ct0_64)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    print(f"Epoch {idz}, Loss {loss.item()}")
+
+# ----------------------------------------------------
+
+# perform the test
 
 with torch.no_grad():
     with model.ema_scope():
@@ -83,10 +151,10 @@ with torch.no_grad():
         mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
         
         savename_list = [
-            [opt.test_path.replace(".npy", "_ct0_c.npy"), ct0_64, None],
-            [opt.test_path.replace(".npy", "_pet_c.npy"), pet_64, None],
-            [opt.test_path.replace(".npy", "_ct0_c_ct1_xT.npy"), ct0_64, ct1_64],
-            [opt.test_path.replace(".npy", "_pet_c_ct1_xT.npy"), pet_64, ct1_64],
+            [opt.test_path.replace(".npy", "_ct0_c_e100.npy"), ct0_64, None],
+            [opt.test_path.replace(".npy", "_pet_c_e100.npy"), pet_64, None],
+            [opt.test_path.replace(".npy", "_ct0_c_ct1_xT_e100.npy"), ct0_64, ct1_64],
+            [opt.test_path.replace(".npy", "_pet_c_ct1_xT_e100.npy"), pet_64, ct1_64],
         ]
 
         cc = mask_64

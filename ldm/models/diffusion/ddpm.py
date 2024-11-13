@@ -1392,6 +1392,18 @@ class LatentDiffusion(DDPM):
         x = 2. * (x - x.min()) / (x.max() - x.min()) - 1.
         return x
 
+    def freeze_vq_model(self):
+        # Freeze parameters in first_stage_model
+        for param in self.first_stage_model.parameters():
+            param.requires_grad = False
+
+        # Freeze parameters in cond_stage_model
+        for param in self.cond_stage_model.parameters():
+            param.requires_grad = False
+
+        print("Freezing first_stage_model model and cond_stage_model model")
+
+
 
 class DiffusionWrapper(pl.LightningModule):
     def __init__(self, diff_model_config, conditioning_key):
