@@ -96,6 +96,7 @@ timesteps = 1000
 
 
 optimizer = optim.AdamW(model.parameters(), lr=base_learning_rate)
+loss_fn = torch.nn.MSELoss()
 
 # Learning rate adjustment
 def adjust_learning_rate(optimizer, epoch, base_lr):
@@ -130,7 +131,7 @@ for idz in range(100):
     )
 
     # compute loss between samples_ddim to ct0_64
-    loss = torch.nn.functional.mse_loss(samples_ddim, ct0_64)
+    loss = loss_fn(samples_ddim, ct0_64)
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
