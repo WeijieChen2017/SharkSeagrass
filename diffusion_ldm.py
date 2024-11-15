@@ -113,7 +113,7 @@ ct0_64 = model.cond_stage_model.encode(CT0_img)
 pet_64 = model.cond_stage_model.encode(PET_img)
 ct1_64 = model.cond_stage_model.encode(CT1_img)
 mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
-cc = mask_64
+cc = mask_64.to(device)
 
 c = pet_64
 x_T = ct1_64
