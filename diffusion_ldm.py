@@ -123,7 +123,7 @@ shape = (c.shape[1]-1,)+c.shape[2:]
 
 for idz in range(100):
     optimizer.zero_grad()
-    loss, loss_dict = model(ct0_64, pet_64)
+    loss, loss_dict = model(ct0_64, c)
     for key in loss_dict.keys():
         print(key, loss_dict[key], end="")
     print()
