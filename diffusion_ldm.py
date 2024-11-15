@@ -107,7 +107,7 @@ def adjust_learning_rate(optimizer, epoch, base_lr):
 
 # Training and validation loop
 best_val_loss = float("inf")
-
+model.train()
 
 ct0_64 = model.cond_stage_model.encode(CT0_img)
 pet_64 = model.cond_stage_model.encode(PET_img)
@@ -120,19 +120,13 @@ x_T = ct1_64
 c = torch.cat((c, cc), dim=1) # channel = 4
 shape = (c.shape[1]-1,)+c.shape[2:]
 
-for idz in range(100):
-    samples_ddim, _ = sampler.sample(
-        S=opt.steps,
-        conditioning=c,
-        batch_size=c.shape[0],
-        shape=shape,
-        verbose=False,
-        x_T=x_T
-    )
 
-    # compute loss between samples_ddim to ct0_64
-    loss = loss_fn(samples_ddim, ct0_64)
+for idz in range(100):
     optimizer.zero_grad()
+    loss, loss_dict = model(ct0_64, pet_64)
+    for key in loss_dict.keys():
+        print(key, loss_dict[key], end="")
+    print()
     loss.backward()
     optimizer.step()
 

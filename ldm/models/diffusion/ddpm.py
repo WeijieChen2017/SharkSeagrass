@@ -1403,8 +1403,6 @@ class LatentDiffusion(DDPM):
 
         print("Freezing first_stage_model model and cond_stage_model model")
 
-
-
 class DiffusionWrapper(pl.LightningModule):
     def __init__(self, diff_model_config, conditioning_key):
         super().__init__()
