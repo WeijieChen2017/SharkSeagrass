@@ -125,6 +125,9 @@ x_T = ct1_64
 shape = (c.shape[1],)+c.shape[2:]
 
 
+# ct0_64 size 64
+# PET_img size 256
+
 for idz in range(100):
     optimizer.zero_grad()
     loss, loss_dict = model(ct0_64, PET_img)
