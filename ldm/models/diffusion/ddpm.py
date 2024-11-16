@@ -1030,9 +1030,9 @@ class LatentDiffusion(DDPM):
 
         # t = t.to(self.device)
         # output the self.logvar device and t device
-        # print(f"self.logvar.device: {self.logvar.device}, t.device: {t.device}")
+        print(f"self.logvar.device: {self.logvar.device}, t.device: {t.device}")
         # self.logvar.device: cpu, t.device: cuda:0
-        self.logvar.to(self.device)
+        # self.logvar.to(self.device)
 
         logvar_t = self.logvar[t].to(self.device)
         loss = loss_simple / torch.exp(logvar_t) + logvar_t
