@@ -77,6 +77,18 @@ def make_batch_PET_CT_CT(path):
     return PET_img, PET_mask, CT0_img, CT1_img
 
 
+def load_image(image, device):
+    image = np.array(Image.open(image).convert("RGB"))
+    image = image.astype(np.float32)/255.0
+    image = image[None].transpose(0,3,1,2)
+    image = torch.from_numpy(image)
+
+    batch = {"image": image}
+    for k in batch:
+        batch[k] = batch[k].to(device=device)
+        batch[k] = batch[k]*2.0-1.0
+    return batch
+
 
 def make_batch(image, mask, device):
     image = np.array(Image.open(image).convert("RGB"))

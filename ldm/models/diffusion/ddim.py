@@ -119,6 +119,7 @@ class DDIMSampler(object):
         device = self.model.betas.device
         b = shape[0]
         if x_T is None:
+            # size = (batch_size, C, H, W)
             img = torch.randn(shape, device=device)
         else:
             img = x_T
