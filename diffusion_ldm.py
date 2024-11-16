@@ -208,12 +208,11 @@ with torch.no_grad():
             # encode masked image and concat downsampled mask
             # c = model.cond_stage_model.encode(batch["image"]) # channel = 3
             c = model.first_stage_model.encode(batch["image"])
-            print(f"c shape is {c.shape}")
             # cc = torch.nn.functional.interpolate(batch["mask"],
             #                                         size=c.shape[-2:]) # channel = 1
             # c = torch.cat((c, cc), dim=1) # channel = 4
 
-            shape = (c.shape[1])+c.shape[2:]
+            shape = (c.shape[1],)+c.shape[2:]
             samples_ddim, _ = sampler.sample(
                 S=opt.steps,
                 conditioning=c,
