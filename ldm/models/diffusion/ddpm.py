@@ -1029,6 +1029,9 @@ class LatentDiffusion(DDPM):
         loss_dict.update({f'{prefix}/loss_simple': loss_simple.mean()})
 
         t = t.to(self.device)
+        # output the self.logvar device and t device
+        print(f"self.logvar.device: {self.logvar.device}, t.device: {t.device}")
+
         logvar_t = self.logvar[t].to(self.device)
         loss = loss_simple / torch.exp(logvar_t) + logvar_t
         # loss = loss_simple / torch.exp(self.logvar) + self.logvar
