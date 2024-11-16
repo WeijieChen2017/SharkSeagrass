@@ -213,7 +213,7 @@ with torch.no_grad():
             #                                         size=c.shape[-2:]) # channel = 1
             # c = torch.cat((c, cc), dim=1) # channel = 4
 
-            shape = (c.shape[1]-1,)+c.shape[2:]
+            shape = (c.shape[1])+c.shape[2:]
             samples_ddim, _ = sampler.sample(
                 S=opt.steps,
                 conditioning=c,
