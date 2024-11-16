@@ -203,7 +203,7 @@ with torch.no_grad():
         for image in tqdm(images):
             outpath = os.path.join(opt.outdir, os.path.split(image)[1])
             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
-            batch = make_batch(image, device=device)
+            batch = load_image(image, device=device)
 
             # encode masked image and concat downsampled mask
             c = model.cond_stage_model.encode(batch["image"]) # channel = 3
