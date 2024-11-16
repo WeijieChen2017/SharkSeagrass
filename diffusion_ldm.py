@@ -63,78 +63,78 @@ print(f"The current device is {device}")
 model = model.to(device)
 sampler = DDIMSampler(model)
 
-# # model.freeze_vq_model()
+model.freeze_vq_model()
 
-# # PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
-# # # print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
-# # # torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
-# # PET_img = PET_img.to(device)
-# # PET_mask = PET_mask.to(device)
-# # CT0_img = CT0_img.to(device)
-# # CT1_img = CT1_img.to(device)
-
-
-# # import datetime
-# # import torch.optim as optim
-
-# # # Set up directories
-# # now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-# # logdir = f"./logs/{now}"
-# # ckptdir = os.path.join(logdir, "checkpoints")
-# # os.makedirs(ckptdir, exist_ok=True)
-
-# # # Load configuration
-# # # config = OmegaConf.load("path/to/your_config.yaml")
-# # # train_config = config["model"]["params"]
-# # # base_learning_rate = train_config.base_learning_rate
-# # # linear_start = train_config.params.linear_start
-# # # linear_end = train_config.params.linear_end
-# # # timesteps = train_config.params.timesteps
-# # # image_size = train_config.params.image_size
-# # # channels = train_config.params.channels
-
-# # base_learning_rate = 1.0e-06
-# # linear_start = 0.0015
-# # linear_end = 0.0205
-# # timesteps = 1000
+PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
+# print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
+# torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
+PET_img = PET_img.to(device)
+# PET_mask = PET_mask.to(device)
+CT0_img = CT0_img.to(device)
+CT1_img = CT1_img.to(device)
 
 
-# # optimizer = optim.AdamW(model.parameters(), lr=base_learning_rate)
-# # loss_fn = torch.nn.MSELoss()
+import datetime
+import torch.optim as optim
 
-# # # Learning rate adjustment
-# # def adjust_learning_rate(optimizer, epoch, base_lr):
-# #     # Example: Linear decay from linear_start to linear_end over epochs
-# #     lr = base_lr * (1 - epoch / timesteps)
-# #     for param_group in optimizer.param_groups:
-# #         param_group['lr'] = lr
+# Set up directories
+now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+logdir = f"./logs/{now}"
+ckptdir = os.path.join(logdir, "checkpoints")
+os.makedirs(ckptdir, exist_ok=True)
 
-# # # Training and validation loop
-# # best_val_loss = float("inf")
-# # model.train()
+# Load configuration
+# config = OmegaConf.load("path/to/your_config.yaml")
+# train_config = config["model"]["params"]
+# base_learning_rate = train_config.base_learning_rate
+# linear_start = train_config.params.linear_start
+# linear_end = train_config.params.linear_end
+# timesteps = train_config.params.timesteps
+# image_size = train_config.params.image_size
+# channels = train_config.params.channels
 
-# # ct0_64 = model.cond_stage_model.encode(CT0_img)
-# # pet_64 = model.cond_stage_model.encode(PET_img)
-# # ct1_64 = model.cond_stage_model.encode(CT1_img)
-# # mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
-# # cc = mask_64.to(device)
-
-# # c = pet_64
-# # x_T = ct1_64
-# # c = torch.cat((c, cc), dim=1) # channel = 4
-# # shape = (c.shape[1]-1,)+c.shape[2:]
+base_learning_rate = 1.0e-06
+linear_start = 0.0015
+linear_end = 0.0205
+timesteps = 1000
 
 
-# # for idz in range(100):
-# #     optimizer.zero_grad()
-# #     loss, loss_dict = model(ct0_64, c)
-# #     for key in loss_dict.keys():
-# #         print(key, loss_dict[key], end="")
-# #     print()
-# #     loss.backward()
-# #     optimizer.step()
+optimizer = optim.AdamW(model.parameters(), lr=base_learning_rate)
+# loss_fn = torch.nn.MSELoss()
 
-# #     print(f"Epoch {idz}, Loss {loss.item()}")
+# Learning rate adjustment
+def adjust_learning_rate(optimizer, epoch, base_lr):
+    # Example: Linear decay from linear_start to linear_end over epochs
+    lr = base_lr * (1 - epoch / timesteps)
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
+# Training and validation loop
+best_val_loss = float("inf")
+model.train()
+
+ct0_64 = model.cond_stage_model.encode(CT0_img)
+pet_64 = model.cond_stage_model.encode(PET_img)
+ct1_64 = model.cond_stage_model.encode(CT1_img)
+# mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
+# cc = mask_64.to(device)
+
+c = pet_64
+x_T = ct1_64
+# c = torch.cat((c, cc), dim=1) # channel = 4
+shape = (c.shape[1],)+c.shape[2:]
+
+
+for idz in range(100):
+    optimizer.zero_grad()
+    loss, loss_dict = model(ct0_64, c)
+    for key in loss_dict.keys():
+        print(key, loss_dict[key], end="")
+    print()
+    loss.backward()
+    optimizer.step()
+
+    print(f"Epoch {idz}, Loss {loss.item()}")
 
 # # ----------------------------------------------------
 
