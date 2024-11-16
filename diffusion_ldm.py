@@ -113,9 +113,9 @@ def adjust_learning_rate(optimizer, epoch, base_lr):
 best_val_loss = float("inf")
 model.train()
 
-ct0_64 = model.cond_stage_model.encode(CT0_img)
-pet_64 = model.cond_stage_model.encode(PET_img)
-ct1_64 = model.cond_stage_model.encode(CT1_img)
+ct0_64 = model.first_stage_model.encode(CT0_img)
+pet_64 = model.first_stage_model.encode(PET_img)
+ct1_64 = model.first_stage_model.encode(CT1_img)
 # mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
 # cc = mask_64.to(device)
 
@@ -127,7 +127,7 @@ shape = (c.shape[1],)+c.shape[2:]
 
 for idz in range(100):
     optimizer.zero_grad()
-    loss, loss_dict = model(ct0_64, c)
+    loss, loss_dict = model(ct0_64, pet_64)
     for key in loss_dict.keys():
         print(key, loss_dict[key], end="")
     print()
