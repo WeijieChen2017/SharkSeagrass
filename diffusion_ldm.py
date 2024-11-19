@@ -16,21 +16,28 @@ from PIL import Image
 from tqdm import tqdm
 import numpy as np
 import torch
+import json
 
 # from diffusion_ldm_utils_diffusion_model import UNetModel
 # from diffusion_ldm_utils_vq_model import VQModel
 from main import instantiate_from_config
 from ldm.models.diffusion.ddim import DDIMSampler
 
-from diffusion_ldm_utils import load_diffusion_vq_model_from, make_batch, make_batch_PET_CT_CT, load_image
+from diffusion_ldm_utils import load_diffusion_vq_model_from, prepare_dataset
+from diffusion_ldm_utils import make_batch, make_batch_PET_CT_CT, load_image
+
+from diffusion_ldm_config import global_config, set_param, get_param
 
 # pip install omegaconf
 # pip install pip install pillow
 # pip install torchvision
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--indir", type=str, default="./semantic_synthesis256")
-parser.add_argument("--outdir", type=str, default="./semantic_synthesis256_output")
+parser.add_argument("--root", type=str, default="results/diffusion_ldm_vanilla")
+parser.add_argument("--seed", type=int, default=729)
+parser.add_argument("--data_div", type=str, default="James_data_v3/cv_list.json")
+# parser.add_argument("--indir", type=str, default="./semantic_synthesis256")
+# parser.add_argument("--outdir", type=str, default="./semantic_synthesis256_output")
 parser.add_argument("--steps", type=int, default=50)
 parser.add_argument("--ckpt_path", type=str, default="semantic_synthesis256.ckpt")
 parser.add_argument("--config_path", type=str, default="diffusion_ldm_config_semantic_synthesis256.yaml")
@@ -39,21 +46,30 @@ parser.add_argument("--test_path", type=str, default="James_data_v3/diffusion_sl
 # load experiment config
 opt = parser.parse_args()
 print(opt)
+root_dir = opt.root
+os.makedirs(root_dir, exist_ok=True)
 
-# load input
-# masks = sorted(glob.glob(os.path.join(opt.indir, "*_mask.png")))
-# images = [x.replace("_mask.png", ".png") for x in masks]
-# print(f"Found {len(masks)} inputs.")
+# set random seed
+torch.manual_seed(opt.seed)
+np.random.seed(opt.seed)
+torch.manual_seed(opt.seed)
+torch.cuda.manual_seed(opt.seed)
+torch.cuda.manual_seed_all(opt.seed)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 
-# load image
-images = sorted(glob.glob(os.path.join(opt.indir, "*.jpg")))
-print(f"Found {len(images)} inputs.")
+set_param("cv", 0)
+
+# load data data division
+data_div_json = opt.data_div
+with open(data_div_json, "r") as f:
+    data_div = json.load(f)
+
+train_loader, val_loader, test_loader = prepare_dataset(data_div, global_config)
+
 
 # load pretrained model config
 config = OmegaConf.load(opt.config_path)
-
-# diffsuion_model, vq_model = load_diffusion_vq_model_from(opt.ckpt_path, config)
-# print("Create a diffusion model and a vq model from the pretrained weights {}".format(opt.ckpt_path))
 
 model = instantiate_from_config(config.model)
 model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"], strict=False)
@@ -65,13 +81,16 @@ sampler = DDIMSampler(model)
 
 model.freeze_vq_model()
 
-PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
-# print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
-# torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
-PET_img = PET_img.to(device)
-# PET_mask = PET_mask.to(device)
-CT0_img = CT0_img.to(device)
-CT1_img = CT1_img.to(device)
+
+
+
+# PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
+# # print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
+# # torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
+# PET_img = PET_img.to(device)
+# # PET_mask = PET_mask.to(device)
+# CT0_img = CT0_img.to(device)
+# CT1_img = CT1_img.to(device)
 
 
 import datetime
@@ -113,6 +132,19 @@ def adjust_learning_rate(optimizer, epoch, base_lr):
 best_val_loss = float("inf")
 model.train()
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 ct0_64 = model.first_stage_model.encode(CT0_img)
 pet_64 = model.first_stage_model.encode(PET_img)
 ct1_64 = model.first_stage_model.encode(CT1_img)
@@ -127,13 +159,18 @@ shape = (c.shape[1],)+c.shape[2:]
 
 # ct0_64 size 64
 # PET_img size 256
+# c will go through cond_stage_model
 
 for idz in range(100):
     optimizer.zero_grad()
-    loss, loss_dict = model(ct0_64, PET_img)
-    for key in loss_dict.keys():
-        print(key, loss_dict[key], end="")
-    print()
+    loss, loss_dict = model(
+        x=ct0_64, 
+        c=PET_img,
+        xT=None,
+    )
+    # for key in loss_dict.keys():
+    #     print(key, loss_dict[key], end="")
+    # print()
     loss.backward()
     optimizer.step()
 

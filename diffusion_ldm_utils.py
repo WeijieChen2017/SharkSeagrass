@@ -8,7 +8,194 @@ import torch
 from diffusion_ldm_utils_diffusion_model import UNetModel
 from diffusion_ldm_utils_vq_model import VQModel
 
+from monai.transforms import (
+    Compose, 
+    LoadImaged, 
+    EnsureChannelFirstd,
+)
 
+from monai.data import CacheDataset, DataLoader
+from diffusion_ldm_config import global_config, set_param, get_param
+
+def prepare_dataset(data_div, global_config):
+    
+    cv = get_param("cv")
+    print(cv)
+    exit()
+
+    train_list = data_div[f"cv_{cv}"]["train"]
+    val_list = data_div[f"cv_{cv}"]["val"]
+    test_list = data_div[f"cv_{cv}"]["test"]
+
+    str_train_list = ", ".join(train_list)
+    str_val_list = ", ".join(val_list)
+    str_test_list = ", ".join(test_list)
+
+    global_config["logger"].log(0, "data_split_train", str_train_list)
+    global_config["logger"].log(0, "data_split_val", str_val_list)
+    global_config["logger"].log(0, "data_split_test", str_test_list)
+
+    # construct the data path list
+    train_path_list = []
+    val_path_list = []
+    test_path_list = []
+
+    for hashname in train_list:
+        train_path_list.append({
+            "TOFNAC": f"TC256_v2/{hashname}_TOFNAC_256.nii.gz",
+            "CTAC": f"TC256_v2/{hashname}_CTAC_256.nii.gz",
+        })
+
+    for hashname in val_list:
+        val_path_list.append({
+            "TOFNAC": f"TC256_v2/{hashname}_TOFNAC_256.nii.gz",
+            "CTAC": f"TC256_v2/{hashname}_CTAC_256.nii.gz",
+        })
+
+    for hashname in test_list:
+        test_path_list.append({
+            "TOFNAC": f"TC256_v2/{hashname}_TOFNAC_256.nii.gz",
+            "CTAC": f"TC256_v2/{hashname}_CTAC_256.nii.gz",
+        })
+
+    # save the data division file
+    root_folder = global_config["root_folder"]
+    data_division_file = os.path.join(root_folder, "data_division.json")
+    data_division_dict = {
+        "train": train_path_list,
+        "val": val_path_list,
+        "test": test_path_list,
+    }
+    for key in data_division_dict.keys():
+        print(key)
+        for key2 in data_division_dict[key]:
+            print(key2)
+
+    with open(data_division_file, "w") as f:
+        json.dump(data_division_dict, f, indent=4)
+
+    input_modality = global_config["model_step1_params"]["input_modality"]
+    # input_modality_dict = {
+    #     "x": input_modality[0],
+    #     "y": input_modality[1],
+    # }
+    # img_size = global_config["model_step1_params"]["img_size"]
+    # in_channel = global_config["model_step1_params"]["ddconfig"]["in_channels"]
+    # out_channel = global_config["model_step1_params"]["ddconfig"]["out_ch"]
+
+    # set the data transform
+    train_transforms = Compose(
+        [
+            LoadImaged(keys=input_modality, image_only=True),
+            EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
+            # NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["x"], 
+            #     roi_size=(img_size, img_size, in_channel), 
+            #     random_size=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["y"],
+            #     roi_size=(img_size, img_size, out_channel),
+            #     random_size=False),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["x"],
+            #     channel_dim=-1),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["y"],
+            #     channel_dim="none" if out_channel == 1 else -1),
+
+        ]
+    )
+
+    val_transforms = Compose(
+        [
+            LoadImaged(keys=input_modality, image_only=True),
+            EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
+            # NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["x"], 
+            #     roi_size=(img_size, img_size, in_channel), 
+            #     random_size=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["y"],
+            #     roi_size=(img_size, img_size, out_channel),
+            #     random_size=False),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["x"],
+            #     channel_dim=-1),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["y"],
+            #     channel_dim="none" if out_channel == 1 else -1),
+        ]
+    )
+
+    test_transforms = Compose(
+        [
+            LoadImaged(keys=input_modality, image_only=True),
+            EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
+            # NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["x"], 
+            #     roi_size=(img_size, img_size, in_channel), 
+            #     random_size=False),
+            # RandSpatialCropd(
+            #     keys=input_modality_dict["y"],
+            #     roi_size=(img_size, img_size, out_channel),
+            #     random_size=False),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["x"],
+            #     channel_dim=-1),
+            # EnsureChannelFirstd(
+            #     keys=input_modality_dict["y"],
+            #     channel_dim="none" if out_channel == 1 else -1),
+        ]
+    )
+
+    
+
+    train_ds = CacheDataset(
+        data=train_path_list,
+        transform=train_transforms,
+        # cache_num=num_train_files,
+        cache_rate=global_config["data_loader_params"]["train"]["cache_rate"],
+        num_workers=global_config["data_loader_params"]["train"]["num_workers_cache"],
+    )
+
+    val_ds = CacheDataset(
+        data=val_path_list,
+        transform=val_transforms, 
+        # cache_num=num_val_files,
+        cache_rate=global_config["data_loader_params"]["val"]["cache_rate"],
+        num_workers=global_config["data_loader_params"]["val"]["num_workers_cache"],
+    )
+
+    test_ds = CacheDataset(
+        data=test_path_list,
+        transform=test_transforms,
+        # cache_num=num_test_files,
+        cache_rate=global_config["data_loader_params"]["test"]["cache_rate"],
+        num_workers=global_config["data_loader_params"]["test"]["num_workers_cache"],
+    )
+
+    train_loader = DataLoader(train_ds, 
+                            batch_size=global_config["data_loader_params"]["train"]["batch_size"],
+                            shuffle=global_config["data_loader_params"]["train"]["shuffle"],
+                            num_workers=global_config["data_loader_params"]["train"]["num_workers_loader"],
+
+    )
+    val_loader = DataLoader(val_ds, 
+                            batch_size=global_config["data_loader_params"]["val"]["batch_size"],
+                            shuffle=global_config["data_loader_params"]["val"]["shuffle"],
+                            num_workers=global_config["data_loader_params"]["val"]["num_workers_loader"],
+    )
+
+    test_loader = DataLoader(test_ds,
+                            batch_size=global_config["data_loader_params"]["test"]["batch_size"],
+                            shuffle=global_config["data_loader_params"]["test"]["shuffle"],
+                            num_workers=global_config["data_loader_params"]["test"]["num_workers_loader"],
+    )
+
+    return train_loader, val_loader, test_loader
 
 def load_diffusion_vq_model_from(ckpt_path, config):
     
