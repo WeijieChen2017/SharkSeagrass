@@ -161,7 +161,7 @@ for idx_epoch in range(epoch):
     for idx_case, batch in enumerate(train_loader):
         cl_1, cl_2, cl_3 = train_or_eval_or_test_the_batch(
             batch=batch,
-            batch_size=get_param("train_param")["batch_size"],
+            batch_size=get_param("train_param")["train_stage"]["batch_size"],
             stage="train",
             model=model,
             optimizer=optimizer,
@@ -189,7 +189,7 @@ for idx_epoch in range(epoch):
     for idx_case, batch in enumerate(val_loader):
         cl_1, cl_2, cl_3 = train_or_eval_or_test_the_batch(
             batch=batch,
-            batch_size=get_param("train_param")["batch_size"],
+            batch_size=get_param("train_param")["val_stage"]["batch_size"],
             stage="val",
             model=model,
             device=device,
