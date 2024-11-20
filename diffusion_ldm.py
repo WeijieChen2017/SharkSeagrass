@@ -158,6 +158,7 @@ for idx_epoch in range(epoch):
 
     # ===============training stage===============
 
+    model.train()
     loss_1st = 0.0
     loss_2nd = 0.0
     loss_3rd = 0.0
@@ -185,7 +186,7 @@ for idx_epoch in range(epoch):
     printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.6f}, Loss 2nd {loss_2nd:.6f}, Loss 3rd {loss_3rd:.6f}, Avg Loss {avg_loss:.6f}")
 
     # ===============validation stage===============
-
+    model.eval()
     loss_1st = 0.0
     loss_2nd = 0.0
     loss_3rd = 0.0

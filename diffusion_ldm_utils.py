@@ -31,7 +31,7 @@ def printlog(message):
         f.write("\n")
 
 
-def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, device):
+def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=None, device=None):
 
     pet = batch["PET"] # 1, z, 256, 256
     ct = batch["CT"] # 1, z, 256, 256
