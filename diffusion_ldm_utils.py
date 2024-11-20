@@ -16,15 +16,20 @@ from monai.transforms import (
     EnsureChannelFirstd,
 )
 
+import time
 from monai.data import CacheDataset, DataLoader
 from diffusion_ldm_config import global_config, set_param, get_param
 
 def printlog(message):
     log_txt_path = get_param("log_txt_path")
+    # attach the current time as YYYY-MM-DD HH:MM:SS 
+    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    message = f"{current_time} {message}"
     print(message)
     with open(log_txt_path, "a") as f:
         f.write(message)
         f.write("\n")
+
 
 def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, device):
 
