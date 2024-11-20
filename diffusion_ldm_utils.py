@@ -4,6 +4,7 @@ from PIL import Image
 from tqdm import tqdm
 import numpy as np
 import torch
+import json
 
 from diffusion_ldm_utils_diffusion_model import UNetModel
 from diffusion_ldm_utils_vq_model import VQModel
@@ -20,7 +21,7 @@ from diffusion_ldm_config import global_config, set_param, get_param
 def prepare_dataset(data_div):
     
     cv = get_param("cv")
-    print(cv)
+    root = get_param("root")
     
     # cv = 0, 1, 2, 3, 4
     cv_test = cv
@@ -39,7 +40,9 @@ def prepare_dataset(data_div):
     print(f"val_list:", val_list)
     print(f"test_list:", test_list)
 
-    exit()
+    # train_list: ['E4058', 'E4217', 'E4166', 'E4165', 'E4092', 'E4163', 'E4193', 'E4105', 'E4125', 'E4198', 'E4157', 'E4139', 'E4207', 'E4106', 'E4068', 'E4241', 'E4219', 'E4078', 'E4147', 'E4138', 'E4096', 'E4152', 'E4073', 'E4181', 'E4187', 'E4099', 'E4077', 'E4134', 'E4091', 'E4144', 'E4114', 'E4130', 'E4103', 'E4239', 'E4183', 'E4208', 'E4120', 'E4220', 'E4137', 'E4069', 'E4189', 'E4182']
+    # val_list: ['E4216', 'E4081', 'E4118', 'E4074', 'E4079', 'E4094', 'E4115', 'E4237', 'E4084', 'E4061', 'E4055', 'E4098', 'E4232']
+    # test_list: ['E4128', 'E4172', 'E4238', 'E4158', 'E4129', 'E4155', 'E4143', 'E4197', 'E4185', 'E4131', 'E4162', 'E4066', 'E4124']
 
     # construct the data path list
     train_path_list = []
@@ -48,25 +51,24 @@ def prepare_dataset(data_div):
 
     for hashname in train_list:
         train_path_list.append({
-            "TOFNAC": f"TC256_v2/{hashname}_TOFNAC_256.nii.gz",
-            "CTAC": f"TC256_v2/{hashname}_CTAC_256.nii.gz",
+            "PET": f"James_data_v3/TOFNAC_256_norm/TOFNAC_{hashname}_norm.nii.gz",
+            "CT": f"James_data_v3/CTACIVV_256_norm/CTACIVV_{hashname}_norm.nii.gz",
         })
 
     for hashname in val_list:
         val_path_list.append({
-            "TOFNAC": f"TC256_v2/{hashname}_TOFNAC_256.nii.gz",
-            "CTAC": f"TC256_v2/{hashname}_CTAC_256.nii.gz",
+            "PET": f"James_data_v3/TOFNAC_256_norm/TOFNAC_{hashname}_norm.nii.gz",
+            "CT": f"James_data_v3/CTACIVV_256_norm/CTACIVV_{hashname}_norm.nii.gz",
         })
 
     for hashname in test_list:
         test_path_list.append({
-            "TOFNAC": f"TC256_v2/{hashname}_TOFNAC_256.nii.gz",
-            "CTAC": f"TC256_v2/{hashname}_CTAC_256.nii.gz",
+            "PET": f"James_data_v3/TOFNAC_256_norm/TOFNAC_{hashname}_norm.nii.gz",
+            "CT": f"James_data_v3/CTACIVV_256_norm/CTACIVV_{hashname}_norm.nii.gz",
         })
 
     # save the data division file
-    root_folder = global_config["root_folder"]
-    data_division_file = os.path.join(root_folder, "data_division.json")
+    data_division_file = os.path.join(root, "data_division.json")
     data_division_dict = {
         "train": train_path_list,
         "val": val_path_list,
@@ -80,14 +82,7 @@ def prepare_dataset(data_div):
     with open(data_division_file, "w") as f:
         json.dump(data_division_dict, f, indent=4)
 
-    input_modality = global_config["model_step1_params"]["input_modality"]
-    # input_modality_dict = {
-    #     "x": input_modality[0],
-    #     "y": input_modality[1],
-    # }
-    # img_size = global_config["model_step1_params"]["img_size"]
-    # in_channel = global_config["model_step1_params"]["ddconfig"]["in_channels"]
-    # out_channel = global_config["model_step1_params"]["ddconfig"]["out_ch"]
+    input_modality = ["PET", "CT"]
 
     # set the data transform
     train_transforms = Compose(

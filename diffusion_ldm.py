@@ -40,7 +40,8 @@ parser.add_argument("--data_div", type=str, default="James_data_v3/cv_list.json"
 # parser.add_argument("--outdir", type=str, default="./semantic_synthesis256_output")
 parser.add_argument("--steps", type=int, default=50)
 parser.add_argument("--ckpt_path", type=str, default="semantic_synthesis256.ckpt")
-parser.add_argument("--config_path", type=str, default="diffusion_ldm_config_semantic_synthesis256.yaml")
+parser.add_argument("--ldm_config_path", type=str, default="diffusion_ldm_config_semantic_synthesis256.yaml")
+parser.add_argument("--experiment_config_path", type=str, default="diffusion_ldm_v1_config.yaml")
 parser.add_argument("--test_path", type=str, default="James_data_v3/diffusion_slices/pE4055_E4058_z100_n01.npy")
 
 # load experiment config
@@ -48,6 +49,10 @@ opt = parser.parse_args()
 print(opt)
 root_dir = opt.root
 os.makedirs(root_dir, exist_ok=True)
+experiment_config_path = opt.experiment_config_path
+# use yaml to load the config
+experiment_config = OmegaConf.load(experiment_config_path)
+print(experiment_config)
 
 # set random seed
 torch.manual_seed(opt.seed)
@@ -59,6 +64,8 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 set_param("cv", 0)
+set_param("root", root_dir)
+
 
 # load data data division
 data_div_json = opt.data_div
@@ -69,7 +76,7 @@ train_loader, val_loader, test_loader = prepare_dataset(data_div)
 
 
 # load pretrained model config
-config = OmegaConf.load(opt.config_path)
+config = OmegaConf.load(opt.ldm_config_path)
 
 model = instantiate_from_config(config.model)
 model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"], strict=False)

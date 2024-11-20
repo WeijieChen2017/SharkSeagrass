@@ -1,0 +1,18 @@
+data:
+  dataset:
+    train:
+      cache_rate: 1.0
+      num_workers: 4
+    eval:
+      cache_rate: 1.0
+      num_workers: 4
+    test:
+      cache_rate: 1.0
+      num_workers: 4
+  dataloader:
+    train:
+      num_workers: 4
+    eval:
+      num_workers: 4
+    test:
+      num_workers: 4
