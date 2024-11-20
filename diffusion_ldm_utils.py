@@ -92,6 +92,9 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
     for indices in indices_list_second:
         slice_x = pet[:, :, indices-1:indices+2, :]
         slice_y = ct[:, :, indices-1:indices+2, :]
+        # adjust the index order
+        slice_x = slice_x.permute(0, 2, 1, 3)
+        slice_y = slice_y.permute(0, 2, 1, 3)
         batch_size_count += 1
 
         batch_x[batch_size_count-1] = slice_x
@@ -126,6 +129,9 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
     for indices in indices_list_third:
         slice_x = pet[:, :, :, indices-1:indices+2]
         slice_y = ct[:, :, :, indices-1:indices+2]
+        # adjust the index order
+        slice_x = slice_x.permute(0, 3, 1, 2)
+        slice_y = slice_y.permute(0, 3, 1, 2)
         batch_size_count += 1
 
         batch_x[batch_size_count-1] = slice_x
