@@ -119,6 +119,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
             encoded_batch_y = model.first_stage_model.encode(batch_y)
+            print(batch_x.size(), batch_y.size())
             if stage == "train":
                 optimizer.zero_grad()
                 loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
