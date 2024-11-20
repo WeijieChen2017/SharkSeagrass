@@ -3,7 +3,7 @@ data:
     train:
       cache_rate: 1.0
       num_workers: 4
-    eval:
+    val:
       cache_rate: 1.0
       num_workers: 4
     test:
@@ -12,7 +12,7 @@ data:
   dataloader:
     train:
       num_workers: 4
-    eval:
+    val:
       num_workers: 4
     test:
       num_workers: 4
