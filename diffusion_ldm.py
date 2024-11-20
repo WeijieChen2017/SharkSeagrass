@@ -98,6 +98,8 @@ model.freeze_vq_model()
 
 embedding_scale_1 = len(config.model.params.unet_config.params.channel_mult) - 1
 embedding_scale_2 = len(config.model.params.first_stage_config.params.ddconfig.ch_mult) - 1
+embedding_scale_1 = 2 ** embedding_scale_1
+embedding_scale_2 = 2 ** embedding_scale_2
 es = embedding_scale_1 * embedding_scale_2
 print("The pixel scaling factor is ", es)
 set_param("es", es)
