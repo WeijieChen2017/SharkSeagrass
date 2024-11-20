@@ -53,6 +53,8 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
         pet = torch.nn.functional.pad(pet, (0, 0, 0, pad_size))
         ct = torch.nn.functional.pad(ct, (0, 0, 0, pad_size))
 
+    printlog(f"pet shape {pet.shape}, ct shape {ct.shape}")
+
     indices_list_first = [i for i in range(1, pet.shape[1]-1)]
     indices_list_second = [i for i in range(1, pet.shape[2]-1)]
     indices_list_third = [i for i in range(1, pet.shape[3]-1)]
