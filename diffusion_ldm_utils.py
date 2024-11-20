@@ -5,6 +5,7 @@ from tqdm import tqdm
 import numpy as np
 import torch
 import json
+import random
 
 from diffusion_ldm_utils_diffusion_model import UNetModel
 from diffusion_ldm_utils_vq_model import VQModel
@@ -17,6 +18,144 @@ from monai.transforms import (
 
 from monai.data import CacheDataset, DataLoader
 from diffusion_ldm_config import global_config, set_param, get_param
+
+def printlog(message):
+    log_txt_path = get_param("log_txt_path")
+    print(message)
+    with open(log_txt_path, "a") as f:
+        f.write(message)
+        f.write("\n")
+
+def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, device):
+
+    pet = batch["PET"] # 1, z, 256, 256
+    ct = batch["CT"] # 1, z, 256, 256
+    len_z = pet.shape[1]
+
+    # 1, z, 256, 256 tensor
+    case_loss_first = 0.0
+    case_loss_second = 0.0
+    case_loss_third = 0.0
+
+    # pad shape
+    if len_z % 4 != 0:
+        pad_size = 4 - len_z % 4
+        pet = torch.nn.functional.pad(pet, (0, 0, 0, pad_size))
+        ct = torch.nn.functional.pad(ct, (0, 0, 0, pad_size))
+
+    indices_list_first = [i for i in range(1, pet.shape[1]-1)]
+    indices_list_second = [i for i in range(1, pet.shape[2]-1)]
+    indices_list_third = [i for i in range(1, pet.shape[3]-1)]
+
+    random.shuffle(indices_list_first)
+    random.shuffle(indices_list_second)
+    random.shuffle(indices_list_third)
+
+    # enumreate first dimension
+    batch_size_count = 0
+    batch_x = torch.zeros((batch_size, 3, pet.shape[2], pet.shape[3]))
+    batch_y = torch.zeros((batch_size, 3, ct.shape[2], ct.shape[3]))
+    for indices in indices_list_first:
+        slice_x = pet[:, indices-1:indices+2, :, :]
+        slice_y = ct[:, indices-1:indices+2, :, :]
+        batch_size_count += 1
+
+        batch_x[batch_size_count-1] = slice_x
+        batch_y[batch_size_count-1] = slice_y
+
+        if batch_size_count < batch_size and indices != indices_list_first[-1]:
+            continue
+        else:
+            # we get a batch
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
+            encoded_batch_y = model.first_stage_model.encode(batch_y)
+            if stage == "train":
+                optimizer.zero_grad()
+                loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
+                loss.backward()
+                optimizer.step()
+                case_loss_first += loss.item()
+            elif stage == "eval" or stage == "test":
+                with torch.no_grad():
+                    loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
+                    case_loss_first += loss.item()
+            batch_size_count = 0
+        
+        case_loss_first = case_loss_first / (len(indices_list_first) // batch_size + 1)
+    
+    # enumreate second dimension
+    batch_size_count = 0
+    batch_x = torch.zeros((batch_size, 3, pet.shape[1], pet.shape[3]))
+    batch_y = torch.zeros((batch_size, 3, ct.shape[1], ct.shape[3]))
+
+    for indices in indices_list_second:
+        slice_x = pet[:, :, indices-1:indices+2, :]
+        slice_y = ct[:, :, indices-1:indices+2, :]
+        batch_size_count += 1
+
+        batch_x[batch_size_count-1] = slice_x
+        batch_y[batch_size_count-1] = slice_y
+
+        if batch_size_count < batch_size and indices != indices_list_second[-1]:
+            continue
+        else:
+            # we get a batch
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
+            encoded_batch_y = model.first_stage_model.encode(batch_y)
+            if stage == "train":
+                optimizer.zero_grad()
+                loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
+                loss.backward()
+                optimizer.step()
+                case_loss_second += loss.item()
+            elif stage == "eval" or stage == "test":
+                with torch.no_grad():
+                    loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
+                    case_loss_second += loss.item()
+            batch_size_count = 0
+        
+        case_loss_second = case_loss_second / (len(indices_list_second) // batch_size + 1)
+    
+    # enumreate third dimension
+    batch_size_count = 0
+    batch_x = torch.zeros((batch_size, 3, pet.shape[1], pet.shape[2]))
+    batch_y = torch.zeros((batch_size, 3, ct.shape[1], ct.shape[2]))
+
+    for indices in indices_list_third:
+        slice_x = pet[:, :, :, indices-1:indices+2]
+        slice_y = ct[:, :, :, indices-1:indices+2]
+        batch_size_count += 1
+
+        batch_x[batch_size_count-1] = slice_x
+        batch_y[batch_size_count-1] = slice_y
+
+        if batch_size_count < batch_size and indices != indices_list_third[-1]:
+            continue
+        else:
+            # we get a batch
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
+            encoded_batch_y = model.first_stage_model.encode(batch_y)
+            if stage == "train":
+                optimizer.zero_grad()
+                loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
+                loss.backward()
+                optimizer.step()
+                case_loss_third += loss.item()
+            elif stage == "eval" or stage == "test":
+                with torch.no_grad():
+                    loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
+                    case_loss_third += loss.item()
+            batch_size_count = 0
+        
+        case_loss_third = case_loss_third / (len(indices_list_third) // batch_size + 1)
+
+    return case_loss_first, case_loss_second, case_loss_third
+
+
+
 
 def prepare_dataset(data_div):
     
@@ -158,44 +297,44 @@ def prepare_dataset(data_div):
         data=train_path_list,
         transform=train_transforms,
         # cache_num=num_train_files,
-        cache_rate=get_param("data")["dataset"]["train"]["cache_rate"],
-        num_workers=get_param("data")["dataset"]["train"]["num_workers"],
+        cache_rate=get_param("data_param")["dataset"]["train"]["cache_rate"],
+        num_workers=get_param("data_param")["dataset"]["train"]["num_workers"],
     )
 
     val_ds = CacheDataset(
         data=val_path_list,
         transform=val_transforms, 
         # cache_num=num_val_files,
-        cache_rate=get_param("data")["dataset"]["val"]["cache_rate"],
-        num_workers=get_param("data")["dataset"]["val"]["num_workers"],
+        cache_rate=get_param("data_param")["dataset"]["val"]["cache_rate"],
+        num_workers=get_param("data_param")["dataset"]["val"]["num_workers"],
     )
 
     test_ds = CacheDataset(
         data=test_path_list,
         transform=test_transforms,
         # cache_num=num_test_files,
-        cache_rate=get_param("data")["dataset"]["test"]["cache_rate"],
-        num_workers=get_param("data")["dataset"]["test"]["num_workers"],
+        cache_rate=get_param("data_param")["dataset"]["test"]["cache_rate"],
+        num_workers=get_param("data_param")["dataset"]["test"]["num_workers"],
     )
 
     train_loader = DataLoader(
         train_ds, 
         batch_size=1,
         shuffle=True,
-        num_workers=get_param("data")["dataloader"]["train"]["num_workers"],
+        num_workers=get_param("data_param")["dataloader"]["train"]["num_workers"],
     )
     val_loader = DataLoader(
         val_ds, 
         batch_size=1,
         shuffle=False,
-        num_workers=get_param("data")["dataloader"]["val"]["num_workers"],
+        num_workers=get_param("data_param")["dataloader"]["val"]["num_workers"],
     )
 
     test_loader = DataLoader(
         test_ds,
         batch_size=1,
         shuffle=False,
-        num_workers=get_param("data")["dataloader"]["test"]["num_workers"],
+        num_workers=get_param("data_param")["dataloader"]["test"]["num_workers"],
     )
 
     return train_loader, val_loader, test_loader
