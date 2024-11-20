@@ -35,9 +35,9 @@ def prepare_dataset(data_div):
     set_param("val_list", val_list)
     set_param("test_list", test_list)
 
-    print(f"train_list: {len(train_list)}")
-    print(f"val_list: {len(val_list)}")
-    print(f"test_list: {len(test_list)}")
+    print(f"train_list:", train_list)
+    print(f"val_list:", val_list)
+    print(f"test_list:", test_list)
 
     exit()
 
