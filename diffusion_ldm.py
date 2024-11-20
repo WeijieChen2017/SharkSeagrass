@@ -75,6 +75,7 @@ set_param("seed", opt.seed)
 set_param("log_txt_path", os.path.join(root_dir, "log.txt"))
 
 
+
 # load data data division
 data_div_json = opt.data_div
 with open(data_div_json, "r") as f:
@@ -95,7 +96,11 @@ sampler = DDIMSampler(model)
 
 model.freeze_vq_model()
 
-
+embedding_scale_1 = len(config.model.params.unet_config.params.channel_mult) - 1
+embedding_scale_2 = len(config.model.params.first_stage_config.params.channel_mult) - 1
+es = embedding_scale_1 * embedding_scale_2
+print("The pixel scaling factor is ", es)
+set_param("es", es)
 
 
 # PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)

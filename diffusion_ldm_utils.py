@@ -37,7 +37,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
     ct = batch["CT"] # 1, z, 256, 256
     len_z = pet.shape[1]
 
-    es = get_param("train_param")["embedding_scale"]
+    es = get_param("es")
 
     pet = pet * 2 - 1
     ct = ct * 2 - 1
