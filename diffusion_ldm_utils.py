@@ -58,7 +58,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
         pet = torch.nn.functional.pad(pet, (0, 0, 0, 0, 0, pad_size, 0, 0), mode='constant', value=0)
         ct = torch.nn.functional.pad(ct, (0, 0, 0, 0, 0, pad_size, 0, 0), mode='constant', value=0)
 
-    printlog(f"pet shape {pet.shape}, ct shape {ct.shape}")
+    # printlog(f"pet shape {pet.shape}, ct shape {ct.shape}")
 
     indices_list_first = [i for i in range(1, pet.shape[1]-1)]
     indices_list_second = [i for i in range(1, pet.shape[2]-1)]
@@ -124,7 +124,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
             encoded_batch_y = model.first_stage_model.encode(batch_y)
-            print(batch_x.size(), batch_y.size())
+            # print(batch_x.size(), batch_y.size())
             if stage == "train":
                 optimizer.zero_grad()
                 loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
