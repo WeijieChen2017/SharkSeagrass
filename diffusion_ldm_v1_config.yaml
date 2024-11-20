@@ -17,7 +17,7 @@ data_param:
     test:
       num_workers: 4
 train_param:
-  embedding_scale: 4
+  embedding_scale: 8
   save_per_epoch: 5
   epoch: 100
   train_stage:
