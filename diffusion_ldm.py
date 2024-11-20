@@ -54,6 +54,10 @@ experiment_config_path = opt.experiment_config_path
 experiment_config = OmegaConf.load(experiment_config_path)
 print(experiment_config)
 
+# iteratively load the experiment_config using set_param
+for key in experiment_config.keys():
+    set_param(key, experiment_config[key])
+
 # set random seed
 torch.manual_seed(opt.seed)
 np.random.seed(opt.seed)
@@ -74,6 +78,13 @@ with open(data_div_json, "r") as f:
 
 train_loader, val_loader, test_loader = prepare_dataset(data_div)
 
+for batch in train_loader:
+    pet = batch["PET"]
+    ct = batch["CT"]
+    print(pet.shape, ct.shape)
+    print(pet.mean(), ct.mean())
+
+exit()
 
 # load pretrained model config
 config = OmegaConf.load(opt.ldm_config_path)

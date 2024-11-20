@@ -158,42 +158,44 @@ def prepare_dataset(data_div):
         data=train_path_list,
         transform=train_transforms,
         # cache_num=num_train_files,
-        cache_rate=global_config["data_loader_params"]["train"]["cache_rate"],
-        num_workers=global_config["data_loader_params"]["train"]["num_workers_cache"],
+        cache_rate=get_param("data")["dataset"]["train"]["cache_rate"],
+        num_workers=get_param("data")["dataset"]["train"]["num_workers"],
     )
 
     val_ds = CacheDataset(
         data=val_path_list,
         transform=val_transforms, 
         # cache_num=num_val_files,
-        cache_rate=global_config["data_loader_params"]["val"]["cache_rate"],
-        num_workers=global_config["data_loader_params"]["val"]["num_workers_cache"],
+        cache_rate=get_param("data")["dataset"]["val"]["cache_rate"],
+        num_workers=get_param("data")["dataset"]["val"]["num_workers"],
     )
 
     test_ds = CacheDataset(
         data=test_path_list,
         transform=test_transforms,
         # cache_num=num_test_files,
-        cache_rate=global_config["data_loader_params"]["test"]["cache_rate"],
-        num_workers=global_config["data_loader_params"]["test"]["num_workers_cache"],
+        cache_rate=get_param("data")["dataset"]["test"]["cache_rate"],
+        num_workers=get_param("data")["dataset"]["test"]["num_workers"],
     )
 
-    train_loader = DataLoader(train_ds, 
-                            batch_size=global_config["data_loader_params"]["train"]["batch_size"],
-                            shuffle=global_config["data_loader_params"]["train"]["shuffle"],
-                            num_workers=global_config["data_loader_params"]["train"]["num_workers_loader"],
-
+    train_loader = DataLoader(
+        train_ds, 
+        batch_size=1,
+        shuffle=True,
+        num_workers=get_param("data")["dataloader"]["train"]["num_workers"],
     )
-    val_loader = DataLoader(val_ds, 
-                            batch_size=global_config["data_loader_params"]["val"]["batch_size"],
-                            shuffle=global_config["data_loader_params"]["val"]["shuffle"],
-                            num_workers=global_config["data_loader_params"]["val"]["num_workers_loader"],
+    val_loader = DataLoader(
+        val_ds, 
+        batch_size=1,
+        shuffle=False,
+        num_workers=get_param("data")["dataloader"]["val"]["num_workers"],
     )
 
-    test_loader = DataLoader(test_ds,
-                            batch_size=global_config["data_loader_params"]["test"]["batch_size"],
-                            shuffle=global_config["data_loader_params"]["test"]["shuffle"],
-                            num_workers=global_config["data_loader_params"]["test"]["num_workers_loader"],
+    test_loader = DataLoader(
+        test_ds,
+        batch_size=1,
+        shuffle=False,
+        num_workers=get_param("data")["dataloader"]["test"]["num_workers"],
     )
 
     return train_loader, val_loader, test_loader
