@@ -50,8 +50,8 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
     # pad shape
     if len_z % 4 != 0:
         pad_size = 4 - len_z % 4
-        pet = torch.nn.functional.pad(pet, (0, 0, 0, pad_size))
-        ct = torch.nn.functional.pad(ct, (0, 0, 0, pad_size))
+        pet = torch.nn.functional.pad(pet, (0, 0, 0, 0, 0, pad_size, 0, 0), mode='constant', value=0)
+        ct = torch.nn.functional.pad(ct, (0, 0, 0, 0, 0, pad_size, 0, 0), mode='constant', value=0)
 
     printlog(f"pet shape {pet.shape}, ct shape {ct.shape}")
 
