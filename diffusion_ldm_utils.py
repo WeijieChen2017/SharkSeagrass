@@ -37,6 +37,11 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
     ct = batch["CT"] # 1, z, 256, 256
     len_z = pet.shape[1]
 
+    es = get_param("train_param")["embedding_scale"]
+
+    pet = pet * 2 - 1
+    ct = ct * 2 - 1
+
     # if pet size and ct size are not the same skip this batch
     if pet.shape != ct.shape:
         printlog(f"skip this batch, pet shape: {pet.shape}, ct shape: {ct.shape}")
@@ -48,8 +53,8 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
     case_loss_third = 0.0
 
     # pad shape
-    if len_z % 4 != 0:
-        pad_size = 4 - len_z % 4
+    if len_z % es != 0:
+        pad_size = es - len_z % es
         pet = torch.nn.functional.pad(pet, (0, 0, 0, 0, 0, pad_size, 0, 0), mode='constant', value=0)
         ct = torch.nn.functional.pad(ct, (0, 0, 0, 0, 0, pad_size, 0, 0), mode='constant', value=0)
 

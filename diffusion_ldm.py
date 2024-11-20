@@ -144,7 +144,6 @@ def adjust_learning_rate(optimizer, epoch, base_lr):
 
 # Training and validation loop
 best_val_loss = float("inf")
-es = get_param("train_param")["embedding_scale"]
 epoch = get_param("train_param")["epoch"]
 for idx_epoch in range(epoch):
 
