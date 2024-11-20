@@ -37,6 +37,11 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer, 
     ct = batch["CT"] # 1, z, 256, 256
     len_z = pet.shape[1]
 
+    # if pet size and ct size are not the same skip this batch
+    if pet.shape != ct.shape:
+        printlog(f"skip this batch, pet shape: {pet.shape}, ct shape: {ct.shape}")
+        return 1.0, 1.0, 1.0
+
     # 1, z, 256, 256 tensor
     case_loss_first = 0.0
     case_loss_second = 0.0
