@@ -17,23 +17,29 @@ from monai.transforms import (
 from monai.data import CacheDataset, DataLoader
 from diffusion_ldm_config import global_config, set_param, get_param
 
-def prepare_dataset(data_div, global_config):
+def prepare_dataset(data_div):
     
     cv = get_param("cv")
     print(cv)
+    
+    # cv = 0, 1, 2, 3, 4
+    cv_test = cv
+    cv_val = (cv+1)%5
+    cv_train = [(cv+2)%5, (cv+3)%5, (cv+4)%5]
+
+    train_list = data_div[f"cv{cv_train[0]}"] + data_div[f"cv{cv_train[1]}"] + data_div[f"cv{cv_train[2]}"]
+    val_list = data_div[f"cv{cv_val}"]
+    test_list = data_div[f"cv{cv_test}"]
+
+    set_param("train_list", train_list)
+    set_param("val_list", val_list)
+    set_param("test_list", test_list)
+
+    print(f"train_list: {len(train_list)}")
+    print(f"val_list: {len(val_list)}")
+    print(f"test_list: {len(test_list)}")
+
     exit()
-
-    train_list = data_div[f"cv_{cv}"]["train"]
-    val_list = data_div[f"cv_{cv}"]["val"]
-    test_list = data_div[f"cv_{cv}"]["test"]
-
-    str_train_list = ", ".join(train_list)
-    str_val_list = ", ".join(val_list)
-    str_test_list = ", ".join(test_list)
-
-    global_config["logger"].log(0, "data_split_train", str_train_list)
-    global_config["logger"].log(0, "data_split_val", str_val_list)
-    global_config["logger"].log(0, "data_split_test", str_test_list)
 
     # construct the data path list
     train_path_list = []

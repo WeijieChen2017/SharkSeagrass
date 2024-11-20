@@ -65,7 +65,7 @@ data_div_json = opt.data_div
 with open(data_div_json, "r") as f:
     data_div = json.load(f)
 
-train_loader, val_loader, test_loader = prepare_dataset(data_div, global_config)
+train_loader, val_loader, test_loader = prepare_dataset(data_div)
 
 
 # load pretrained model config
