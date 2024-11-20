@@ -145,8 +145,7 @@ def adjust_learning_rate(optimizer, epoch, base_lr):
 # Training and validation loop
 best_val_loss = float("inf")
 es = get_param("train_param")["embedding_scale"]
-epoch = get_param("train_param")["train_stage"]["batch_size"]
-
+epoch = get_param("train_param")["epoch"]
 for idx_epoch in range(epoch):
 
     printlog(f"Epoch [{idx_epoch}]/[{epoch}]")
@@ -170,14 +169,14 @@ for idx_epoch in range(epoch):
         loss_1st += cl_1
         loss_2nd += cl_2
         loss_3rd += cl_3
-        printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_train}], Loss 1st {cl_1:.4f}, Loss 2nd {cl_2:.4f}, Loss 3rd {cl_3:.4f}")
+        printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_train}], Loss 1st {cl_1:.6f}, Loss 2nd {cl_2:.6f}, Loss 3rd {cl_3:.6f}")
 
 
     loss_1st /= len(train_loader)
     loss_2nd /= len(train_loader)
     loss_3rd /= len(train_loader)
     avg_loss = (loss_1st + loss_2nd + loss_3rd) / 3
-    printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.4f}, Loss 2nd {loss_2nd:.4f}, Loss 3rd {loss_3rd:.4f}, Avg Loss {avg_loss:.4f}")
+    printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.6f}, Loss 2nd {loss_2nd:.6f}, Loss 3rd {loss_3rd:.6f}, Avg Loss {avg_loss:.6f}")
 
     # ===============validation stage===============
 
@@ -197,13 +196,13 @@ for idx_epoch in range(epoch):
         loss_1st += cl_1
         loss_2nd += cl_2
         loss_3rd += cl_3
-        printlog(f"<Val> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_val}], Loss 1st {cl_1:.4f}, Loss 2nd {cl_2:.4f}, Loss 3rd {cl_3:.4f}")
+        printlog(f"<Val> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_val}], Loss 1st {cl_1:.6f}, Loss 2nd {cl_2:.6f}, Loss 3rd {cl_3:.6f}")
 
     loss_1st /= len(val_loader)
     loss_2nd /= len(val_loader)
     loss_3rd /= len(val_loader)
     avg_loss = (loss_1st + loss_2nd + loss_3rd) / 3
-    printlog(f"<Val> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.4f}, Loss 2nd {loss_2nd:.4f}, Loss 3rd {loss_3rd:.4f}, Avg Loss {avg_loss:.4f}")
+    printlog(f"<Val> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.6f}, Loss 2nd {loss_2nd:.6f}, Loss 3rd {loss_3rd:.6f}, Avg Loss {avg_loss:.6f}")
     
     if avg_loss < best_val_loss:
         best_val_loss = avg_loss
