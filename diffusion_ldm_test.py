@@ -1,15 +1,3 @@
-# 1, load the configuration from diffusion_ldm_config.json
-# ----------------------------------------------------
-import yaml
-
-with open("diffusion_ldm_config.yaml", "r") as f:
-    config = yaml.safe_load(f)
-
-# print(config)
-# ----------------------------------------------------
-
-# 2, load the model from the configuration
-# ----------------------------------------------------
 import argparse, os, sys, glob
 from omegaconf import OmegaConf
 from PIL import Image
@@ -81,13 +69,16 @@ data_div_json = opt.data_div
 with open(data_div_json, "r") as f:
     data_div = json.load(f)
 
-train_loader, val_loader, test_loader = prepare_dataset(data_div)
+# train_loader, val_loader, test_loader = prepare_dataset(data_div)
+
+device = torch.device("cuda:1") if torch.cuda.is_available() else torch.device("cpu")
+print(f"The current device is {device}")
 
 # load pretrained model config
 config = OmegaConf.load(opt.ldm_config_path)
 
 model = instantiate_from_config(config.model)
-model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"], strict=False)
+model.load_state_dict(torch.load(opt.ckpt_path, map_location="cpu")["state_dict"], strict=False)
 
 # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # print(f"The current device is {device}")
