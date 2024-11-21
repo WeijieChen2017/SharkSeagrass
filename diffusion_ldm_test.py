@@ -41,7 +41,7 @@ parser.add_argument("--data_div", type=str, default="James_data_v3/cv_list.json"
 # parser.add_argument("--indir", type=str, default="./semantic_synthesis256")
 # parser.add_argument("--outdir", type=str, default="./semantic_synthesis256_output")
 parser.add_argument("--steps", type=int, default=50)
-parser.add_argument("--ckpt_path", type=str, default="semantic_synthesis256.ckpt")
+parser.add_argument("--ckpt_path", type=str, default="results/diffusion_ldm_vanilla/epoch_15.pth")
 parser.add_argument("--ldm_config_path", type=str, default="diffusion_ldm_config_semantic_synthesis256.yaml")
 parser.add_argument("--experiment_config_path", type=str, default="diffusion_ldm_v1_config.yaml")
 parser.add_argument("--test_path", type=str, default="James_data_v3/diffusion_slices/pE4055_E4058_z100_n01.npy")
@@ -89,149 +89,149 @@ config = OmegaConf.load(opt.ldm_config_path)
 model = instantiate_from_config(config.model)
 model.load_state_dict(torch.load(opt.ckpt_path)["state_dict"], strict=False)
 
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-print(f"The current device is {device}")
-model = model.to(device)
-sampler = DDIMSampler(model)
+# device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+# print(f"The current device is {device}")
+# model = model.to(device)
+# sampler = DDIMSampler(model)
 
-model.freeze_vq_model()
+# model.freeze_vq_model()
 
-embedding_scale_1 = len(config.model.params.unet_config.params.channel_mult) - 1
-embedding_scale_2 = len(config.model.params.first_stage_config.params.ddconfig.ch_mult) - 1
-embedding_scale_1 = 2 ** embedding_scale_1
-embedding_scale_2 = 2 ** embedding_scale_2
-es = embedding_scale_1 * embedding_scale_2
-print("The pixel scaling factor is ", es)
-set_param("es", es)
-
-
-# PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
-# # print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
-# # torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
-# PET_img = PET_img.to(device)
-# # PET_mask = PET_mask.to(device)
-# CT0_img = CT0_img.to(device)
-# CT1_img = CT1_img.to(device)
+# embedding_scale_1 = len(config.model.params.unet_config.params.channel_mult) - 1
+# embedding_scale_2 = len(config.model.params.first_stage_config.params.ddconfig.ch_mult) - 1
+# embedding_scale_1 = 2 ** embedding_scale_1
+# embedding_scale_2 = 2 ** embedding_scale_2
+# es = embedding_scale_1 * embedding_scale_2
+# print("The pixel scaling factor is ", es)
+# set_param("es", es)
 
 
-import datetime
-import torch.optim as optim
-
-# Set up directories
-now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-logdir = f"./logs/{now}"
-ckptdir = os.path.join(logdir, "checkpoints")
-os.makedirs(ckptdir, exist_ok=True)
-
-# Load configuration
-# config = OmegaConf.load("path/to/your_config.yaml")
-# train_config = config["model"]["params"]
-# base_learning_rate = train_config.base_learning_rate
-# linear_start = train_config.params.linear_start
-# linear_end = train_config.params.linear_end
-# timesteps = train_config.params.timesteps
-# image_size = train_config.params.image_size
-# channels = train_config.params.channels
-
-base_learning_rate = 1.0e-06
-linear_start = 0.0015
-linear_end = 0.0205
-timesteps = 1000
+# # PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
+# # # print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
+# # # torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
+# # PET_img = PET_img.to(device)
+# # # PET_mask = PET_mask.to(device)
+# # CT0_img = CT0_img.to(device)
+# # CT1_img = CT1_img.to(device)
 
 
-optimizer = optim.AdamW(model.parameters(), lr=base_learning_rate)
-# loss_fn = torch.nn.MSELoss()
+# import datetime
+# import torch.optim as optim
 
-# Learning rate adjustment
-def adjust_learning_rate(optimizer, epoch, base_lr):
-    # Example: Linear decay from linear_start to linear_end over epochs
-    lr = base_lr * (1 - epoch / timesteps)
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
+# # Set up directories
+# now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+# logdir = f"./logs/{now}"
+# ckptdir = os.path.join(logdir, "checkpoints")
+# os.makedirs(ckptdir, exist_ok=True)
 
-# Training and validation loop
-best_val_loss = float("inf")
-epoch = get_param("train_param")["epoch"]
-for idx_epoch in range(epoch):
+# # Load configuration
+# # config = OmegaConf.load("path/to/your_config.yaml")
+# # train_config = config["model"]["params"]
+# # base_learning_rate = train_config.base_learning_rate
+# # linear_start = train_config.params.linear_start
+# # linear_end = train_config.params.linear_end
+# # timesteps = train_config.params.timesteps
+# # image_size = train_config.params.image_size
+# # channels = train_config.params.channels
 
-    printlog(f"Epoch [{idx_epoch}]/[{epoch}]")
-
-    # ===============training stage===============
-
-    model.train()
-    loss_1st = 0.0
-    loss_2nd = 0.0
-    loss_3rd = 0.0
-    total_case_train = len(train_loader)
-
-    for idx_case, batch in enumerate(train_loader):
-        cl_1, cl_2, cl_3 = train_or_eval_or_test_the_batch(
-            batch=batch,
-            batch_size=get_param("train_param")["train_stage"]["batch_size"],
-            stage="train",
-            model=model,
-            optimizer=optimizer,
-            device=device,
-        )
-        loss_1st += cl_1
-        loss_2nd += cl_2
-        loss_3rd += cl_3
-        printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_train}], Loss 1st {cl_1:.6f}, Loss 2nd {cl_2:.6f}, Loss 3rd {cl_3:.6f}")
+# base_learning_rate = 1.0e-06
+# linear_start = 0.0015
+# linear_end = 0.0205
+# timesteps = 1000
 
 
-    loss_1st /= len(train_loader)
-    loss_2nd /= len(train_loader)
-    loss_3rd /= len(train_loader)
-    avg_loss = (loss_1st + loss_2nd + loss_3rd) / 3
-    printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.6f}, Loss 2nd {loss_2nd:.6f}, Loss 3rd {loss_3rd:.6f}, Avg Loss {avg_loss:.6f}")
+# optimizer = optim.AdamW(model.parameters(), lr=base_learning_rate)
+# # loss_fn = torch.nn.MSELoss()
 
-    # ===============validation stage===============
-    model.eval()
-    loss_1st = 0.0
-    loss_2nd = 0.0
-    loss_3rd = 0.0
-    total_case_val = len(val_loader)
+# # Learning rate adjustment
+# def adjust_learning_rate(optimizer, epoch, base_lr):
+#     # Example: Linear decay from linear_start to linear_end over epochs
+#     lr = base_lr * (1 - epoch / timesteps)
+#     for param_group in optimizer.param_groups:
+#         param_group['lr'] = lr
 
-    for idx_case, batch in enumerate(val_loader):
-        cl_1, cl_2, cl_3 = train_or_eval_or_test_the_batch(
-            batch=batch,
-            batch_size=get_param("train_param")["val_stage"]["batch_size"],
-            stage="val",
-            model=model,
-            device=device,
-        )
-        loss_1st += cl_1
-        loss_2nd += cl_2
-        loss_3rd += cl_3
-        printlog(f"<Val> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_val}], Loss 1st {cl_1:.6f}, Loss 2nd {cl_2:.6f}, Loss 3rd {cl_3:.6f}")
+# # Training and validation loop
+# best_val_loss = float("inf")
+# epoch = get_param("train_param")["epoch"]
+# for idx_epoch in range(epoch):
 
-    loss_1st /= len(val_loader)
-    loss_2nd /= len(val_loader)
-    loss_3rd /= len(val_loader)
-    avg_loss = (loss_1st + loss_2nd + loss_3rd) / 3
-    printlog(f"<Val> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.6f}, Loss 2nd {loss_2nd:.6f}, Loss 3rd {loss_3rd:.6f}, Avg Loss {avg_loss:.6f}")
+#     printlog(f"Epoch [{idx_epoch}]/[{epoch}]")
+
+#     # ===============training stage===============
+
+#     model.train()
+#     loss_1st = 0.0
+#     loss_2nd = 0.0
+#     loss_3rd = 0.0
+#     total_case_train = len(train_loader)
+
+#     for idx_case, batch in enumerate(train_loader):
+#         cl_1, cl_2, cl_3 = train_or_eval_or_test_the_batch(
+#             batch=batch,
+#             batch_size=get_param("train_param")["train_stage"]["batch_size"],
+#             stage="train",
+#             model=model,
+#             optimizer=optimizer,
+#             device=device,
+#         )
+#         loss_1st += cl_1
+#         loss_2nd += cl_2
+#         loss_3rd += cl_3
+#         printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_train}], Loss 1st {cl_1:.6f}, Loss 2nd {cl_2:.6f}, Loss 3rd {cl_3:.6f}")
+
+
+#     loss_1st /= len(train_loader)
+#     loss_2nd /= len(train_loader)
+#     loss_3rd /= len(train_loader)
+#     avg_loss = (loss_1st + loss_2nd + loss_3rd) / 3
+#     printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.6f}, Loss 2nd {loss_2nd:.6f}, Loss 3rd {loss_3rd:.6f}, Avg Loss {avg_loss:.6f}")
+
+#     # ===============validation stage===============
+#     model.eval()
+#     loss_1st = 0.0
+#     loss_2nd = 0.0
+#     loss_3rd = 0.0
+#     total_case_val = len(val_loader)
+
+#     for idx_case, batch in enumerate(val_loader):
+#         cl_1, cl_2, cl_3 = train_or_eval_or_test_the_batch(
+#             batch=batch,
+#             batch_size=get_param("train_param")["val_stage"]["batch_size"],
+#             stage="val",
+#             model=model,
+#             device=device,
+#         )
+#         loss_1st += cl_1
+#         loss_2nd += cl_2
+#         loss_3rd += cl_3
+#         printlog(f"<Val> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_val}], Loss 1st {cl_1:.6f}, Loss 2nd {cl_2:.6f}, Loss 3rd {cl_3:.6f}")
+
+#     loss_1st /= len(val_loader)
+#     loss_2nd /= len(val_loader)
+#     loss_3rd /= len(val_loader)
+#     avg_loss = (loss_1st + loss_2nd + loss_3rd) / 3
+#     printlog(f"<Val> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.6f}, Loss 2nd {loss_2nd:.6f}, Loss 3rd {loss_3rd:.6f}, Avg Loss {avg_loss:.6f}")
     
-    if avg_loss < best_val_loss:
-        best_val_loss = avg_loss
-        torch.save({
-            "state_dict": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-            "epoch": idx_epoch,
-            "loss": avg_loss,
-        }, os.path.join(ckptdir, "best.pth"))
-        printlog(f"Best model saved at epoch {idx_epoch}")
+#     if avg_loss < best_val_loss:
+#         best_val_loss = avg_loss
+#         torch.save({
+#             "state_dict": model.state_dict(),
+#             "optimizer": optimizer.state_dict(),
+#             "epoch": idx_epoch,
+#             "loss": avg_loss,
+#         }, os.path.join(ckptdir, "best.pth"))
+#         printlog(f"Best model saved at epoch {idx_epoch}")
     
-    if idx_epoch % get_param("train_param")["save_per_epoch"] == 0:
-        torch.save({
-            "state_dict": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-            "epoch": idx_epoch,
-            "loss": avg_loss,
-        }, os.path.join(ckptdir, f"epoch_{idx_epoch}.pth"))
-        printlog(f"Model saved at epoch {idx_epoch}")
+#     if idx_epoch % get_param("train_param")["save_per_epoch"] == 0:
+#         torch.save({
+#             "state_dict": model.state_dict(),
+#             "optimizer": optimizer.state_dict(),
+#             "epoch": idx_epoch,
+#             "loss": avg_loss,
+#         }, os.path.join(ckptdir, f"epoch_{idx_epoch}.pth"))
+#         printlog(f"Model saved at epoch {idx_epoch}")
 
-    # Learning rate adjustment
-    adjust_learning_rate(optimizer, idx_epoch, base_learning_rate)
+#     # Learning rate adjustment
+#     adjust_learning_rate(optimizer, idx_epoch, base_learning_rate)
 
 # ----------------------------------------------------
 
