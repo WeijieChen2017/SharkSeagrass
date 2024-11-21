@@ -79,6 +79,8 @@ config = OmegaConf.load(opt.ldm_config_path)
 
 model = instantiate_from_config(config.model)
 model.load_state_dict(torch.load(opt.ckpt_path, map_location="cpu")["state_dict"], strict=False)
+model = model.to(device)
+sampler = DDIMSampler(model)
 
 # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # print(f"The current device is {device}")
@@ -94,16 +96,6 @@ model.load_state_dict(torch.load(opt.ckpt_path, map_location="cpu")["state_dict"
 # es = embedding_scale_1 * embedding_scale_2
 # print("The pixel scaling factor is ", es)
 # set_param("es", es)
-
-
-# # PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
-# # # print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
-# # # torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
-# # PET_img = PET_img.to(device)
-# # # PET_mask = PET_mask.to(device)
-# # CT0_img = CT0_img.to(device)
-# # CT1_img = CT1_img.to(device)
-
 
 # import datetime
 # import torch.optim as optim
@@ -237,23 +229,29 @@ model.load_state_dict(torch.load(opt.ckpt_path, map_location="cpu")["state_dict"
 
 
 
+PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
+# print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
+# torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
+PET_img = PET_img.to(device)
+# PET_mask = PET_mask.to(device)
+CT0_img = CT0_img.to(device)
+CT1_img = CT1_img.to(device)
+
+ct0_64 = model.first_stage_model.encode(CT0_img)
+pet_64 = model.first_stage_model.encode(PET_img)
+ct1_64 = model.first_stage_model.encode(CT1_img)
+# mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
+# cc = mask_64.to(device)
+
+c = pet_64
+x_T = ct1_64
+# c = torch.cat((c, cc), dim=1) # channel = 4
+shape = (c.shape[1],)+c.shape[2:]
 
 
-# ct0_64 = model.first_stage_model.encode(CT0_img)
-# pet_64 = model.first_stage_model.encode(PET_img)
-# ct1_64 = model.first_stage_model.encode(CT1_img)
-# # mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
-# # cc = mask_64.to(device)
-
-# c = pet_64
-# x_T = ct1_64
-# # c = torch.cat((c, cc), dim=1) # channel = 4
-# shape = (c.shape[1],)+c.shape[2:]
-
-
-# # ct0_64 size 64
-# # PET_img size 256
-# # c will go through cond_stage_model
+# ct0_64 size 64
+# PET_img size 256
+# c will go through cond_stage_model
 
 # for idz in range(100):
 #     optimizer.zero_grad()
@@ -274,52 +272,53 @@ model.load_state_dict(torch.load(opt.ckpt_path, map_location="cpu")["state_dict"
 
 # # # perform the test
 
-# # with torch.no_grad():
-# #     with model.ema_scope():
-# #         outpath = os.path.dirname(opt.test_path)
-# #         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
-# #         # c = model.cond_stage_model.encode(CT0_img) # channel = 3
-# #         # c = model.cond_stage_model.encode(PET_img) # channel = 3
-# #         # cc = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:]) # channel = 1
-# #         # x_T = model.cond_stage_model.encode(CT1_img) # channel = 3
-# #         # cc = PET_mask
+with torch.no_grad():
+    with model.ema_scope():
+        outpath = os.path.dirname(opt.test_path)
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
+        # c = model.cond_stage_model.encode(CT0_img) # channel = 3
+        # c = model.cond_stage_model.encode(PET_img) # channel = 3
+        # cc = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:]) # channel = 1
+        # x_T = model.cond_stage_model.encode(CT1_img) # channel = 3
+        # cc = PET_mask
 
-# #         ct0_64 = model.cond_stage_model.encode(CT0_img)
-# #         pet_64 = model.cond_stage_model.encode(PET_img)
-# #         ct1_64 = model.cond_stage_model.encode(CT1_img)
-# #         mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
+        ct0_64 = model.cond_stage_model.encode(CT0_img)
+        pet_64 = model.cond_stage_model.encode(PET_img)
+        ct1_64 = model.cond_stage_model.encode(CT1_img)
+        mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
         
-# #         savename_list = [
-# #             [opt.test_path.replace(".npy", "_ct0_c_e100.npy"), ct0_64, None],
-# #             [opt.test_path.replace(".npy", "_pet_c_e100.npy"), pet_64, None],
-# #             [opt.test_path.replace(".npy", "_ct0_c_ct1_xT_e100.npy"), ct0_64, ct1_64],
-# #             [opt.test_path.replace(".npy", "_pet_c_ct1_xT_e100.npy"), pet_64, ct1_64],
-# #         ]
+        savename_list = [
+            # [opt.test_path.replace(".npy", "_ct0_c_e100.npy"), ct0_64, None],
+            [opt.test_path.replace(".npy", "_pet_c_e100.npy"), pet_64, None],
+            # [opt.test_path.replace(".npy", "_ct0_c_ct1_xT_e100.npy"), ct0_64, ct1_64],
+            [opt.test_path.replace(".npy", "_pet_c_ct1_xT_e100.npy"), pet_64, ct1_64],
+        ]
 
-# #         cc = mask_64
+        # cc = mask_64
 
-# #         for config in savename_list:
-# #             savename = config[0]
-# #             c = config[1]
-# #             x_T = config[2]
-# #             c = torch.cat((c, cc), dim=1) # channel = 4
-# #             shape = (c.shape[1]-1,)+c.shape[2:]
-# #             samples_ddim, _ = sampler.sample(
-# #                 S=opt.steps,
-# #                 conditioning=c,
-# #                 batch_size=c.shape[0],
-# #                 shape=shape,
-# #                 verbose=False,
-# #                 x_T=x_T
-# #             )
-# #             x_samples_ddim = model.decode_first_stage(samples_ddim)
-# #             image = torch.clamp((CT0_img+1.0)/2.0, min=0.0, max=1.0)
-# #             mask = torch.clamp((PET_mask+1.0)/2.0, min=0.0, max=1.0)
-# #             predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0, min=0.0, max=1.0)
-# #             inpainted = (1-mask)*image+mask*predicted_image
-# #             inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
-# #             np.save(savename, inpainted)
-# #             print("The output file is saved to", savename)
+        for config in savename_list:
+            savename = config[0]
+            c = config[1]
+            x_T = config[2]
+            # c = torch.cat((c, cc), dim=1) # channel = 4
+            shape = (c.shape[1]-1,)+c.shape[2:]
+            samples_ddim, _ = sampler.sample(
+                S=opt.steps,
+                conditioning=c,
+                batch_size=c.shape[0],
+                shape=shape,
+                verbose=False,
+                x_T=x_T
+            )
+            x_samples_ddim = model.decode_first_stage(samples_ddim)
+            image = torch.clamp((CT0_img+1.0)/2.0, min=0.0, max=1.0)
+            # mask = torch.clamp((PET_mask+1.0)/2.0, min=0.0, max=1.0)
+            predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0, min=0.0, max=1.0)
+            predicted_image = predicted_image.cpu().numpy().transpose(0,2,3,1)[0]
+            # inpainted = (1-mask)*image+mask*predicted_image
+            # inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
+            np.save(savename, predicted_image)
+            print("The output file is saved to", savename)
 
 
 
