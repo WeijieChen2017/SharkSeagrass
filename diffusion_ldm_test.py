@@ -237,16 +237,16 @@ PET_img = PET_img.to(device)
 CT0_img = CT0_img.to(device)
 CT1_img = CT1_img.to(device)
 
-ct0_64 = model.first_stage_model.encode(CT0_img)
-pet_64 = model.first_stage_model.encode(PET_img)
-ct1_64 = model.first_stage_model.encode(CT1_img)
+# ct0_64 = model.first_stage_model.encode(CT0_img)
+# pet_64 = model.first_stage_model.encode(PET_img)
+# ct1_64 = model.first_stage_model.encode(CT1_img)
 # mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
 # cc = mask_64.to(device)
 
-c = pet_64
-x_T = ct1_64
-# c = torch.cat((c, cc), dim=1) # channel = 4
-shape = (c.shape[1],)+c.shape[2:]
+# c = pet_64
+# x_T = ct1_64
+# # c = torch.cat((c, cc), dim=1) # channel = 4
+# shape = (c.shape[1],)+c.shape[2:]
 
 
 # ct0_64 size 64
@@ -301,7 +301,7 @@ with torch.no_grad():
             batch_size=c.shape[0],
             shape=shape,
             verbose=False,
-            x_T=x_T
+            # x_T=x_T
         )
         x_samples_ddim = model.decode_first_stage(samples_ddim)
         image = torch.clamp((CT0_img+1.0)/2.0, min=0.0, max=1.0)
@@ -310,7 +310,7 @@ with torch.no_grad():
         predicted_image = predicted_image.cpu().numpy().transpose(0,2,3,1)[0]
         # inpainted = (1-mask)*image+mask*predicted_image
         # inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
-        savename = root_dir+"x1ct_xT_test.npy"
+        savename = root_dir+"no_xT_test.npy"
         np.save(savename, predicted_image)
         print("The output file is saved to", savename)
 
