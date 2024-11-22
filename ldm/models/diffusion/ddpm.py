@@ -876,9 +876,11 @@ class LatentDiffusion(DDPM):
             assert c is not None
             if self.cond_stage_trainable:
                 c = self.get_learned_conditioning(c)
+                print("running self.cond_stage_trainable")
             if self.shorten_cond_schedule:  # TODO: drop this option
                 tc = self.cond_ids[t].to(self.device)
                 c = self.q_sample(x_start=c, t=tc, noise=torch.randn_like(c.float()))
+                print("running self.shorten_cond_schedule")
         return self.p_losses(x, c, t, *args, **kwargs)
 
     def _rescale_annotations(self, bboxes, crop_coordinates):  # TODO: move to dataset
