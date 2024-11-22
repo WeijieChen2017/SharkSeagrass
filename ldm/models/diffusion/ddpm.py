@@ -26,6 +26,7 @@ from ldm.models.autoencoder import VQModelInterface, IdentityFirstStage, Autoenc
 from ldm.modules.diffusionmodules.util import make_beta_schedule, extract_into_tensor, noise_like
 from ldm.models.diffusion.ddim import DDIMSampler
 
+from diffusion_ldm_config import global_config, set_param, get_param
 
 __conditioning_keys__ = {'concat': 'c_concat',
                          'crossattn': 'c_crossattn',
@@ -1013,6 +1014,17 @@ class LatentDiffusion(DDPM):
     def p_losses(self, x_start, cond, t, noise=None):
         noise = default(noise, lambda: torch.randn_like(x_start))
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
+        
+        # we log x_noisy here for debugging
+        root = get_param("root")
+        random_name = x_noisy.mean().item() * 1000
+        # take the integer part of the mean of x_noisy and multiply by 1000
+        savename = f"{root}/x_noisy_{random_name:.0f}.npy"
+        x_noisy_np = x_noisy.cpu().numpy()
+        np.save(savename, x_noisy_np)
+        print(f"Saved x_noisy to {savename}")
+
+
         model_output = self.apply_model(x_noisy, t, cond)
 
         loss_dict = {}
