@@ -1014,7 +1014,7 @@ class LatentDiffusion(DDPM):
 
     def p_losses(self, x_start, cond, t, noise=None):
         noise = default(noise, lambda: torch.randn_like(x_start))
- 
+
         # t = torch.randint(0, self.num_timesteps, (x.shape[0],), device=self.device).long()
         # create a constant t = 5
         t = torch.tensor([5] * x_start.shape[0], device=self.device).long()
@@ -1030,6 +1030,11 @@ class LatentDiffusion(DDPM):
         x_noisy_np = x_noisy.cpu().numpy()
         np.save(savename, x_noisy_np)
         print(f"Saved x_noisy to {savename}")
+
+        savename = f"{root}/{time_stamp}_x_start.npy"
+        x_start_np = x_start.cpu().numpy()
+        np.save(savename, x_start_np)
+        print(f"Saved x_start to {savename}")
 
 
         model_output = self.apply_model(x_noisy, t, cond)
