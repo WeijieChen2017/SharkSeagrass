@@ -289,9 +289,9 @@ with torch.no_grad():
         
         savename_list = [
             # [opt.test_path.replace(".npy", "_ct0_c_e100.npy"), ct0_64, None],
-            [opt.test_path.replace(".npy", "_pet_c_e100.npy"), pet_64, None],
+            [opt.test_path.replace(".npy", "_pet_c_e100_e15.npy"), pet_64, None],
             # [opt.test_path.replace(".npy", "_ct0_c_ct1_xT_e100.npy"), ct0_64, ct1_64],
-            [opt.test_path.replace(".npy", "_pet_c_ct1_xT_e100.npy"), pet_64, ct1_64],
+            [opt.test_path.replace(".npy", "_pet_c_ct1_xT_e100_e15.npy"), pet_64, ct1_64],
         ]
 
         # cc = mask_64
@@ -300,7 +300,8 @@ with torch.no_grad():
             savename = config[0]
             c = config[1]
             x_T = config[2]
-            # c = torch.cat((c, cc), dim=1) # channel = 4
+            noise = torch.randn_like(c)
+            c = torch.cat((c, noise), dim=1) # channel = 4
             shape = (c.shape[1]-1,)+c.shape[2:]
             samples_ddim, _ = sampler.sample(
                 S=opt.steps,
