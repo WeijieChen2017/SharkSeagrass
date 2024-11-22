@@ -300,8 +300,8 @@ with torch.no_grad():
             savename = config[0]
             c = config[1]
             x_T = config[2]
-            noise = torch.randn_like(c)
-            c = torch.cat((c, noise), dim=1) # channel = 4
+            # noise = torch.randn_like(c)
+            # c = torch.cat((c, noise), dim=1) # channel = 4
             shape = (c.shape[1]-1,)+c.shape[2:]
             samples_ddim, _ = sampler.sample(
                 S=opt.steps,
