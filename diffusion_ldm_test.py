@@ -296,10 +296,10 @@ with torch.no_grad():
 
         # cc = mask_64
 
-        for config in savename_list:
-            savename = config[0]
-            c = config[1]
-            x_T = config[2]
+        for zip_data in savename_list:
+            savename = zip_data[0]
+            c = zip_data[1]
+            x_T = zip_data[2]
             # noise = torch.randn_like(c)
             # c = torch.cat((c, noise), dim=1) # channel = 4
             shape = (c.shape[1]-1,)+c.shape[2:]
