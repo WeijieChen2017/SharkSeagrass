@@ -303,6 +303,9 @@ with torch.no_grad():
             # noise = torch.randn_like(c)
             # c = torch.cat((c, noise), dim=1) # channel = 4
             shape = (c.shape[1]-1,)+c.shape[2:]
+
+            print(f"Before trianing, c is the size {c.shape}, x_T is the size {x_T.shape}")
+
             samples_ddim, _ = sampler.sample(
                 S=opt.steps,
                 conditioning=c,
