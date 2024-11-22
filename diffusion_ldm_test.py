@@ -291,7 +291,7 @@ with torch.no_grad():
         x_T = ct1_64
         # noise = torch.randn_like(c)
         # c = torch.cat((c, noise), dim=1) # channel = 4
-        shape = (c.shape[1]-1,)+c.shape[2:]
+        shape = (c.shape[1],)+c.shape[2:]
 
         print(f"Before trianing, c is the size {c.shape}, x_T is the size {x_T.shape}")
 
