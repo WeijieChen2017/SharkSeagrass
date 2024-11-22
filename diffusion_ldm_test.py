@@ -310,7 +310,7 @@ with torch.no_grad():
         predicted_image = predicted_image.cpu().numpy().transpose(0,2,3,1)[0]
         # inpainted = (1-mask)*image+mask*predicted_image
         # inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
-        savename = f{root_dir}+"x1ct_xT_test.npy"
+        savename = root_dir+"x1ct_xT_test.npy"
         np.save(savename, predicted_image)
         print("The output file is saved to", savename)
 
