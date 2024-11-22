@@ -323,7 +323,7 @@ sampler = DDIMSampler(model)
 # batch = make_batch(image, mask, device=torch.device('cpu'))
 # print(batch["image"].size(), batch["mask"].size(), batch["masked_image"].size())
 # torch.Size([1, 3, 512, 512]) torch.Size([1, 1, 512, 512]) torch.Size([1, 3, 512, 512])
-images = sorted(glob.glob(os.path.join(opt.indir, "*.png")))
+images = sorted(glob.glob(os.path.join(opt.indir, "*.jpg")))
 # images = [x.replace("_mask.png", ".png") for x in masks]
 
 os.makedirs(opt.outdir, exist_ok=True)
