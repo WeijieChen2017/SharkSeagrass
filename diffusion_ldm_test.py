@@ -337,7 +337,10 @@ with torch.no_grad():
             # encode masked image and concat downsampled mask
             # c = model.cond_stage_model.encode(batch["image"]) # channel = 3
             c = model.first_stage_model.encode(batch["image"])
-            np.save()
+            savename = "encoded_c.npy"
+            # save the c
+            np.save(savename, c.cpu().numpy())
+            print("encoded_c.npy is saved.")
             # cc = torch.nn.functional.interpolate(batch["mask"],
             #                                         size=c.shape[-2:]) # channel = 1
             # c = torch.cat((c, cc), dim=1) # channel = 4
