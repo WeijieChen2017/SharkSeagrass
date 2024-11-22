@@ -27,6 +27,7 @@ from ldm.modules.diffusionmodules.util import make_beta_schedule, extract_into_t
 from ldm.models.diffusion.ddim import DDIMSampler
 
 from diffusion_ldm_config import global_config, set_param, get_param
+import time
 
 __conditioning_keys__ = {'concat': 'c_concat',
                          'crossattn': 'c_crossattn',
@@ -1013,13 +1014,19 @@ class LatentDiffusion(DDPM):
 
     def p_losses(self, x_start, cond, t, noise=None):
         noise = default(noise, lambda: torch.randn_like(x_start))
+ 
+        # t = torch.randint(0, self.num_timesteps, (x.shape[0],), device=self.device).long()
+        # create a constant t = 5
+        t = torch.tensor([5] * x_start.shape[0], device=self.device).long()
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
         
         # we log x_noisy here for debugging
         root = get_param("root")
-        random_name = x_noisy.mean().item() * 1000
-        # take the integer part of the mean of x_noisy and multiply by 1000
-        savename = f"{root}/x_noisy_{random_name:.0f}.npy"
+        # HH-MM-SS is the time stamp
+        time_stamp = time.strftime("%H-%M-%S", time.localtime())
+
+        # take the integer part of the mean of x_noisy and multiply by 100000
+        savename = f"{root}/{time_stamp}_x_noisy.npy"
         x_noisy_np = x_noisy.cpu().numpy()
         np.save(savename, x_noisy_np)
         print(f"Saved x_noisy to {savename}")
