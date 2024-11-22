@@ -38,6 +38,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
     len_z = pet.shape[1]
 
     es = get_param("es")
+    vqs = get_param("vq_scaling")
 
     pet = pet * 2 - 1
     ct = ct * 2 - 1
@@ -86,7 +87,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
             # we get a batch
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
-            encoded_batch_y = model.first_stage_model.encode(batch_y)
+            encoded_batch_y = model.first_stage_model.encode(batch_y) / vqs
             if stage == "train":
                 optimizer.zero_grad()
                 loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
@@ -123,7 +124,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
             # we get a batch
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
-            encoded_batch_y = model.first_stage_model.encode(batch_y)
+            encoded_batch_y = model.first_stage_model.encode(batch_y) / vqs
             # print(batch_x.size(), batch_y.size())
             if stage == "train":
                 optimizer.zero_grad()
@@ -161,7 +162,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
             # we get a batch
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
-            encoded_batch_y = model.first_stage_model.encode(batch_y)
+            encoded_batch_y = model.first_stage_model.encode(batch_y) / vqs
             if stage == "train":
                 optimizer.zero_grad()
                 loss, loss_dict = model(x=encoded_batch_y, c=batch_x)

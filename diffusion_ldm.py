@@ -73,7 +73,7 @@ set_param("cv", 0)
 set_param("root", root_dir)
 set_param("seed", opt.seed)
 set_param("log_txt_path", os.path.join(root_dir, "log.txt"))
-
+set_param("vq_scaling", 4)
 
 
 # load data data division
