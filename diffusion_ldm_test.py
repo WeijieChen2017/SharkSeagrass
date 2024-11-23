@@ -229,13 +229,13 @@ sampler = DDIMSampler(model)
 
 
 
-# PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
-# # print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
-# # torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
-# PET_img = PET_img.to(device)
-# # PET_mask = PET_mask.to(device)
-# CT0_img = CT0_img.to(device)
-# CT1_img = CT1_img.to(device)
+PET_img, PET_mask, CT0_img, CT1_img = make_batch_PET_CT_CT(opt.test_path)
+# print(PET_img.size(), PET_mask.size(), CT0_img.size(), CT1_img.size())
+# torch.Size([1, 3, 256, 256]) torch.Size([1, 1, 256, 256]) torch.Size([1, 3, 256, 256]) torch.Size([1, 3, 256, 256])
+PET_img = PET_img.to(device)
+# PET_mask = PET_mask.to(device)
+CT0_img = CT0_img.to(device)
+CT1_img = CT1_img.to(device)
 
 # # ct0_64 = model.first_stage_model.encode(CT0_img)
 # # pet_64 = model.first_stage_model.encode(PET_img)
@@ -272,47 +272,47 @@ sampler = DDIMSampler(model)
 
 # # # # perform the test
 
-# with torch.no_grad():
-#     with model.ema_scope():
-#         outpath = os.path.dirname(opt.test_path)
-#         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
-#         # c = model.cond_stage_model.encode(CT0_img) # channel = 3
-#         # c = model.cond_stage_model.encode(PET_img) # channel = 3
-#         # cc = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:]) # channel = 1
-#         # x_T = model.cond_stage_model.encode(CT1_img) # channel = 3
-#         # cc = PET_mask
+with torch.no_grad():
+    with model.ema_scope():
+        outpath = os.path.dirname(opt.test_path)
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
+        # c = model.cond_stage_model.encode(CT0_img) # channel = 3
+        # c = model.cond_stage_model.encode(PET_img) # channel = 3
+        # cc = torch.nn.functional.interpolate(PET_mask, size=c.shape[-2:]) # channel = 1
+        # x_T = model.cond_stage_model.encode(CT1_img) # channel = 3
+        # cc = PET_mask
 
-#         ct0_64 = model.cond_stage_model.encode(CT0_img)
-#         pet_64 = model.cond_stage_model.encode(PET_img)
-#         ct1_64 = model.cond_stage_model.encode(CT1_img)
-#         # mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
+        ct0_64 = model.cond_stage_model.encode(CT0_img)
+        pet_64 = model.cond_stage_model.encode(PET_img)
+        ct1_64 = model.cond_stage_model.encode(CT1_img)
+        # mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
         
-#         c = pet_64
-#         x_T = ct1_64
-#         # noise = torch.randn_like(c)
-#         # c = torch.cat((c, noise), dim=1) # channel = 4
-#         shape = (c.shape[1],)+c.shape[2:]
+        c = pet_64
+        x_T = ct1_64
+        # noise = torch.randn_like(c)
+        # c = torch.cat((c, noise), dim=1) # channel = 4
+        shape = (c.shape[1],)+c.shape[2:]
 
-#         print(f"Before trianing, c is the size {c.shape}, x_T is the size {x_T.shape}")
+        print(f"Before trianing, c is the size {c.shape}, x_T is the size {x_T.shape}")
 
-#         samples_ddim, _ = sampler.sample(
-#             S=opt.steps,
-#             conditioning=c,
-#             batch_size=c.shape[0],
-#             shape=shape,
-#             verbose=False,
-#             # x_T=x_T
-#         )
-#         x_samples_ddim = model.decode_first_stage(samples_ddim)
-#         image = torch.clamp((CT0_img+1.0)/2.0, min=0.0, max=1.0)
-#         # mask = torch.clamp((PET_mask+1.0)/2.0, min=0.0, max=1.0)
-#         predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0, min=0.0, max=1.0)
-#         predicted_image = predicted_image.cpu().numpy().transpose(0,2,3,1)[0]
-#         # inpainted = (1-mask)*image+mask*predicted_image
-#         # inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
-#         savename = root_dir+"no_xT_test.npy"
-#         np.save(savename, predicted_image)
-#         print("The output file is saved to", savename)
+        samples_ddim, _ = sampler.sample(
+            S=opt.steps,
+            conditioning=c,
+            batch_size=c.shape[0],
+            shape=shape,
+            verbose=False,
+            # x_T=x_T
+        )
+        x_samples_ddim = model.decode_first_stage(samples_ddim)
+        # image = torch.clamp((CT0_img+1.0)/2.0, min=0.0, max=1.0)
+        # # mask = torch.clamp((PET_mask+1.0)/2.0, min=0.0, max=1.0)
+        # predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0, min=0.0, max=1.0)
+        predicted_image = x_samples_ddim.cpu().numpy().transpose(0,2,3,1)[0]
+        # inpainted = (1-mask)*image+mask*predicted_image
+        # inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
+        savename = root_dir+"no_xT_test.npy"
+        np.save(savename, predicted_image)
+        print("The output file is saved to", savename)
 
 
 
@@ -323,47 +323,47 @@ sampler = DDIMSampler(model)
 # batch = make_batch(image, mask, device=torch.device('cpu'))
 # print(batch["image"].size(), batch["mask"].size(), batch["masked_image"].size())
 # torch.Size([1, 3, 512, 512]) torch.Size([1, 1, 512, 512]) torch.Size([1, 3, 512, 512])
-images = sorted(glob.glob(os.path.join(opt.indir, "*.jpg")))
-# images = [x.replace("_mask.png", ".png") for x in masks]
+# images = sorted(glob.glob(os.path.join(opt.indir, "*.jpg")))
+# # images = [x.replace("_mask.png", ".png") for x in masks]
 
-os.makedirs(opt.outdir, exist_ok=True)
-with torch.no_grad():
-    with model.ema_scope():
-        for image in tqdm(images):
-            outpath = os.path.join(opt.outdir, os.path.split(image)[1])
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
-            batch = load_image(image, device=device)
+# os.makedirs(opt.outdir, exist_ok=True)
+# with torch.no_grad():
+#     with model.ema_scope():
+#         for image in tqdm(images):
+#             outpath = os.path.join(opt.outdir, os.path.split(image)[1])
+#             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", outpath)
+#             batch = load_image(image, device=device)
 
-            # encode masked image and concat downsampled mask
-            # c = model.cond_stage_model.encode(batch["image"]) # channel = 3
-            c = model.first_stage_model.encode(batch["image"])
-            savename = "encoded_c.npy"
-            # save the c
-            np.save(savename, c.cpu().numpy())
-            print("encoded_c.npy is saved.")
-            # cc = torch.nn.functional.interpolate(batch["mask"],
-            #                                         size=c.shape[-2:]) # channel = 1
-            # c = torch.cat((c, cc), dim=1) # channel = 4
+#             # encode masked image and concat downsampled mask
+#             # c = model.cond_stage_model.encode(batch["image"]) # channel = 3
+#             c = model.first_stage_model.encode(batch["image"])
+#             savename = "encoded_c.npy"
+#             # save the c
+#             np.save(savename, c.cpu().numpy())
+#             print("encoded_c.npy is saved.")
+#             # cc = torch.nn.functional.interpolate(batch["mask"],
+#             #                                         size=c.shape[-2:]) # channel = 1
+#             # c = torch.cat((c, cc), dim=1) # channel = 4
 
-            shape = (c.shape[1],)+c.shape[2:]
-            samples_ddim, _ = sampler.sample(
-                S=opt.steps,
-                conditioning=c,
-                batch_size=c.shape[0],
-                shape=shape,
-                verbose=False
-            )
-            x_samples_ddim = model.decode_first_stage(samples_ddim)
+#             shape = (c.shape[1],)+c.shape[2:]
+#             samples_ddim, _ = sampler.sample(
+#                 S=opt.steps,
+#                 conditioning=c,
+#                 batch_size=c.shape[0],
+#                 shape=shape,
+#                 verbose=False
+#             )
+#             x_samples_ddim = model.decode_first_stage(samples_ddim)
 
-            # image = torch.clamp((batch["image"]+1.0)/2.0,
-            #                     min=0.0, max=1.0)
-            # mask = torch.clamp((batch["mask"]+1.0)/2.0,
-            #                     min=0.0, max=1.0)
-            predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0,
-                                            min=0.0, max=1.0)
+#             # image = torch.clamp((batch["image"]+1.0)/2.0,
+#             #                     min=0.0, max=1.0)
+#             # mask = torch.clamp((batch["mask"]+1.0)/2.0,
+#             #                     min=0.0, max=1.0)
+#             predicted_image = torch.clamp((x_samples_ddim+1.0)/2.0,
+#                                             min=0.0, max=1.0)
 
-            # inpainted = (1-mask)*image+mask*predicted_image
-            # inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]*255
-            semantic_synthesis = predicted_image.cpu().numpy().transpose(0,2,3,1)[0]*255
-            Image.fromarray(semantic_synthesis.astype(np.uint8)).save(outpath)
+#             # inpainted = (1-mask)*image+mask*predicted_image
+#             # inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]*255
+#             semantic_synthesis = predicted_image.cpu().numpy().transpose(0,2,3,1)[0]*255
+#             Image.fromarray(semantic_synthesis.astype(np.uint8)).save(outpath)
 # # ----------------------------------------------------
