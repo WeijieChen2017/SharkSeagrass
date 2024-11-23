@@ -9,6 +9,7 @@ import random
 
 from diffusion_ldm_utils_diffusion_model import UNetModel
 from diffusion_ldm_utils_vq_model import VQModel
+from ldm.models.diffusion.ddim import DDIMSampler
 
 from monai.transforms import (
     Compose, 
@@ -32,6 +33,10 @@ def printlog(message):
 
 
 def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=None, device=None):
+
+    if stage == "eval" or stage == "test":
+        sampler = DDIMSampler(model)
+        steps = get_param("steps")
 
     pet = batch["PET"] # 1, z, 256, 256
     ct = batch["CT"] # 1, z, 256, 256
@@ -87,8 +92,9 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
             # we get a batch
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
-            encoded_batch_y = model.first_stage_model.encode(batch_y)
+            
             if stage == "train":
+                encoded_batch_y = model.first_stage_model.encode(batch_y)
                 optimizer.zero_grad()
                 loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
                 loss.backward()
@@ -96,8 +102,20 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
                 case_loss_first += loss.item()
             elif stage == "eval" or stage == "test":
                 with torch.no_grad():
-                    loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
-                    case_loss_first += loss.item()
+                    # loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
+                    # case_loss_first += loss.item()
+                    encoded_batch_x = model.first_stage_model.encode(batch_x)
+                    shape = (encoded_batch_x.shape[1],)+encoded_batch_x.shape[2:]
+                    samples_ddim, _ = sampler.sample(
+                        S=steps,
+                        conditioning=encoded_batch_x,
+                        batch_size=encoded_batch_x.shape[0],
+                        shape=shape,
+                        verbose=False
+                    )
+                    recon_batch_x = model.decode_first_stage(samples_ddim)
+
+
             batch_size_count = 0
         
         case_loss_first = case_loss_first / (len(indices_list_first) // batch_size + 1)

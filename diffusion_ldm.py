@@ -74,6 +74,7 @@ set_param("root", root_dir)
 set_param("seed", opt.seed)
 set_param("log_txt_path", os.path.join(root_dir, "log.txt"))
 set_param("vq_scaling", 4)
+set_param("steps", opt.steps)
 
 
 # load data data division
@@ -119,7 +120,7 @@ import torch.optim as optim
 
 # Set up directories
 now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-logdir = f"./logs/{now}"
+logdir = root_dir + f"/logs/{now}"
 ckptdir = os.path.join(logdir, "checkpoints")
 os.makedirs(ckptdir, exist_ok=True)
 

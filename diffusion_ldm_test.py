@@ -23,13 +23,13 @@ from diffusion_ldm_config import global_config, set_param, get_param
 # pip install torchvision
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--root", type=str, default="results/diffusion_ldm_vanilla")
+parser.add_argument("--root", type=str, default="results/diffusion_ldm_vanilla_scaling_c")
 parser.add_argument("--seed", type=int, default=729)
 parser.add_argument("--data_div", type=str, default="James_data_v3/cv_list.json")
 parser.add_argument("--indir", type=str, default="./semantic_synthesis256")
 parser.add_argument("--outdir", type=str, default="./semantic_synthesis256_output")
 parser.add_argument("--steps", type=int, default=50)
-parser.add_argument("--ckpt_path", type=str, default="results/diffusion_ldm_vanilla/epoch_15.pth")
+parser.add_argument("--ckpt_path", type=str, default="results/diffusion_ldm_vanilla_scaling_c/best.pth")
 parser.add_argument("--ldm_config_path", type=str, default="diffusion_ldm_config_semantic_synthesis256.yaml")
 parser.add_argument("--experiment_config_path", type=str, default="diffusion_ldm_v1_config.yaml")
 parser.add_argument("--test_path", type=str, default="James_data_v3/diffusion_slices/pE4055_E4058_z100_n01.npy")
