@@ -287,7 +287,7 @@ with torch.no_grad():
         ct1_64 = model.cond_stage_model.encode(CT1_img)
         # mask_64 = torch.nn.functional.interpolate(PET_mask, size=ct0_64.shape[-2:])
         
-        c = pet_64
+        c = pet_64 / 4
         x_T = ct1_64
         # noise = torch.randn_like(c)
         # c = torch.cat((c, noise), dim=1) # channel = 4
@@ -310,7 +310,7 @@ with torch.no_grad():
         predicted_image = x_samples_ddim.cpu().numpy().transpose(0,2,3,1)[0]
         # inpainted = (1-mask)*image+mask*predicted_image
         # inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
-        savename = root_dir+"no_xT_test.npy"
+        savename = root_dir+"_no_xT_test.npy"
         np.save(savename, predicted_image)
         print("The output file is saved to", savename)
 
