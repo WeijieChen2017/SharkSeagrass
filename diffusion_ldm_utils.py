@@ -44,7 +44,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
 
     es = get_param("es")
     vqs = get_param("vq_scaling")
-    batch_per_eval = get_param("batch_per_eval")
+    batch_per_eval = get_param("train_param")["batch_per_eval"]
 
     pet = pet * 2 - 1
     ct = ct * 2 - 1
