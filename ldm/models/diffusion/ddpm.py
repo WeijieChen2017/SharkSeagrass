@@ -875,12 +875,14 @@ class LatentDiffusion(DDPM):
         if self.model.conditioning_key is not None:
             assert c is not None
             if self.cond_stage_trainable:
-                c = self.get_learned_conditioning(c)
-                print("running self.cond_stage_trainable")
+                # currently this branch is selected.
+                vqs = get_param("vq_scaling")
+                c = self.get_learned_conditioning(c) / vqs
+                # print("running self.cond_stage_trainable")
             if self.shorten_cond_schedule:  # TODO: drop this option
                 tc = self.cond_ids[t].to(self.device)
                 c = self.q_sample(x_start=c, t=tc, noise=torch.randn_like(c.float()))
-                print("running self.shorten_cond_schedule")
+                # print("running self.shorten_cond_schedule")
         return self.p_losses(x, c, t, *args, **kwargs)
 
     def _rescale_annotations(self, bboxes, crop_coordinates):  # TODO: move to dataset
@@ -1022,21 +1024,21 @@ class LatentDiffusion(DDPM):
         t = torch.tensor([5] * x_start.shape[0], device=self.device).long()
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
         
-        # we log x_noisy here for debugging
-        root = get_param("root")
-        # HH-MM-SS is the time stamp
-        time_stamp = time.strftime("%H-%M-%S", time.localtime())
+        # # we log x_noisy here for debugging
+        # root = get_param("root")
+        # # HH-MM-SS is the time stamp
+        # time_stamp = time.strftime("%H-%M-%S", time.localtime())
 
-        # take the integer part of the mean of x_noisy and multiply by 100000
-        savename = f"{root}/{time_stamp}_x_noisy.npy"
-        x_noisy_np = x_noisy.cpu().numpy()
-        np.save(savename, x_noisy_np)
-        print(f"Saved x_noisy to {savename}")
+        # # take the integer part of the mean of x_noisy and multiply by 100000
+        # savename = f"{root}/{time_stamp}_x_noisy.npy"
+        # x_noisy_np = x_noisy.cpu().numpy()
+        # np.save(savename, x_noisy_np)
+        # print(f"Saved x_noisy to {savename}")
 
-        savename = f"{root}/{time_stamp}_x_start.npy"
-        x_start_np = x_start.cpu().numpy()
-        np.save(savename, x_start_np)
-        print(f"Saved x_start to {savename}")
+        # savename = f"{root}/{time_stamp}_x_start.npy"
+        # x_start_np = x_start.cpu().numpy()
+        # np.save(savename, x_start_np)
+        # print(f"Saved x_start to {savename}")
 
 
         model_output = self.apply_model(x_noisy, t, cond)
