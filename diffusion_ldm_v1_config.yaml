@@ -19,7 +19,7 @@ data_param:
 train_param:
   embedding_scale: 8
   save_per_epoch: 5
-  batch_per_eval: 20
+  batch_per_eval: 1
   epoch: 100
   train_stage:
     batch_size: 8
