@@ -75,6 +75,7 @@ set_param("seed", opt.seed)
 set_param("log_txt_path", os.path.join(root_dir, "log.txt"))
 set_param("vq_scaling", 4)
 set_param("steps", opt.steps)
+set_param("batch_per_eval", "train_param")["batch_per_eval"]
 
 
 # load data data division
