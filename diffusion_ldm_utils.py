@@ -265,7 +265,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
 
 
 
-def prepare_dataset(data_div):
+def prepare_dataset(data_div, invlove_test=False):
     
     cv = get_param("cv")
     root = get_param("root")
@@ -376,28 +376,28 @@ def prepare_dataset(data_div):
             #     channel_dim="none" if out_channel == 1 else -1),
         ]
     )
-
-    test_transforms = Compose(
-        [
-            LoadImaged(keys=input_modality, image_only=True),
-            EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
-            # NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
-            # RandSpatialCropd(
-            #     keys=input_modality_dict["x"], 
-            #     roi_size=(img_size, img_size, in_channel), 
-            #     random_size=False),
-            # RandSpatialCropd(
-            #     keys=input_modality_dict["y"],
-            #     roi_size=(img_size, img_size, out_channel),
-            #     random_size=False),
-            # EnsureChannelFirstd(
-            #     keys=input_modality_dict["x"],
-            #     channel_dim=-1),
-            # EnsureChannelFirstd(
-            #     keys=input_modality_dict["y"],
-            #     channel_dim="none" if out_channel == 1 else -1),
-        ]
-    )
+    if invlove_test:
+        test_transforms = Compose(
+            [
+                LoadImaged(keys=input_modality, image_only=True),
+                EnsureChannelFirstd(keys=input_modality, channel_dim=-1),
+                # NormalizeIntensityd(keys=input_modality, nonzero=True, channel_wise=False),
+                # RandSpatialCropd(
+                #     keys=input_modality_dict["x"], 
+                #     roi_size=(img_size, img_size, in_channel), 
+                #     random_size=False),
+                # RandSpatialCropd(
+                #     keys=input_modality_dict["y"],
+                #     roi_size=(img_size, img_size, out_channel),
+                #     random_size=False),
+                # EnsureChannelFirstd(
+                #     keys=input_modality_dict["x"],
+                #     channel_dim=-1),
+                # EnsureChannelFirstd(
+                #     keys=input_modality_dict["y"],
+                #     channel_dim="none" if out_channel == 1 else -1),
+            ]
+        )
 
     
 
@@ -416,14 +416,14 @@ def prepare_dataset(data_div):
         cache_rate=get_param("data_param")["dataset"]["val"]["cache_rate"],
         num_workers=get_param("data_param")["dataset"]["val"]["num_workers"],
     )
-
-    test_ds = CacheDataset(
-        data=test_path_list,
-        transform=test_transforms,
-        # cache_num=num_test_files,
-        cache_rate=get_param("data_param")["dataset"]["test"]["cache_rate"],
-        num_workers=get_param("data_param")["dataset"]["test"]["num_workers"],
-    )
+    if invlove_test:
+        test_ds = CacheDataset(
+            data=test_path_list,
+            transform=test_transforms,
+            # cache_num=num_test_files,
+            cache_rate=get_param("data_param")["dataset"]["test"]["cache_rate"],
+            num_workers=get_param("data_param")["dataset"]["test"]["num_workers"],
+        )
 
     train_loader = DataLoader(
         train_ds, 
@@ -438,13 +438,17 @@ def prepare_dataset(data_div):
         num_workers=get_param("data_param")["dataloader"]["val"]["num_workers"],
     )
 
-    test_loader = DataLoader(
-        test_ds,
-        batch_size=1,
-        shuffle=False,
-        num_workers=get_param("data_param")["dataloader"]["test"]["num_workers"],
-    )
+    if invlove_test:
+        test_loader = DataLoader(
+            test_ds,
+            batch_size=1,
+            shuffle=False,
+            num_workers=get_param("data_param")["dataloader"]["test"]["num_workers"],
+        )
 
+    if not invlove_test:
+        test_loader = None
+    
     return train_loader, val_loader, test_loader
 
 def load_diffusion_vq_model_from(ckpt_path, config):

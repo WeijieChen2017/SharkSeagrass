@@ -159,31 +159,31 @@ for idx_epoch in range(epoch):
 
     # ===============training stage===============
 
-    # model.train()
-    # loss_1st = 0.0
-    # loss_2nd = 0.0
-    # loss_3rd = 0.0
-    # total_case_train = len(train_loader)
+    model.train()
+    loss_1st = 0.0
+    loss_2nd = 0.0
+    loss_3rd = 0.0
+    total_case_train = len(train_loader)
 
-    # for idx_case, batch in enumerate(train_loader):
-    #     cl_1, cl_2, cl_3 = train_or_eval_or_test_the_batch(
-    #         batch=batch,
-    #         batch_size=get_param("train_param")["train_stage"]["batch_size"],
-    #         stage="train",
-    #         model=model,
-    #         optimizer=optimizer,
-    #         device=device,
-    #     )
-    #     loss_1st += cl_1
-    #     loss_2nd += cl_2
-    #     loss_3rd += cl_3
-    #     printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_train}], Loss 1st {cl_1:.6f}, Loss 2nd {cl_2:.6f}, Loss 3rd {cl_3:.6f}")
+    for idx_case, batch in enumerate(train_loader):
+        cl_1, cl_2, cl_3 = train_or_eval_or_test_the_batch(
+            batch=batch,
+            batch_size=get_param("train_param")["train_stage"]["batch_size"],
+            stage="train",
+            model=model,
+            optimizer=optimizer,
+            device=device,
+        )
+        loss_1st += cl_1
+        loss_2nd += cl_2
+        loss_3rd += cl_3
+        printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_train}], Loss 1st {cl_1:.6f}, Loss 2nd {cl_2:.6f}, Loss 3rd {cl_3:.6f}")
 
-    # loss_1st /= len(train_loader)
-    # loss_2nd /= len(train_loader)
-    # loss_3rd /= len(train_loader)
-    # avg_loss = (loss_1st + loss_2nd + loss_3rd) / 3
-    # printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.6f}, Loss 2nd {loss_2nd:.6f}, Loss 3rd {loss_3rd:.6f}, Avg Loss {avg_loss:.6f}")
+    loss_1st /= len(train_loader)
+    loss_2nd /= len(train_loader)
+    loss_3rd /= len(train_loader)
+    avg_loss = (loss_1st + loss_2nd + loss_3rd) / 3
+    printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Loss 1st {loss_1st:.6f}, Loss 2nd {loss_2nd:.6f}, Loss 3rd {loss_3rd:.6f}, Avg Loss {avg_loss:.6f}")
 
     # ===============validation stage===============
     model.eval()
@@ -219,7 +219,7 @@ for idx_epoch in range(epoch):
             "epoch": idx_epoch,
             "loss": avg_loss,
         }, os.path.join(ckptdir, "best.pth"))
-        printlog(f"Best model saved at epoch {idx_epoch}")
+        printlog(f"Best model saved at epoch {idx_epoch}, with the average val loss {avg_loss:.6f}.")
     
     if idx_epoch % get_param("train_param")["save_per_epoch"] == 0:
         torch.save({

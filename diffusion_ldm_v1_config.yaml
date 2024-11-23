@@ -18,8 +18,8 @@ data_param:
       num_workers: 4
 train_param:
   embedding_scale: 8
-  save_per_epoch: 5
-  batch_per_eval: 1
+  save_per_epoch: 10
+  batch_per_eval: 10
   epoch: 100
   train_stage:
     batch_size: 8
