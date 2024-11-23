@@ -35,7 +35,7 @@ from diffusion_ldm_config import global_config, set_param, get_param
 # pip install torchvision
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--root", type=str, default="results/diffusion_ldm_vanilla_debug")
+parser.add_argument("--root", type=str, default="results/diffusion_ldm_vanilla_scaling_c")
 parser.add_argument("--seed", type=int, default=729)
 parser.add_argument("--data_div", type=str, default="James_data_v3/cv_list.json")
 # parser.add_argument("--indir", type=str, default="./semantic_synthesis256")
@@ -177,7 +177,6 @@ for idx_epoch in range(epoch):
         loss_2nd += cl_2
         loss_3rd += cl_3
         printlog(f"<Train> Epoch [{idx_epoch}]/[{epoch}], Case [{idx_case}]/[{total_case_train}], Loss 1st {cl_1:.6f}, Loss 2nd {cl_2:.6f}, Loss 3rd {cl_3:.6f}")
-        exit()
 
     loss_1st /= len(train_loader)
     loss_2nd /= len(train_loader)
