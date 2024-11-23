@@ -44,6 +44,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
 
     es = get_param("es")
     vqs = get_param("vq_scaling")
+    batch_per_eval = get_param("batch_per_eval")
 
     pet = pet * 2 - 1
     ct = ct * 2 - 1
@@ -76,6 +77,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
 
     # enumreate first dimension
     batch_size_count = 0
+    batch_eval_count = 0
     batch_x = torch.zeros((batch_size, 3, pet.shape[2], pet.shape[3]))
     batch_y = torch.zeros((batch_size, 3, ct.shape[2], ct.shape[3]))
     for indices in indices_list_first:
@@ -121,13 +123,21 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
                     # calculate the L1 loss
                     loss = np.mean(np.abs(recon_batch_y-true_y))
                     case_loss_first += loss
+                    batch_eval_count += 1
+                    if batch_eval_count == batch_per_eval:
+                        # stop the for loop
+                        break
 
             batch_size_count = 0
         
-        case_loss_first = case_loss_first / (len(indices_list_first) // batch_size + 1)
+        if (stage == "eval" or stage == "test") and batch_per_eval > 0:
+            case_loss_first = case_loss_first / batch_eval_count
+        else:
+            case_loss_first = case_loss_first / (len(indices_list_first) // batch_size + 1)
     
     # enumreate second dimension
     batch_size_count = 0
+    batch_eval_count = 0
     batch_x = torch.zeros((batch_size, 3, pet.shape[1], pet.shape[3]))
     batch_y = torch.zeros((batch_size, 3, ct.shape[1], ct.shape[3]))
 
@@ -177,12 +187,20 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
                     # calculate the L1 loss
                     loss = np.mean(np.abs(recon_batch_y-true_y))
                     case_loss_second += loss
+                    batch_eval_count += 1
+                    if batch_eval_count == batch_per_eval:
+                        # stop the for loop
+                        break
             batch_size_count = 0
         
-        case_loss_second = case_loss_second / (len(indices_list_second) // batch_size + 1)
+        if (stage == "eval" or stage == "test") and batch_per_eval > 0:
+            case_loss_second = case_loss_second / batch_eval_count
+        else:
+            case_loss_second = case_loss_second / (len(indices_list_second) // batch_size + 1)
     
     # enumreate third dimension
     batch_size_count = 0
+    batch_eval_count = 0
     batch_x = torch.zeros((batch_size, 3, pet.shape[1], pet.shape[2]))
     batch_y = torch.zeros((batch_size, 3, ct.shape[1], ct.shape[2]))
 
@@ -231,9 +249,16 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
                     # calculate the L1 loss
                     loss = np.mean(np.abs(recon_batch_y-true_y))
                     case_loss_third += loss
+                    batch_eval_count += 1
+                    if batch_eval_count == batch_per_eval:
+                        # stop the for loop
+                        break
             batch_size_count = 0
         
-        case_loss_third = case_loss_third / (len(indices_list_third) // batch_size + 1)
+        if (stage == "eval" or stage == "test") and batch_per_eval > 0:
+            case_loss_third = case_loss_third / batch_eval_count
+        else:
+            case_loss_third = case_loss_third / (len(indices_list_third) // batch_size + 1)
 
     return case_loss_first, case_loss_second, case_loss_third
 
