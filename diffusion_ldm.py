@@ -196,7 +196,7 @@ for idx_epoch in range(epoch):
         cl_1, cl_2, cl_3 = train_or_eval_or_test_the_batch(
             batch=batch,
             batch_size=get_param("train_param")["val_stage"]["batch_size"],
-            stage="val",
+            stage="eval",
             model=model,
             device=device,
         )
