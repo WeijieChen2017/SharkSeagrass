@@ -1021,7 +1021,7 @@ class LatentDiffusion(DDPM):
 
         # t = torch.randint(0, self.num_timesteps, (x.shape[0],), device=self.device).long()
         # create a constant t = 5
-        t = torch.tensor([5] * x_start.shape[0], device=self.device).long()
+        # t = torch.tensor([5] * x_start.shape[0], device=self.device).long()
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
         
         # # we log x_noisy here for debugging

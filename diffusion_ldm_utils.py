@@ -104,7 +104,7 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
                 with torch.no_grad():
                     # loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
                     # case_loss_first += loss.item()
-                    encoded_batch_x = model.first_stage_model.encode(batch_x)
+                    encoded_batch_x = model.first_stage_model.encode(batch_x) / vqs
                     shape = (encoded_batch_x.shape[1],)+encoded_batch_x.shape[2:]
                     samples_ddim, _ = sampler.sample(
                         S=steps,
@@ -113,8 +113,14 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
                         shape=shape,
                         verbose=False
                     )
-                    recon_batch_x = model.decode_first_stage(samples_ddim)
-
+                    recon_batch_y = model.decode_first_stage(samples_ddim)
+                    recon_batch_y = recon_batch_y.cpu().numpy().transpose(0,2,3,1)
+                    recon_batch_y = np.clip((recon_batch_y+1.0)/2.0, 0.0, 1.0)
+                    true_y = batch_y.cpu().numpy().transpose(0,2,3,1)
+                    true_y = np.clip((true_y+1.0)/2.0, 0.0, 1.0)
+                    # calculate the L1 loss
+                    loss = np.mean(np.abs(recon_batch_y-true_y))
+                    case_loss_first += loss
 
             batch_size_count = 0
         
@@ -152,8 +158,25 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
                 case_loss_second += loss.item()
             elif stage == "eval" or stage == "test":
                 with torch.no_grad():
-                    loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
-                    case_loss_second += loss.item()
+                    # loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
+                    # case_loss_first += loss.item()
+                    encoded_batch_x = model.first_stage_model.encode(batch_x) / vqs
+                    shape = (encoded_batch_x.shape[1],)+encoded_batch_x.shape[2:]
+                    samples_ddim, _ = sampler.sample(
+                        S=steps,
+                        conditioning=encoded_batch_x,
+                        batch_size=encoded_batch_x.shape[0],
+                        shape=shape,
+                        verbose=False
+                    )
+                    recon_batch_y = model.decode_first_stage(samples_ddim)
+                    recon_batch_y = recon_batch_y.cpu().numpy().transpose(0,2,3,1)
+                    recon_batch_y = np.clip((recon_batch_y+1.0)/2.0, 0.0, 1.0)
+                    true_y = batch_y.cpu().numpy().transpose(0,2,3,1)
+                    true_y = np.clip((true_y+1.0)/2.0, 0.0, 1.0)
+                    # calculate the L1 loss
+                    loss = np.mean(np.abs(recon_batch_y-true_y))
+                    case_loss_second += loss
             batch_size_count = 0
         
         case_loss_second = case_loss_second / (len(indices_list_second) // batch_size + 1)
@@ -189,8 +212,25 @@ def train_or_eval_or_test_the_batch(batch, batch_size, stage, model, optimizer=N
                 case_loss_third += loss.item()
             elif stage == "eval" or stage == "test":
                 with torch.no_grad():
-                    loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
-                    case_loss_third += loss.item()
+                    # loss, loss_dict = model(x=encoded_batch_y, c=batch_x)
+                    # case_loss_first += loss.item()
+                    encoded_batch_x = model.first_stage_model.encode(batch_x) / vqs
+                    shape = (encoded_batch_x.shape[1],)+encoded_batch_x.shape[2:]
+                    samples_ddim, _ = sampler.sample(
+                        S=steps,
+                        conditioning=encoded_batch_x,
+                        batch_size=encoded_batch_x.shape[0],
+                        shape=shape,
+                        verbose=False
+                    )
+                    recon_batch_y = model.decode_first_stage(samples_ddim)
+                    recon_batch_y = recon_batch_y.cpu().numpy().transpose(0,2,3,1)
+                    recon_batch_y = np.clip((recon_batch_y+1.0)/2.0, 0.0, 1.0)
+                    true_y = batch_y.cpu().numpy().transpose(0,2,3,1)
+                    true_y = np.clip((true_y+1.0)/2.0, 0.0, 1.0)
+                    # calculate the L1 loss
+                    loss = np.mean(np.abs(recon_batch_y-true_y))
+                    case_loss_third += loss
             batch_size_count = 0
         
         case_loss_third = case_loss_third / (len(indices_list_third) // batch_size + 1)
