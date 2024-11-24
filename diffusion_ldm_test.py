@@ -310,7 +310,7 @@ with torch.no_grad():
         predicted_image = x_samples_ddim.cpu().numpy().transpose(0,2,3,1)[0]
         # inpainted = (1-mask)*image+mask*predicted_image
         # inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
-        savename = root_dir+"xT_test.npy"
+        savename = root_dir+"xT_test_new.npy"
         np.save(savename, predicted_image)
         print("The output file is saved to", savename)
 
