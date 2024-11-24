@@ -301,7 +301,7 @@ with torch.no_grad():
             batch_size=c.shape[0],
             shape=shape,
             verbose=False,
-            x_T=x_T
+            # x_T=x_T
         )
         x_samples_ddim = model.decode_first_stage(samples_ddim)
         # image = torch.clamp((CT0_img+1.0)/2.0, min=0.0, max=1.0)
@@ -310,7 +310,7 @@ with torch.no_grad():
         predicted_image = x_samples_ddim.cpu().numpy().transpose(0,2,3,1)[0]
         # inpainted = (1-mask)*image+mask*predicted_image
         # inpainted = inpainted.cpu().numpy().transpose(0,2,3,1)[0]
-        savename = root_dir+"xT_test_new.npy"
+        savename = root_dir+"no_xT_new.npy"
         np.save(savename, predicted_image)
         print("The output file is saved to", savename)
 
