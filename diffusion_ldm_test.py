@@ -23,7 +23,7 @@ from diffusion_ldm_config import global_config, set_param, get_param
 # pip install torchvision
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--root", type=str, default="results/diffusion_ldm_vanilla_scaling_c")
+parser.add_argument("--root", type=str, default="results/diffusion_ldm_vanilla_scaling_c_random")
 parser.add_argument("--seed", type=int, default=729)
 parser.add_argument("--data_div", type=str, default="James_data_v3/cv_list.json")
 parser.add_argument("--indir", type=str, default="./semantic_synthesis256")
