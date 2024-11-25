@@ -35,7 +35,7 @@ from diffusion_ldm_config import global_config, set_param, get_param
 # pip install torchvision
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--root", type=str, default="results/diffusion_ldm_vanilla_scaling_c_random")
+parser.add_argument("--root", type=str, default="results/diffusion_ldm_vanilla_scaling_c_lr4")
 parser.add_argument("--seed", type=int, default=729)
 parser.add_argument("--data_div", type=str, default="James_data_v3/cv_list.json")
 # parser.add_argument("--indir", type=str, default="./semantic_synthesis256")
@@ -134,7 +134,7 @@ os.makedirs(ckptdir, exist_ok=True)
 # image_size = train_config.params.image_size
 # channels = train_config.params.channels
 
-base_learning_rate = 1.0e-06
+base_learning_rate = 1.0e-4
 linear_start = 0.0015
 linear_end = 0.0205
 timesteps = 1000
@@ -231,7 +231,7 @@ for idx_epoch in range(epoch):
         printlog(f"Model saved at epoch {idx_epoch}")
 
     # Learning rate adjustment
-    adjust_learning_rate(optimizer, idx_epoch, base_learning_rate)
+    # adjust_learning_rate(optimizer, idx_epoch, base_learning_rate)
 
 # ----------------------------------------------------
 
